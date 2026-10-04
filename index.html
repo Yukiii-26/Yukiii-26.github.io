@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  Yukishiro 的个人主页  ·  index.html
+  ============================================================================
+  【怎么改内容】整份网站就这一个文件，用记事本 / VS Code 打开，搜「改这里」
+  就能找到所有需要你替换的文字。改完保存，双击本文件用浏览器打开即可预览。
+
+  【注意】不要删除 <style> 和 <script> 这两块，它们是排版和动画。
+  ============================================================================
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时显示的卡片文字 ↓↓↓ -->
+<title>Yukishiro · 个人主页</title>
+<meta name="description" content="Yukishiro 的个人主页 —— 关于我、技能与作品。" />
+<meta property="og:title" content="Yukishiro · 个人主页" />
+<meta property="og:description" content="Yukishiro 的个人主页 —— 关于我、技能与作品。" />
+<meta property="og:type" content="website" />
+<!-- ↑↑↑ 改这里 ① ↑↑↑ -->
+
+<!-- 网站小图标（浏览器标签页上那个小方块），改文字就能换字母 -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232563eb'/><text x='50' y='70' font-size='60' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'>Y</text></svg>" />
+
+<style>
+  /* ===================== 配色（想换主题色只改 --accent 这一行） ===================== */
+  :root{
+    --accent:#2563eb;              /* 点缀色：现在是蓝色 */
+    --accent-soft:rgba(37,99,235,.07);
+    --bg:#ffffff;
+    --fg:#111418;
+    --muted:#6b7280;
+    --line:#e9ebef;
+    --card:#fcfcfd;
+    --max:940px;
+    --radius:14px;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--fg);line-height:1.75;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{line-height:1.3;margin:0}
+  p{margin:0}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 22px}
+
+  /* ===================== 顶部导航 ===================== */
+  .site-header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,.85);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 22px;max-width:var(--max);margin:0 auto}
+  .brand{font-weight:700;letter-spacing:.02em;font-size:16px}
+  .brand b{color:var(--accent)}
+  .nav-links{display:flex;gap:22px;font-size:14.5px;color:var(--muted)}
+  .nav-links a{transition:color .18s}
+  .nav-links a:hover{color:var(--accent)}
+
+  /* ===================== 首屏 ===================== */
+  .hero{position:relative;padding:86px 0 70px;overflow:hidden}
+  .hero::before{
+    content:"";position:absolute;left:-15%;right:-15%;top:-260px;height:600px;
+    background:radial-gradient(closest-side,var(--accent-soft),transparent 72%);
+    pointer-events:none;
+  }
+  .hero .wrap{position:relative}
+  .avatar{
+    width:70px;height:70px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),#7aa2ff);
+    color:#fff;font-size:28px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 24px rgba(37,99,235,.25);
+    margin-bottom:22px;
+  }
+  .hero h1{font-size:clamp(30px,5vw,44px);letter-spacing:-.02em}
+  .hero .tag{margin-top:12px;font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:640px}
+  .hero .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:11px 20px;border-radius:10px;font-size:15px;font-weight:600;
+    border:1px solid transparent;transition:transform .18s,box-shadow .18s,background .18s,border-color .18s;
+  }
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(37,99,235,.22)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(37,99,235,.3)}
+  .btn-ghost{border-color:var(--line);color:var(--fg);background:#fff}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+
+  /* ===================== 通用板块 ===================== */
+  .section{padding:58px 0;border-top:1px solid var(--line)}
+  .kicker{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .section h2{font-size:clamp(21px,3vw,26px);letter-spacing:-.01em}
+  .section .lead{margin-top:18px;color:var(--muted);max-width:66ch}
+
+  /* 关于我：左文右小档案 */
+  .about-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:34px;margin-top:20px}
+  .facts{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
+  .facts dl{margin:0;font-size:14.5px}
+  .facts dt{color:var(--muted);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;margin-top:12px}
+  .facts dt:first-child{margin-top:0}
+  .facts dd{margin:3px 0 0;font-weight:600}
+
+  /* 技能标签 */
+  .tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .tag-pill{
+    font-size:14px;padding:7px 14px;border-radius:999px;
+    background:var(--accent-soft);color:var(--accent);font-weight:600;
+    border:1px solid rgba(37,99,235,.14);
+  }
+
+  /* 作品卡片 */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:18px;margin-top:26px}
+  .card{
+    display:flex;flex-direction:column;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;transition:transform .2s,box-shadow .2s,border-color .2s;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(17,20,24,.07);border-color:#d8dce3}
+  .card .num{font-size:12.5px;font-weight:700;color:var(--accent);letter-spacing:.1em}
+  .card h3{font-size:17.5px;margin-top:8px}
+  .card p{margin-top:9px;font-size:14.5px;color:var(--muted);flex:1}
+  .card .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+  .card .meta span{font-size:12.5px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 8px;background:#fff}
+  .card .go{margin-top:16px;font-size:14px;font-weight:600;color:var(--accent)}
+
+  /* 联系 */
+  .contact{text-align:center;padding:64px 0}
+  .contact .lead{margin-left:auto;margin-right:auto}
+  .contact .actions{justify-content:center}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;color:var(--muted);font-size:13.5px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+
+  /* 进场动画 */
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .65s ease,transform .65s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media (max-width:760px){
+    .about-grid{grid-template-columns:1fr;gap:22px}
+    .nav-links{gap:16px;font-size:13.5px}
+    .hero{padding:60px 0 50px}
+    .section{padding:44px 0}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .reveal{opacity:1;transform:none;transition:none}
+  }
+</style>
+</head>
+
+<body>
+
+<!-- ===================== 顶部导航 ===================== -->
+<header class="site-header">
+  <nav class="nav">
+    <!-- ↓↓↓ 改这里 ②：左上角你的名字 ↓↓↓ -->
+    <a class="brand" href="#top">Yuki<b>shiro</b></a>
+    <div class="nav-links">
+      <a href="#about">关于</a>
+      <a href="#skills">技能</a>
+      <a href="#work">作品</a>
+      <a href="#contact">联系</a>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- ===================== 首屏 ===================== -->
+  <section class="hero">
+    <div class="wrap">
+      <!-- 头像：现在显示首字母 Y。想换成照片，见文末说明 -->
+      <div class="avatar" aria-hidden="true">Y</div>
+
+      <!-- ↓↓↓ 改这里 ③：你的名字 和 一句话介绍 ↓↓↓ -->
+      <h1>你好，我是 Yukishiro。</h1>
+      <p class="tag">
+        你好，我也没想好搞这个用来干什么，以后也许会搞点小玩意？
+      </p>
+      <!-- ↑↑↑ 改这里 ③ ↑↑↑ -->
+
+      <div class="actions">
+        <a class="btn btn-primary" href="#work">看看我的作品</a>
+        <a class="btn btn-ghost" href="#contact">联系我</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 关于我 ===================== -->
+  <section class="section" id="about">
+    <div class="wrap reveal">
+      <p class="kicker">About</p>
+      <h2>关于我</h2>
+      <div class="about-grid">
+        <!-- ↓↓↓ 改这里 ④：关于我正文（写 2～3 段最合适） ↓↓↓ -->
+        <div>
+          <p class="lead">
+            能点进来的应该都知道我是谁，大家好
+          </p>
+          <p class="lead">
+            第二段：没想好
+          </p>
+          <p class="lead">
+            第三段：没想好
+          </p>
+        </div>
+        <!-- ↑↑↑ 改这里 ④ ↑↑↑ -->
+
+        <!-- ↓↓↓ 改这里 ⑤：右侧小档案 ↓↓↓ -->
+        <aside class="facts">
+          <dl>
+            <dt>身份</dt><dd>学生 </dd>
+            <dt>所在城市</dt><dd>中国</dd>
+            <dt>正在学</dt><dd>Web 前端</dd>
+            <dt>状态</dt><dd>通透中......</dd>
+          </dl>
+        </aside>
+        <!-- ↑↑↑ 改这里 ⑤ ↑↑↑ -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 技能 ===================== -->
+  <section class="section" id="skills">
+    <div class="wrap reveal">
+      <p class="kicker">Skills</p>
+      <h2>我在用的东西</h2>
+      <p class="lead">正在探索中......</p>
+
+      <!-- ↓↓↓ 改这里 ⑥：技能标签，一行一个或几个都行 ↓↓↓ -->
+      <div class="tags">
+        <span class="tag-pill">HTML</span>
+        <span class="tag-pill">Python</span>
+        <span class="tag-pill">Git / GitHub</span>
+        <span class="tag-pill">Office</span>
+      </div>
+      <!-- ↑↑↑ 改这里 ⑥ ↑↑↑ -->
+    </div>
+  </section>
+
+  <!-- ===================== 作品 ===================== -->
+  <section class="section" id="work">
+    <div class="wrap reveal">
+      <p class="kicker">Work</p>
+      <h2>作品与项目</h2>
+      <p class="lead">还没有，先留着，比空着好看。</p>
+
+      <div class="cards">
+        <!-- ↓↓↓ 改这里 ⑦：每个 <article class="card"> 是一张卡片，可以复制更多 ↓↓↓ -->
+
+        <article class="card">
+          <span class="num">01</span>
+          <h3>项目名称一</h3>
+          <p>未完待续1</p>
+          <div class="meta"><span>占位</span><span>占位</span></div>
+          <a class="go" href="#">查看详情 →</a>
+        </article>
+
+        <article class="card">
+          <span class="num">02</span>
+          <h3>项目名称二</h3>
+          <p>未完待续2</p>
+          <div class="meta"><span>占位</span><span>占位</span></div>
+          <a class="go" href="#">查看详情 →</a>
+        </article>
+
+        <article class="card">
+          <span class="num">03</span>
+          <h3>项目名称三</h3>
+          <p>未完待续3</p>
+          <div class="meta"><span>占位</span><span>占位</span></div>
+          <a class="go" href="#">查看详情 →</a>
+        </article>
+
+        <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 联系 ===================== -->
+  <section class="section contact" id="contact">
+    <div class="wrap reveal">
+      <p class="kicker">Contact</p>
+      <h2>想聊两句？</h2>
+      <p class="lead">有事可以直接发邮件给我，我基本都会回。</p>
+
+      <!-- ↓↓↓ 改这里 ⑧：换成你的邮箱 和 GitHub 主页 ↓↓↓ -->
+      <div class="actions">
+        <a class="btn btn-primary" href="mailto:your-email@example.com">✉ Zwin112667@Gmail.com</a>
+        <a class="btn btn-ghost" href="https://github.com/Yukiii-26" target="_blank" rel="noopener">GitHub 主页</a>
+      </div>
+      <!-- ↑↑↑ 改这里 ⑧ ↑↑↑ -->
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <!-- ↓↓↓ 改这里 ⑨：页脚，年份会自动更新 ↓↓↓ -->
+    <span>© <span id="year">2025</span> Yukishiro</span>
+    <span>托管在 GitHub Pages</span>
+    <!-- ↑↑↑ 改这里 ⑨ ↑↑↑ -->
+  </div>
+</footer>
+
+<script>
+  // 年份自动更新
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // 滚动到哪一块，文字就轻轻浮上来
+  var items = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    items.forEach(function (el) { io.observe(el); });
+  } else {
+    items.forEach(function (el) { el.classList.add('in'); });
+  }
+</script>
+
+</body>
+</html>

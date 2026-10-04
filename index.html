@@ -74,6 +74,7 @@
   }
   .hero .wrap{position:relative}
   .avatar{
+    position:relative;overflow:hidden;      /* 让照片被裁成圆形 */
     width:70px;height:70px;border-radius:50%;
     background:linear-gradient(135deg,var(--accent),#7aa2ff);
     color:#fff;font-size:28px;font-weight:700;
@@ -81,6 +82,8 @@
     box-shadow:0 8px 24px rgba(37,99,235,.25);
     margin-bottom:22px;
   }
+  /* 有照片时，照片盖住下面的首字母；没照片时照片不存在，首字母就露出来 */
+  .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;border:0}
   .hero h1{font-size:clamp(30px,5vw,44px);letter-spacing:-.02em}
   .hero .tag{margin-top:12px;font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:640px}
   .hero .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
@@ -178,8 +181,14 @@
   <!-- ===================== 首屏 ===================== -->
   <section class="hero">
     <div class="wrap">
-      <!-- 头像：现在显示首字母 Y。想换成照片，见文末说明 -->
-      <div class="avatar" aria-hidden="true">Y</div>
+      <!-- ↓↓↓ 改这里 ⑩：头像照片 ↓↓↓
+           把照片命名成 avatar.jpg，传到仓库根目录（和 index.html 放一起）就行。
+           图片还没传上去时，会自动显示下面的蓝色首字母 Y，不会出现裂图。 -->
+      <div class="avatar" aria-hidden="true">
+        Y
+        <img src="avatar.jpg" alt="" onerror="this.remove()" />
+      </div>
+      <!-- ↑↑↑ 改这里 ⑩ ↑↑↑ -->
 
       <!-- ↓↓↓ 改这里 ③：你的名字 和 一句话介绍 ↓↓↓ -->
       <h1>你好，我是 Yukishiro。</h1>

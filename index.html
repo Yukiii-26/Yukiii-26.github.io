@@ -542,6 +542,41 @@
   toTop.addEventListener('click', function () {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+
+  // ===================== 🥚 彩蛋：键盘秘技（在文件里搜「彩蛋」就能找到这一段） =====================
+  // 在主页上依次敲 W W S S A D A D B A，就会跳到 egg/ 这一页。
+  // 也就是「上上下下左右左右 BA」的 WASD 版：W=上 S=下 A=左 D=右。
+  // 想换秘技：改 CODE 里的字母（全小写）。
+  // 想换跳转目标：改 EGG_URL。注意这里写成 egg/index.html 而不是 egg/，
+  // 因为本地双击预览时（file:// 协议）指向文件夹的地址只会列出文件、不会自动打开 index.html。
+  var CODE = 'wwssadadba';
+  var EGG_URL = 'egg/index.html';
+  var codeBuf = '';
+  document.addEventListener('keydown', function (e) {
+    // 按住不放时浏览器会连续触发，忽略掉
+    if (e.repeat) return;
+    // 正在输入框里打字就不抢按键（页面上现在没有输入框，留着以防以后新增）
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    // 只认能打出来的单个字符，Shift / Ctrl / 方向键之类一律跳过
+    if (!e.key || e.key.length !== 1) return;
+    codeBuf = (codeBuf + e.key.toLowerCase()).slice(-CODE.length);
+    if (codeBuf === CODE) {
+      codeBuf = '';
+      window.location.href = EGG_URL;
+    }
+  });
+
+  // 控制台提示：只有主动打开开发者工具（F12）的人才会看到，普通访客完全看不到。
+  // 想改提示文字就改下面的字符串；不想要提示，把这几行 console.log 整段删掉即可。
+  try {
+    console.log('%c🥚 你打开了控制台，那这里就藏点东西。',
+      'font-size:15px;font-weight:700;color:#c2410c;');
+    console.log('%c提示：那串很有名的「上上下下左右左右 BA」—— 不过键盘玩家用的不是方向键。',
+      'font-size:12.5px;color:#6f675c;');
+    console.log('%c想好了直接在页面上敲就行，不用点任何地方。',
+      'font-size:12.5px;color:#6f675c;');
+  } catch (err) {}
 </script>
 
 </body>

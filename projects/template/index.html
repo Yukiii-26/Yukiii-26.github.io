@@ -14,7 +14,8 @@
   · 项目本身就是一个能玩的网页（小游戏、小工具）→ 别用这个模板，
     直接把你的游戏放成 projects/游戏名/index.html，主页卡片直接链过去最省事。
   · 项目需要配文字说明、截图 → 用这个模板当 index.html（详情页），
-    再把能玩的东西放到同级的 play/ 文件夹里，"在线试玩" 按钮指向 ./play/ 。
+    再把能玩的东西放到同级的 play/ 文件夹里，"在线试玩" 按钮指向 ./play/index.html 。
+    （play 文件夹默认不存在，等你真放了东西进去，那个按钮才不会 404。用不到就删掉那个按钮。）
 
   【怎么改】搜「改这里」，一共 7 处。
   ============================================================================
@@ -193,9 +194,9 @@
 
 <header class="site-header">
   <nav class="nav">
-    <a class="brand" href="../../">Yuki<b>shiro</b></a>
+    <a class="brand" href="../../index.html">Yuki<b>shiro</b></a>
     <div class="nav-right">
-      <a class="back" href="../../">← 返回主页</a>
+      <a class="back" href="../../index.html">← 返回主页</a>
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
@@ -221,7 +222,7 @@
     </div>
 
     <div class="actions">
-      <a class="btn btn-primary" href="./play/">▶ 在线试玩</a>
+      <a class="btn btn-primary" href="./play/index.html">▶ 在线试玩</a>
       <a class="btn btn-ghost" href="https://github.com/Yukiii-26">查看源码</a>
     </div>
 
@@ -251,7 +252,7 @@
 <footer>
   <div class="wrap">
     <span>© <span id="year">2025</span> Yukishiro</span>
-    <span><a href="../../">返回主页</a></span>
+    <span><a href="../../index.html">返回主页</a></span>
   </div>
 </footer>
 

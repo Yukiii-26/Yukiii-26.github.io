@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  架空世界地图生成器  ·  projects/mapgen/index.html
+  ============================================================================
+  【这是什么】一个「按真实地理规律」生成架空世界地图的小工具。
+  纯 HTML + CSS + JavaScript，零依赖、单文件，双击就能用，不需要联网。
+
+  【怎么改】搜「改这里」，一共 3 处（页面标题、大标题与说明、页脚）。
+
+  【想调参数】搜「参数区」，那里是全部可调数值（板块数量、海平面、
+  侵蚀强度、气候强度……），每一项都有中文注释。
+
+  【配色】和主页共用同一套 CSS 变量，搜 :root 就能改浅色 / 深色两套。
+
+  【地图本身的生成规律】见页面最下方「生成原理」那一节，或搜
+  「=== 生成管线 ===」，代码按同样的顺序分成了 7 步。
+  ============================================================================
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#faf8f4" />
+
+<!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时的卡片文字 ↓↓↓ -->
+<title>架空世界地图生成器 · Yukishiro</title>
+<meta name="description" content="按真实地理规律生成架空世界地图 —— 板块运动、气候带、雨影、水系，全部由算法推导。" />
+<meta property="og:title" content="架空世界地图生成器 · Yukishiro" />
+<meta property="og:description" content="按真实地理规律生成架空世界地图 —— 板块运动、气候带、雨影、水系，全部由算法推导。" />
+<meta property="og:type" content="article" />
+<!-- ↑↑↑ 改这里 ① ↑↑↑ -->
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2316130f'/><text x='50' y='72' font-size='60' font-family='Georgia,serif' font-weight='700' fill='%23faf8f4' text-anchor='middle'>Y</text></svg>" />
+
+<script>
+  (function () {
+    document.documentElement.classList.add('js');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', saved || (sysDark ? 'dark' : 'light'));
+  })();
+</script>
+
+<style>
+  /* ===================== 配色：和主页完全一致 ===================== */
+  :root{
+    --paper:#faf8f4;
+    --surface:#ffffff;
+    --ink:#16130f;
+    --muted:#6f675c;
+    --line:#e2dbd0;
+    --accent:#c2410c;
+    --nav-bg:rgba(250,248,244,.92);
+    --max:1180px;
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#100e0d;
+    --surface:#1a1714;
+    --ink:#f0ece8;
+    --muted:#a29c95;
+    --line:rgba(255,255,255,.11);
+    --accent:#fb923c;
+    --nav-bg:rgba(16,14,13,.88);
+  }
+  :root[data-theme="light"]{color-scheme:light}
+
+  *,*::before,*::after{box-sizing:border-box}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);line-height:1.8;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+    transition:background-color .35s ease,color .35s ease;
+  }
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{margin:0;letter-spacing:-.03em;line-height:1.18}
+  p{margin:0}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 26px}
+
+  .glow{
+    position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity .45s ease;
+    background:
+      radial-gradient(56% 40% at 10% -6%, rgba(251,146,60,.22), transparent 70%),
+      radial-gradient(46% 36% at 92% -2%, rgba(245,158,11,.15), transparent 70%);
+  }
+  :root[data-theme="dark"] .glow{opacity:1}
+
+  /* ===================== 顶栏 ===================== */
+  .site-header{
+    position:sticky;top:0;z-index:60;background:var(--nav-bg);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-bottom:2px solid var(--ink);
+    transition:background-color .35s ease,border-color .35s ease;
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:var(--max);margin:0 auto;padding:15px 26px}
+  .brand{font-weight:800;font-size:16px}
+  .brand b{color:var(--accent)}
+  .nav-right{display:flex;align-items:center;gap:9px}
+  .back{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px solid transparent;padding-bottom:3px;transition:color .18s,border-color .18s}
+  .back:hover{color:var(--ink);border-bottom-color:var(--accent)}
+
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:32px;border-radius:2px;cursor:pointer;padding:0;
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    transition:border-color .18s,color .18s;
+  }
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+  .theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+  .theme-toggle .i-sun{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-moon{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-sun{display:block}
+
+  /* ===================== 页头 ===================== */
+  main{padding:56px 0 0}
+  .kicker{
+    display:flex;align-items:center;gap:14px;
+    font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:16px;
+  }
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* ↓↓↓ 改这里 ②：大标题 + 一句话说明 ↓↓↓ */
+  h1{font-size:clamp(30px,5.2vw,50px);font-weight:800;max-width:18ch}
+  .lead{margin-top:18px;font-size:17.5px;color:var(--muted);max-width:62ch}
+  /* ↑↑↑ 改这里 ② ↑↑↑ */
+
+  .tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+  .tag-pill{
+    font-size:13px;padding:6px 13px;border-radius:2px;font-weight:600;letter-spacing:.02em;
+    background:var(--surface);border:1px solid var(--line);color:var(--muted);
+  }
+
+  /* ===================== 主区：左控制台 + 右地图 ===================== */
+  .app{display:grid;grid-template-columns:296px minmax(0,1fr);gap:26px;margin-top:34px;align-items:start}
+
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:20px;
+    position:sticky;top:86px;
+  }
+  .panel h2{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .field{margin-top:18px}
+  .field:first-of-type{margin-top:16px}
+  .field > label{display:block;font-size:12.5px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-bottom:7px}
+  .row{display:flex;gap:8px}
+
+  input[type="text"],select{
+    width:100%;padding:10px 12px;font-size:14px;font-family:inherit;
+    background:var(--paper);color:var(--ink);
+    border:1px solid var(--line);border-radius:2px;outline:none;
+    transition:border-color .18s;
+  }
+  input[type="text"]:focus,select:focus{border-color:var(--accent)}
+  select{cursor:pointer;font-weight:600}
+
+  input[type="range"]{
+    width:100%;height:22px;margin:0;background:transparent;cursor:pointer;
+    -webkit-appearance:none;appearance:none;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{height:2px;background:var(--line)}
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;
+    background:var(--accent);border:0;
+  }
+  input[type="range"]::-moz-range-track{height:2px;background:var(--line)}
+  input[type="range"]::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:var(--accent)}
+  .range-head{display:flex;justify-content:space-between;align-items:baseline}
+  .range-head output{font-size:13px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 20px;border-radius:2px;font-size:14px;font-weight:600;font-family:inherit;
+    border:1px solid var(--ink);cursor:pointer;letter-spacing:.01em;
+    transition:background .18s,color .18s,border-color .18s,transform .18s;
+  }
+  .btn-primary{background:var(--ink);color:var(--paper);width:100%}
+  .btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn-primary:disabled{opacity:.5;cursor:progress;transform:none;background:var(--ink);border-color:var(--ink)}
+  .btn-mini{
+    padding:10px 12px;font-size:13.5px;white-space:nowrap;
+    background:transparent;color:var(--ink);border:1px solid var(--line);
+  }
+  .btn-mini:hover{border-color:var(--accent);color:var(--accent)}
+
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .seg button{
+    padding:9px 6px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;
+    background:var(--paper);color:var(--muted);border:1px solid var(--line);border-radius:2px;
+    transition:all .18s;
+  }
+  .seg button:hover{border-color:var(--accent);color:var(--accent)}
+  .seg button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  /* 按钮是奇数个时，最后一个横跨整行，免得右下角空一格 */
+  .seg button:last-child:nth-child(odd){grid-column:1 / -1}
+
+  .checks{display:grid;gap:2px;margin-top:4px}
+  .checks label{display:flex;align-items:center;gap:9px;font-size:13.5px;cursor:pointer;padding:4px 0;color:var(--ink)}
+  .checks input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer;margin:0}
+
+  /* ===================== 地图 ===================== */
+  .stage{min-width:0}
+  .map-frame{
+    position:relative;border:1px solid var(--line);border-radius:2px;background:var(--paper);
+    overflow:hidden;line-height:0;
+  }
+  #map{width:100%;height:auto;display:block;transition:opacity .3s ease}
+  #map.busy{opacity:.45}
+  .badge{
+    position:absolute;left:12px;bottom:12px;font-size:11.5px;font-weight:600;letter-spacing:.04em;
+    padding:5px 10px;border-radius:2px;line-height:1.5;
+    background:rgba(16,14,13,.72);color:#f3efe9;pointer-events:none;
+    font-variant-numeric:tabular-nums;
+  }
+  .status{
+    display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--muted);
+    min-height:20px;
+  }
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none;opacity:0;transition:opacity .2s}
+  .status.busy .dot{opacity:1;animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+
+  .readout{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px;
+    margin-top:16px;background:var(--line);border:1px solid var(--line);border-radius:2px;
+  }
+  .readout div{background:var(--surface);padding:11px 13px}
+  .readout dt{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .readout dd{margin:4px 0 0;font-size:15.5px;font-weight:700;font-variant-numeric:tabular-nums}
+
+  /* ===================== 底部说明 ===================== */
+  .section{margin-top:64px;padding-top:34px;border-top:1px solid var(--line)}
+  .section h2{font-size:clamp(20px,3vw,27px);font-weight:800}
+  .prose{margin-top:16px;max-width:70ch}
+  .prose p + p{margin-top:14px}
+  .prose code{background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:1px 6px;font-size:13.5px}
+
+  details.rules{margin-top:18px;border:1px solid var(--line);border-radius:2px;background:var(--surface)}
+  details.rules > summary{
+    cursor:pointer;padding:14px 18px;font-size:14.5px;font-weight:700;list-style:none;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+  }
+  details.rules > summary::-webkit-details-marker{display:none}
+  details.rules > summary::after{content:"＋";color:var(--accent);font-weight:700}
+  details.rules[open] > summary::after{content:"－"}
+  details.rules[open] > summary{border-bottom:1px solid var(--line)}
+  .rules-body{padding:6px 18px 20px;max-width:76ch}
+  .rules-body ol{margin:14px 0 0;padding-left:22px}
+  .rules-body li{margin-top:12px}
+  .rules-body li b{color:var(--ink)}
+  .rules-body .tie{color:var(--muted);font-size:13.5px;display:block;margin-top:3px}
+
+  .palette{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+  .sw{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:2px;padding:4px 9px;background:var(--surface)}
+  .sw i{width:11px;height:11px;border-radius:1px;display:block}
+
+  footer{margin-top:76px;border-top:2px solid var(--ink);padding:26px 0;color:var(--muted);font-size:12.5px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+
+  noscript .warn{
+    display:block;margin-top:20px;padding:14px 18px;border:1px solid var(--accent);
+    border-radius:2px;color:var(--ink);background:var(--surface);font-size:14px;
+  }
+
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr;gap:20px}
+    .panel{position:static}
+    main{padding:40px 0 0}
+  }
+</style>
+</head>
+
+<body>
+<div class="glow" aria-hidden="true"></div>
+
+<header class="site-header">
+  <nav class="nav">
+    <a class="brand" href="../../index.html">Yuki<b>shiro</b></a>
+    <div class="nav-right">
+      <a class="back" href="../../index.html">← 返回主页</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="kicker">Project · 02</p>
+
+    <h1>架空世界地图生成器</h1>
+
+    <p class="lead">
+      点一下，生成一个<strong>环海世界的完整版图</strong> —— 四面都是海，陆地长在中间，
+      不会被地图边缘切断。地貌不是随机堆出来的：山脉沿着板块碰撞带隆起，
+      沙漠落在副热带高压下，雨林长在赤道，河流从分水岭一路汇进海里。
+    </p>
+
+    <div class="tags">
+      <span class="tag-pill">HTML</span>
+      <span class="tag-pill">CSS</span>
+      <span class="tag-pill">JavaScript</span>
+      <span class="tag-pill">Canvas</span>
+      <span class="tag-pill">零依赖</span>
+      <span class="tag-pill">程序化生成</span>
+    </div>
+
+    <noscript>
+      <span class="warn">⚠️ 这个页面靠 JavaScript 实时计算地图，请打开 JavaScript 后再刷新。</span>
+    </noscript>
+
+    <div class="app">
+      <!-- ===================== 控制台 ===================== -->
+      <aside class="panel">
+        <h2>生成设置</h2>
+
+        <div class="field">
+          <label for="seed">世界种子</label>
+          <div class="row">
+            <input type="text" id="seed" value="terra" spellcheck="false" autocomplete="off" />
+            <button class="btn btn-mini" id="dice" type="button" title="随机换一个种子">🎲</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="land">陆地占比 <span style="font-weight:400;letter-spacing:0">（地球约 29%）</span></label>
+          <div class="range-head"><span></span><output id="landOut">28%</output></div>
+          <input type="range" id="land" min="18" max="60" value="28" step="1" />
+        </div>
+
+        <div class="field">
+          <label for="margin">环海宽度 <span style="font-weight:400;letter-spacing:0">（0 = 陆地可到边缘）</span></label>
+          <div class="range-head"><span></span><output id="marginOut">42%</output></div>
+          <input type="range" id="margin" min="0" max="55" value="42" step="1" />
+        </div>
+
+        <div class="field">
+          <label for="plates">板块数量</label>
+          <div class="range-head"><span></span><output id="platesOut">13</output></div>
+          <input type="range" id="plates" min="5" max="24" value="13" step="1" />
+        </div>
+
+        <div class="field">
+          <label for="quality">精度（越细越慢）</label>
+          <select id="quality">
+            <option value="fast">快 · 480 × 300</option>
+            <option value="std" selected>标准 · 768 × 480</option>
+            <option value="fine">精细 · 1024 × 640</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>显示图层</label>
+          <div class="seg" id="modes">
+            <button type="button" data-mode="biome" class="on">地形</button>
+            <button type="button" data-mode="elev">高程</button>
+            <button type="button" data-mode="temp">气温</button>
+            <button type="button" data-mode="rain">降水</button>
+            <button type="button" data-mode="plate">板块</button>
+            <button type="button" data-mode="river">水系</button>
+            <button type="button" data-mode="blank">白底</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>叠加</label>
+          <div class="checks">
+            <label><input type="checkbox" id="ovRiver" checked /> 河流与湖泊</label>
+            <label><input type="checkbox" id="ovOutline" /> 大陆轮廓（黑线）</label>
+            <label><input type="checkbox" id="ovGrid" /> 经纬网</label>
+            <label><input type="checkbox" id="ovPlate" /> 板块边界</label>
+            <label><input type="checkbox" id="ovShade" checked /> 山体阴影</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <button class="btn btn-primary" id="gen" type="button">生成地图</button>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <button class="btn btn-mini" id="save" type="button" style="width:100%">下载 PNG 图片</button>
+        </div>
+      </aside>
+
+      <!-- ===================== 地图 ===================== -->
+      <div class="stage">
+        <div class="map-frame">
+          <canvas id="map" width="768" height="480"></canvas>
+          <div class="badge" id="badge">—</div>
+        </div>
+        <div class="status" id="status"><span class="dot"></span><span id="statusText">准备就绪</span></div>
+
+        <dl class="readout" id="readout">
+          <div><dt>陆地</dt><dd id="rLand">—</dd></div>
+          <div><dt>最高峰</dt><dd id="rPeak">—</dd></div>
+          <div><dt>河流</dt><dd id="rRiver">—</dd></div>
+          <div><dt>湖泊</dt><dd id="rLake">—</dd></div>
+          <div><dt>耗时</dt><dd id="rTime">—</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- ===================== 说明 ===================== -->
+    <section class="section">
+      <h2>它是怎么做到「像真的」的</h2>
+      <div class="prose">
+        <p>
+          纯随机噪声画出来的大陆，一眼就假：海岸线到处一样碎，山随便乱长，沙漠和雨林挨在一起。
+          这张地图换了个做法 —— 先把地球物理的几条硬规则跑一遍，地貌是这些规则「推」出来的结果。
+        </p>
+        <p>
+          下面每一条都能在代码里找到对应的一段（搜「=== 生成管线 ===」，一共 7 步）。
+        </p>
+      </div>
+
+      <details class="rules" open>
+        <summary>生成原理 · 七步</summary>
+        <div class="rules-body">
+          <ol>
+            <li>
+              <b>板块构造决定山脉在哪。</b>
+              地图上先撒下若干板块，每块有随机运动方向。两块迎面撞上（汇聚边界）就隆起山脉，
+              像喜马拉雅；洋壳撞陆壳，洋壳俯冲下去形成海沟、陆壳一侧隆起岛弧，像安第斯；
+              两块分开（离散边界）则大陆裂开成裂谷、洋底张开成海岭。
+              <span class="tie">所以山脉永远成链状沿着某条线排布，而不是东一座西一座。</span>
+            </li>
+            <li>
+              <b>坐标扭曲让海岸线变成分形。</b>
+              直接用板块边界会切出笔直的折线。这里先把每个像素的采样坐标用噪声推开一段，
+              边界立刻变得弯弯曲曲 —— 这一步决定了海岸线是否自然。
+            </li>
+            <li>
+              <b>海岸附近额外加碎细节。</b>
+              细噪声只在海拔接近海平面的地方生效，内陆保持平缓。
+              于是海岸线上有半岛、海湾、离岛，而大陆内部不会莫名其妙全是坑。
+            </li>
+            <li>
+              <b>水力侵蚀。</b>
+              模拟几万滴雨水从高处流下，冲刷带走泥沙、在平缓处沉积。
+              结果是山坡变缓、山谷被刻深 —— 这是山看起来「有体积」而不是一层贴图的关键。
+            </li>
+            <li>
+              <b>海平面按比例切。</b>
+              不写死高度阈值，而是让海平面落在「陆地占比正好等于你设定的百分比」的高度上。
+              所以拖动陆地占比，海岸线会整体进退，而不是地图忽大忽小。
+            </li>
+            <li>
+              <b>气候由纬度与地形共同决定。</b>
+              气温先按纬度给一个基准（赤道约 28 ℃、极地约 −28 ℃），再按海拔每升高 1000 米降 6.5 ℃。
+              水汽则顺着盛行风带（赤道信风、中纬西风、极地东风）从海上向内陆输送，
+              <b>遇到迎风坡被迫抬升就下雨，翻过山脊后空气已经干了 —— 这就是雨影</b>，
+              内陆深处也会因为离海太远而干旱。
+            </li>
+            <li>
+              <b>水系自然汇流。</b>
+              先把洼地填平保证水能流到海里，再让每个格子把水交给最低的邻居。
+              于是支流只会汇聚、不会凭空分叉，最后汇成干流入海 —— 和真实河网一样。
+              积水填不平的地方就成了湖泊。
+            </li>
+          </ol>
+          <p style="margin-top:18px">
+            最后，气温和降水共同决定每一格是什么植被（这就是地理课本里的「惠特克图」）：
+            又热又湿是雨林，热而干是沙漠，温而湿是温带森林，冷而湿是针叶林，太冷就是苔原和冰盖。
+          </p>
+        </div>
+      </details>
+
+      <div class="palette" id="palette"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <!-- ↓↓↓ 改这里 ③：页脚 ↓↓↓ -->
+    <span>© <span id="year">2025</span> Yukishiro</span>
+    <span><a href="../../index.html">返回主页</a></span>
+    <!-- ↑↑↑ 改这里 ③ ↑↑↑ -->
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ==========================================================
+     参数区 —— 想微调地图手感，改这里就够了
+     ========================================================== */
+  var P = {
+    seaLevelLandFrac : 0.28,  // 陆地占比（由滑块控制，这里是默认值；地球约 29%）
+    oceanMargin      : 0.42,  // 环海宽度：地图四周留多宽的海（0 = 陆地可以顶到边缘）
+    marginDepth      : 2.2,   // 环海下沉的强度，够大才能保证压到海面以下
+    plateCount       : 13,    // 板块数量
+    oceanicRatio     : 0.46,  // 板块里有多少比例是洋壳（地球约 55%）
+    boundaryWidth    : 0.055, // 板块边界的影响宽度（占地图宽度的比例）
+    warpStrength     : 0.055, // 坐标扭曲强度 —— 海岸线弯曲程度
+    coastDetail      : 0.15,  // 海岸线附加碎细节的强度
+    detailAmp        : 0.42,  // 大陆内部起伏强度
+    mountainAmp      : 0.34,  // 山脉脊线附加高度
+    polarBias        : 0.35,  // 两极陆地下沉偏置 —— 避免巨型极地大陆
+    collideGain      : 1.15,  // 陆陆碰撞的造山强度
+    arcGain          : 0.72,  // 洋陆俯冲的岛弧强度
+    trenchGain       : 0.50,  // 海沟深度
+    ridgeGain        : 0.34,  // 洋中脊高度
+    riftGain         : 0.42,  // 大陆裂谷深度
+    erosionDroplets  : 1 / 12,// 侵蚀雨滴数 = 像素数 × 这个系数
+    climateIters     : 420,   // 水汽输送迭代次数（越多，水汽能深入内陆越远）
+    climateCoarse    : 3,     // 气候在几分之一分辨率的粗网格上算（3 = 1/3）
+    climateStep      : 1.0,   // 每个迭代水汽前进多少（粗网格像素）
+    baseRain         : 0.0052,// 每步的基础降水率 —— 决定水汽能走多远
+    orographic       : 1.6,   // 迎风坡抬升成雨的强度
+    orographicMax    : 0.075, // 单步降水率的上限 —— 防止一座山把水汽一次榨干
+    recycle          : 0.0038,// 陆地蒸发再循环 —— 避免内陆干到一滴雨没有
+    wetPercentile    : 0.96,  // 湿润度归一化用的分位（0.96 = 最湿的 4% 算满分）
+    lapseRate        : 6.5,   // 海拔每升高 1 公里降温多少度
+    equatorTemp      : 28,    // 赤道年均温（℃）
+    poleTemp         : -28,   // 极地年均温（℃）
+    maxElevation     : 8500,  // 最高峰对应多少米
+    maxDepth         : 6000,  // 最深海沟对应多少米
+    reliefScale      : 26,    // 山体阴影的夸张程度
+    outlineMinLake   : 24     // 大陆轮廓只勾这么大的湖（小于这个格数的水洼不勾，否则满屏黑点）
+  };
+
+  /* ==========================================================
+     小工具
+     ========================================================== */
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function smoothstep(e0, e1, x) { var t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); }
+
+  // 颜色查找：stops = [[位置 0~1, [r,g,b]], ...]
+  function ramp(stops, t) {
+    t = clamp(t, 0, 1);
+    for (var i = 1; i < stops.length; i++) {
+      if (t <= stops[i][0]) {
+        var a = stops[i - 1], b = stops[i];
+        var k = (t - a[0]) / Math.max(1e-6, b[0] - a[0]);
+        return [lerp(a[1][0], b[1][0], k), lerp(a[1][1], b[1][1], k), lerp(a[1][2], b[1][2], k)];
+      }
+    }
+    return stops[stops.length - 1][1].slice();
+  }
+
+  // 字符串种子 -> 32 位整数（xmur3）
+  function hashSeed(str) {
+    var h = 1779033703 ^ str.length;
+    for (var i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h ^= h >>> 16) >>> 0;
+  }
+  // 快速伪随机数（mulberry32）：同一个种子永远给同一串数
+  function makeRandom(seedInt) {
+    var a = seedInt >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ==========================================================
+     噪声：2D simplex + 分形叠加（fBm）
+     ========================================================== */
+  function makeNoise(rand) {
+    var p = new Uint8Array(256), i, j, t;
+    for (i = 0; i < 256; i++) p[i] = i;
+    for (i = 255; i > 0; i--) { j = (rand() * (i + 1)) | 0; t = p[i]; p[i] = p[j]; p[j] = t; }
+    var perm = new Uint8Array(512), pm12 = new Uint8Array(512);
+    for (i = 0; i < 512; i++) { perm[i] = p[i & 255]; pm12[i] = perm[i] % 12; }
+    var g = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
+    var F2 = 0.5 * (Math.sqrt(3) - 1), G2 = (3 - Math.sqrt(3)) / 6;
+    return function (xin, yin) {
+      var n0, n1, n2;
+      var s = (xin + yin) * F2;
+      var ii = Math.floor(xin + s), jj = Math.floor(yin + s);
+      var tt = (ii + jj) * G2;
+      var x0 = xin - (ii - tt), y0 = yin - (jj - tt);
+      var i1, j1;
+      if (x0 > y0) { i1 = 1; j1 = 0; } else { i1 = 0; j1 = 1; }
+      var x1 = x0 - i1 + G2, y1 = y0 - j1 + G2;
+      var x2 = x0 - 1 + 2 * G2, y2 = y0 - 1 + 2 * G2;
+      var I = ii & 255, J = jj & 255;
+      var gi0 = pm12[I + perm[J]], gi1 = pm12[I + i1 + perm[J + j1]], gi2 = pm12[I + 1 + perm[J + 1]];
+      var t0 = 0.5 - x0 * x0 - y0 * y0;
+      n0 = t0 < 0 ? 0 : (t0 *= t0, t0 * t0 * (g[gi0][0] * x0 + g[gi0][1] * y0));
+      var t1 = 0.5 - x1 * x1 - y1 * y1;
+      n1 = t1 < 0 ? 0 : (t1 *= t1, t1 * t1 * (g[gi1][0] * x1 + g[gi1][1] * y1));
+      var t2 = 0.5 - x2 * x2 - y2 * y2;
+      n2 = t2 < 0 ? 0 : (t2 *= t2, t2 * t2 * (g[gi2][0] * x2 + g[gi2][1] * y2));
+      return 70 * (n0 + n1 + n2);
+    };
+  }
+  function fbm(noise, x, y, oct, gain) {
+    var a = 1, f = 1, s = 0, norm = 0;
+    for (var i = 0; i < oct; i++) { s += a * noise(x * f, y * f); norm += a; a *= gain; f *= 2; }
+    return s / norm;
+  }
+
+  /* ==========================================================
+     第 1 步：板块构造 —— 决定山脉、海沟、裂谷、海岭的位置
+     ========================================================== */
+  function buildPlates(rand, W, H, count, margin) {
+    var plates = [], i;
+    // 板块都安置在中间区域：边缘会被「环海」压成海，放过去也是白放
+    if (typeof margin !== 'number' || !isFinite(margin)) margin = 0;
+    var pad = 0.05 + margin * 0.38;
+    for (i = 0; i < count; i++) {
+      var ang = rand() * Math.PI * 2;
+      var oceanic = rand() < P.oceanicRatio;
+      plates.push({
+        x: (pad + rand() * (1 - 2 * pad)) * W,
+        y: (pad + rand() * (1 - 2 * pad)) * H,
+        vx: Math.cos(ang), vy: Math.sin(ang),
+        oceanic: oceanic,
+        base: (oceanic ? -0.30 : 0.16) + (rand() - 0.5) * 0.14
+      });
+    }
+    return plates;
+  }
+
+  /* ==========================================================
+     第 5 步的工具：优先队列洪水填充（填洼地，保证水能流到海）
+     顺带算出每个格子的流向
+     ========================================================== */
+  function fillAndRoute(h, W, H, sea) {
+    var n = W * H;
+    var filled = Float32Array.from(h);
+    var closed = new Uint8Array(n);
+    var heap = new Int32Array(n + 8);
+    var size = 0, i;
+
+    function push(idx) {
+      var c = size++;
+      heap[c] = idx;
+      while (c > 0) {
+        var pi = (c - 1) >> 1;
+        if (filled[heap[pi]] <= filled[heap[c]]) break;
+        var t = heap[pi]; heap[pi] = heap[c]; heap[c] = t; c = pi;
+      }
+    }
+    function pop() {
+      var top = heap[0];
+      size--;
+      if (size > 0) {
+        heap[0] = heap[size];
+        var c = 0;
+        for (;;) {
+          var l = 2 * c + 1, r = l + 1, m = c;
+          if (l < size && filled[heap[l]] < filled[heap[m]]) m = l;
+          if (r < size && filled[heap[r]] < filled[heap[m]]) m = r;
+          if (m === c) break;
+          var t = heap[m]; heap[m] = heap[c]; heap[c] = t; c = m;
+        }
+      }
+      return top;
+    }
+
+    // 出海口：所有海面以下的格子，以及地图四条边
+    for (i = 0; i < n; i++) {
+      if (h[i] <= sea) { closed[i] = 1; push(i); }
+    }
+    for (var x = 0; x < W; x++) {
+      var a = x, b = (H - 1) * W + x;
+      if (!closed[a]) { closed[a] = 1; push(a); }
+      if (!closed[b]) { closed[b] = 1; push(b); }
+    }
+    for (var y = 0; y < H; y++) {
+      var c1 = y * W, c2 = y * W + W - 1;
+      if (!closed[c1]) { closed[c1] = 1; push(c1); }
+      if (!closed[c2]) { closed[c2] = 1; push(c2); }
+    }
+
+    var dxs = [-1, 0, 1, -1, 1, -1, 0, 1], dys = [-1, -1, -1, 0, 0, 1, 1, 1];
+    while (size > 0) {
+      var cur = pop();
+      var cx = cur % W, cy = (cur / W) | 0;
+      for (var k = 0; k < 8; k++) {
+        var nx = cx + dxs[k], ny = cy + dys[k];
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        var nb = ny * W + nx;
+        if (closed[nb]) continue;
+        closed[nb] = 1;
+        // 抬高到不低于来路，+一点点斜率保证水总能往下走
+        filled[nb] = Math.max(h[nb], filled[cur] + 1e-7);
+        push(nb);
+      }
+    }
+
+    // 流向：八邻域里 filled 最低的那个
+    var down = new Int32Array(n).fill(-1);
+    for (var yy = 0; yy < H; yy++) {
+      for (var xx = 0; xx < W; xx++) {
+        var idx = yy * W + xx;
+        if (h[idx] <= sea) continue;
+        var best = -1, bestV = filled[idx];
+        for (var k2 = 0; k2 < 8; k2++) {
+          var ax = xx + dxs[k2], ay = yy + dys[k2];
+          if (ax < 0 || ay < 0 || ax >= W || ay >= H) continue;
+          var aidx = ay * W + ax;
+          var v = filled[aidx] + (k2 % 2 ? 1e-9 : 0); // 斜向轻微劣后，减少锯齿
+          if (v < bestV) { bestV = v; best = aidx; }
+        }
+        down[idx] = best;
+      }
+    }
+    return { filled: filled, down: down };
+  }
+
+  /* ==========================================================
+     第 4 步：水力侵蚀（雨滴冲刷）
+     ========================================================== */
+  function erode(h, W, H, rand, droplets) {
+    var inertia = 0.05, capacity = 4.2, depositRate = 0.28, erodeRate = 0.34,
+        evaporate = 0.02, gravity = 6.0, minSlope = 0.0015, maxLife = 26;
+    var i, d;
+    for (d = 0; d < droplets; d++) {
+      var px = 1 + rand() * (W - 3), py = 1 + rand() * (H - 3);
+      var dx = 0, dy = 0, speed = 1, water = 1, sediment = 0;
+      for (var life = 0; life < maxLife; life++) {
+        var nx = px | 0, ny = py | 0;
+        var fx = px - nx, fy = py - ny;
+        if (nx < 1 || ny < 1 || nx >= W - 2 || ny >= H - 2) break;
+        var o00 = ny * W + nx, o10 = o00 + 1, o01 = o00 + W, o11 = o01 + 1;
+        var h00 = h[o00], h10 = h[o10], h01 = h[o01], h11 = h[o11];
+        var gx = (h10 - h00) * (1 - fy) + (h11 - h01) * fy;
+        var gy = (h01 - h00) * (1 - fx) + (h11 - h10) * fx;
+        var oldH = (h00 * (1 - fx) + h10 * fx) * (1 - fy) + (h01 * (1 - fx) + h11 * fx) * fy;
+
+        dx = dx * inertia - gx * (1 - inertia);
+        dy = dy * inertia - gy * (1 - inertia);
+        var len = Math.sqrt(dx * dx + dy * dy);
+        if (len < 1e-7) { var aa = rand() * 6.283185; dx = Math.cos(aa); dy = Math.sin(aa); len = 1; }
+        dx /= len; dy /= len;
+
+        var ox = px, oy = py, ofx = fx, ofy = fy;   // 记下原地，沉积要放回原格
+        px += dx; py += dy;
+        if (px < 1 || py < 1 || px >= W - 2 || py >= H - 2) break;
+        nx = px | 0; ny = py | 0; fx = px - nx; fy = py - ny;
+        var n00 = ny * W + nx, n10 = n00 + 1, n01 = n00 + W, n11 = n01 + 1;
+        var newH = (h[n00] * (1 - fx) + h[n10] * fx) * (1 - fy) + (h[n01] * (1 - fx) + h[n11] * fx) * fy;
+        var dh = newH - oldH;
+        var cap = Math.max(-dh * speed * water * capacity, minSlope);
+
+        var onx = ox | 0, ony = oy | 0;
+        var w00 = (1 - ofx) * (1 - ofy), w10 = ofx * (1 - ofy), w01 = (1 - ofx) * ofy, w11 = ofx * ofy;
+        var b00 = ony * W + onx, b10 = b00 + 1, b01 = b00 + W, b11 = b01 + 1;
+
+        if (sediment > cap || dh > 0) {
+          // 沉积
+          var amt = (dh > 0) ? Math.min(dh, sediment) : (sediment - cap) * depositRate;
+          sediment -= amt;
+          h[b00] += amt * w00; h[b10] += amt * w10; h[b01] += amt * w01; h[b11] += amt * w11;
+        } else {
+          // 冲刷
+          var amt2 = Math.min((cap - sediment) * erodeRate, -dh);
+          h[b00] -= amt2 * w00; h[b10] -= amt2 * w10; h[b01] -= amt2 * w01; h[b11] -= amt2 * w11;
+          sediment += amt2;
+        }
+        speed = Math.sqrt(Math.max(0, speed * speed + (-dh) * gravity));
+        water *= (1 - evaporate);
+        if (water < 0.01) break;
+      }
+    }
+  }
+
+  /* ==========================================================
+     生物群系配色表
+     ========================================================== */
+  var C_DEEP = [16, 42, 66], C_OCEAN = [25, 63, 93], C_SHELF = [40, 95, 122];
+  var C_LAKE = [58, 124, 158];
+  var BIOMES = [
+    { name: '深海',      c: C_DEEP },
+    { name: '海洋',      c: C_OCEAN },
+    { name: '近海陆架',  c: C_SHELF },
+    { name: '沙滩海岸',  c: [226, 213, 168] },
+    { name: '沙漠',      c: [226, 204, 146] },
+    { name: '稀树草原',  c: [194, 180, 110] },
+    { name: '草原',      c: [160, 178, 108] },
+    { name: '温带森林',  c: [104, 146, 86] },
+    { name: '雨林',      c: [52, 110, 64] },
+    { name: '针叶林',    c: [74, 108, 82] },
+    { name: '苔原',      c: [148, 156, 142] },
+    { name: '冰盖雪原',  c: [238, 244, 247] },
+    { name: '高山裸岩',  c: [150, 143, 133] },
+    { name: '湖泊',      c: C_LAKE }
+  ];
+  var B_DEEP = 0, B_OCEAN = 1, B_SHELF = 2, B_BEACH = 3, B_DESERT = 4, B_SAVANNA = 5,
+      B_GRASS = 6, B_FOREST = 7, B_JUNGLE = 8, B_TAIGA = 9, B_TUNDRA = 10,
+      B_ICE = 11, B_ROCK = 12, B_LAKE = 13;
+
+  function pickBiome(t, m, elevM) {
+    // 高山：海拔够高就是裸岩，再高就是积雪
+    if (elevM > 5200) return t < -2 ? B_ICE : B_ROCK;
+    if (elevM > 3200 && t < 4) return B_ROCK;
+    // 温度带。注意 t 是「年均温」，而且真实的分界比直觉更冷：
+    // 西伯利亚针叶林一直长到 70°N（年均温约 -10 ℃），所以苔原的界线要压到 -8 ℃ 附近，
+    // 冰盖则要求更严苛的持续低温（格陵兰年均 -15 ℃ 以下）。
+    if (t < -20) return B_ICE;
+    if (t < -8) return B_TUNDRA;
+    if (t < 7) return m < 0.28 ? B_TUNDRA : B_TAIGA;
+    if (t < 15) return m < 0.18 ? B_GRASS : (m < 0.5 ? B_TAIGA : B_FOREST);
+    if (t < 22) return m < 0.16 ? B_DESERT : (m < 0.33 ? B_GRASS : (m < 0.62 ? B_FOREST : B_JUNGLE));
+    return m < 0.14 ? B_DESERT : (m < 0.3 ? B_SAVANNA : (m < 0.62 ? B_FOREST : B_JUNGLE));
+  }
+
+  /* ---------- 地球式的「海拔分布曲线」（hypsometric curve） ----------
+     横轴 = 排名分位（0 最深，1 最高），纵轴 = 归一化海拔（0 = 海平面）。
+     海底：大陆架 7% → 大陆坡 7% → 深海平原 80% → 海沟 6%。
+     陆地：用幂曲线压，让大部分陆地是低地，高山只占很小一块。 */
+  /* 陆地那一半：按真实地球的「陆地高程分布」铺。
+     地球上：一半陆地低于 500 m，九成低于 2500 m，8000 m 以上只有个位数山峰。
+     光用幂曲线压不出这个形状（尾巴太肥，会变成遍地高山），所以直接给出控制点，
+     中间用平滑曲线连起来。 */
+  var LAND_KNOTS = [
+    [0.00, 0.000], [0.25, 0.018], [0.50, 0.059], [0.75, 0.176],
+    [0.90, 0.294], [0.97, 0.529], [1.00, 1.000]
+  ];
+  function landCurve(t) {
+    t = clamp(t, 0, 1);
+    for (var i = 1; i < LAND_KNOTS.length; i++) {
+      if (t <= LAND_KNOTS[i][0]) {
+        var a = LAND_KNOTS[i - 1], b = LAND_KNOTS[i];
+        var k = (t - a[0]) / Math.max(1e-6, b[0] - a[0]);
+        return a[1] + (b[1] - a[1]) * (k * k * (3 - 2 * k));
+      }
+    }
+    return 1;
+  }
+  function hypsometric(q, landFrac) {
+    var qc = 1 - landFrac;                              // 海岸线所在的分位
+    if (q >= qc) return landCurve((q - qc) / Math.max(1e-6, 1 - qc));
+    var s = (qc - q) / Math.max(1e-6, qc);              // 0 = 海岸，1 = 最深
+    if (s < 0.07) return -(s / 0.07) * 0.035;                                   // 大陆架
+    if (s < 0.14) return -(0.035 + smoothstep(0, 1, (s - 0.07) / 0.07) * 0.515); // 大陆坡
+    if (s < 0.94) return -(0.55 + ((s - 0.14) / 0.80) * 0.25);                  // 深海平原
+    return -(0.80 + ((s - 0.94) / 0.06) * 0.20);                               // 海沟
+  }
+  var SHELF_D = 0.035;   // 大陆架的深度分界（× maxDepth = 210 m）
+  var ABYSS_D = 0.62;    // 深海平原的深度分界（× maxDepth = 3720 m）
+
+  /* ==========================================================
+     === 生成管线 ===
+     按真实成因的顺序跑完 7 步，返回一份完整的世界数据
+     ========================================================== */
+  function* generate(opts) {
+    // 参数兜底：任何一项缺失都退回默认值。
+    // 不然一个 undefined 会顺着算术一路传染成 NaN，最后整张图变成一片空白，
+    // 而且完全不报错 —— 这种静默失败最难查。
+    opts = opts || {};
+    var landFrac = typeof opts.landFrac === 'number' && isFinite(opts.landFrac) ? opts.landFrac : P.seaLevelLandFrac;
+    var oceanMargin = typeof opts.oceanMargin === 'number' && isFinite(opts.oceanMargin) ? opts.oceanMargin : P.oceanMargin;
+    var plateCount = typeof opts.plateCount === 'number' && isFinite(opts.plateCount) ? opts.plateCount : P.plateCount;
+    var W = opts.W, H = opts.H, n = W * H;
+    var rand = makeRandom(hashSeed(opts.seed));
+    var nWarp = makeNoise(rand), nDetail = makeNoise(rand), nCoast = makeNoise(rand),
+        nRidge = makeNoise(rand), nPlate = makeNoise(rand), nMargin = makeNoise(rand);
+    var i, x, y;
+
+    // ---------- 第 1 步：板块构造 ----------
+    yield '板块构造';
+    var plates = buildPlates(rand, W, H, plateCount, oceanMargin);
+    var bw = W * P.boundaryWidth;
+    var elev = new Float32Array(n);
+    var plateId = new Uint8Array(n);
+    var plateEdge = new Float32Array(n);
+    var warpAmp = W * P.warpStrength;
+
+    for (y = 0; y < H; y++) {
+      for (x = 0; x < W; x++) {
+        i = y * W + x;
+        // 第 2 步：坐标扭曲（让板块边界变成弯曲的分形海岸）
+        var u = x / W, v = y / W;
+        var wx = x + warpAmp * fbm(nWarp, u * 2.0, v * 2.0, 3, 0.5);
+        var wy = y + warpAmp * fbm(nWarp, u * 2.0 + 5.2, v * 2.0 + 1.3, 3, 0.5);
+
+        // 找最近和第二近的板块
+        var d1 = 1e18, d2 = 1e18, i1 = 0, i2 = 0;
+        for (var k = 0; k < plates.length; k++) {
+          var ddx = wx - plates[k].x, ddy = wy - plates[k].y;
+          var dd = ddx * ddx + ddy * ddy;
+          if (dd < d1) { d2 = d1; i2 = i1; d1 = dd; i1 = k; }
+          else if (dd < d2) { d2 = dd; i2 = k; }
+        }
+        var p1 = plates[i1], p2 = plates[i2];
+        plateId[i] = i1;
+
+        var edge = 1 - smoothstep(0, bw, Math.sqrt(d2) - Math.sqrt(d1)); // 1 = 正在边界上
+        plateEdge[i] = edge;
+
+        var e = p1.base;
+        if (edge > 0.001) {
+          // 相对运动方向：把速度投影到「从板块1指向板块2」的方向上
+          var ndx = p2.x - p1.x, ndy = p2.y - p1.y;
+          var nl = Math.sqrt(ndx * ndx + ndy * ndy) || 1;
+          var conv = ((p1.vx - p2.vx) * ndx + (p1.vy - p2.vy) * ndy) / nl; // >0 汇聚，<0 离散
+          conv = clamp(conv, -1, 1);
+          // 用噪声扰动一下，让同一条边界上有强弱变化（像真实的造山带）
+          var vary = 0.55 + 0.75 * (fbm(nPlate, u * 5.5, v * 5.5, 3, 0.5) * 0.5 + 0.5);
+
+          if (conv > 0) {
+            if (p1.oceanic && p2.oceanic) {
+              e += conv * edge * P.arcGain * 0.8 * vary;            // 岛弧
+            } else if (p1.oceanic) {
+              e -= conv * edge * P.trenchGain * vary;               // 俯冲侧：海沟
+            } else {
+              e += conv * edge * (p2.oceanic ? P.arcGain : P.collideGain) * vary; // 陆壳一侧：山脉
+            }
+          } else {
+            if (p1.oceanic) e += (-conv) * edge * P.ridgeGain * vary;  // 洋中脊隆起
+            else e -= (-conv) * edge * P.riftGain * vary;              // 大陆裂谷
+          }
+        }
+        elev[i] = e;
+      }
+    }
+
+    // ---------- 第 2/3 步（续）：大陆起伏 + 海岸碎细节 + 山脊 ----------
+    yield '地形细节';
+    var minE = 1e9, maxE = -1e9;
+    for (i = 0; i < n; i++) { if (elev[i] < minE) minE = elev[i]; if (elev[i] > maxE) maxE = elev[i]; }
+    var span = maxE - minE || 1;
+    for (y = 0; y < H; y++) {
+      for (x = 0; x < W; x++) {
+        i = y * W + x;
+        var uu = x / W, vv = y / W;
+        var e2 = (elev[i] - minE) / span;
+        // 大陆级起伏
+        e2 += P.detailAmp * fbm(nDetail, uu * 3.6, vv * 3.6, 6, 0.5);
+        // 海岸线碎细节：只在海拔接近海平面处生效，内陆保持平缓
+        var nearSea = Math.exp(-Math.pow((e2 - 0.5) / 0.10, 2));
+        e2 += fbm(nCoast, uu * 15.0, vv * 15.0, 4, 0.5) * P.coastDetail * nearSea;
+        // 山脉脊线：只在高地上加，形成尖锐的山脊
+        var r = 1 - Math.abs(fbm(nRidge, uu * 6.5, vv * 6.5, 5, 0.5));
+        r *= r;
+        e2 += r * P.mountainAmp * smoothstep(0.5, 0.78, e2);
+        // 两极下沉偏置：真实地球的陆地集中在中低纬度（北极是海、南极是陆），
+        // 不加这一项会出现一块横跨极圈的巨型大陆，全图近一半是冰原。
+        var laB = (0.5 - (y + 0.5) / H) * 180;
+        e2 -= P.polarBias * Math.pow(Math.abs(laB) / 90, 3.0);
+        // 四面环海：越靠边，地形被压得越低，形成一个完整的环海世界版图。
+        // 用 L3 范数（圆角矩形）而不是纯矩形，避免出现「四周一圈直边」的假感；
+        // 再叠一层噪声把这条边界弄弯，海岸线就不会是规整的圆角框。
+        if (oceanMargin > 0.001) {
+          var nxn = (x / (W - 1)) * 2 - 1, nyn = (y / (H - 1)) * 2 - 1;
+          var dn = Math.pow(Math.pow(Math.abs(nxn), 3) + Math.pow(Math.abs(nyn), 3), 1 / 3);
+          dn += fbm(nMargin, uu * 2.6, vv * 2.6, 3, 0.5) * 0.17;
+          e2 -= P.marginDepth * smoothstep(1 - oceanMargin, 1.0, dn);
+        }
+        elev[i] = e2;
+      }
+    }
+
+    // 归一化到 0~1
+    var lo = 1e9, hi = -1e9;
+    for (i = 0; i < n; i++) { if (elev[i] < lo) lo = elev[i]; if (elev[i] > hi) hi = elev[i]; }
+    var sc = hi - lo || 1;
+    for (i = 0; i < n; i++) elev[i] = (elev[i] - lo) / sc;
+
+    // ---------- 第 4 步：水力侵蚀 ----------
+    yield '水力侵蚀';
+    erode(elev, W, H, rand, Math.round(n * P.erosionDroplets));
+
+    lo = 1e9; hi = -1e9;
+    for (i = 0; i < n; i++) { if (elev[i] < lo) lo = elev[i]; if (elev[i] > hi) hi = elev[i]; }
+    sc = hi - lo || 1;
+    for (i = 0; i < n; i++) elev[i] = (elev[i] - lo) / sc;
+
+    // ---------- 第 5 步：按「陆地占比」定海岸线 ----------
+    // 纯噪声的高度场是「中间多、两头少」：大部分地方不高不低，深海和高山都极少。
+    // 真实地球正相反 —— 海底大半是 3~5 km 的深海平原，陆地上有一半面积在 500 m 以下。
+    // 所以这里先把每个格子换算成「排名分位」，再按真实的 hypsometric 曲线铺一遍：
+    // 这样海底该深的深、陆地该平的平，而且陆地占比恰好等于设定的数值。
+    yield '确定海岸线';
+    var BINS = 4096, hist = new Int32Array(BINS);
+    var lo2 = 1e9, hi2 = -1e9;
+    for (i = 0; i < n; i++) { if (elev[i] < lo2) lo2 = elev[i]; if (elev[i] > hi2) hi2 = elev[i]; }
+    var sc2 = hi2 - lo2 || 1;
+    var tq = new Float32Array(n);
+    for (i = 0; i < n; i++) {
+      tq[i] = ((elev[i] - lo2) / sc2) * (BINS - 1);
+      hist[clamp(tq[i] | 0, 0, BINS - 1)]++;
+    }
+    var cdf = new Float32Array(BINS + 1), acc = 0;
+    for (var b = 0; b < BINS; b++) { cdf[b] = acc / n; acc += hist[b]; }
+    cdf[BINS] = 1;
+    for (i = 0; i < n; i++) {
+      var bi2 = clamp(tq[i] | 0, 0, BINS - 1);
+      var qq = cdf[bi2] + ((tq[i] - bi2) * hist[bi2]) / n;
+      elev[i] = hypsometric(qq, landFrac);   // 现在 elev = 0 就是海岸线
+    }
+
+    // 兜底保证：最外两圈一定是海。有了它，这个版图无论怎么随机都「四面环海」，
+    // 陆地绝不会被地图边缘切断。
+    for (y = 0; y < H; y++) {
+      for (x = 0; x < W; x++) {
+        if (Math.min(x, W - 1 - x, y, H - 1 - y) < 2) {
+          i = y * W + x;
+          if (elev[i] > -0.05) elev[i] = -0.05;
+        }
+      }
+    }
+
+    // 填洼 + 定流向
+    var fr = fillAndRoute(elev, W, H, 0);
+    var filled = fr.filled, down = fr.down;
+
+    // 湖泊：填起来的深度超过阈值，且周围也多半是水（去掉零星噪点）
+    var lake = new Uint8Array(n);
+    for (i = 0; i < n; i++) {
+      if (elev[i] > 0 && filled[i] - elev[i] > 0.004) lake[i] = 1;
+    }
+    var lake2 = new Uint8Array(n);
+    for (y = 1; y < H - 1; y++) {
+      for (x = 1; x < W - 1; x++) {
+        i = y * W + x;
+        if (!lake[i]) continue;
+        var cnt = lake[i - 1] + lake[i + 1] + lake[i - W] + lake[i + W];
+        if (cnt >= 2) lake2[i] = 1;
+      }
+    }
+    lake = lake2;
+
+    // 「够大的湖」：给大陆轮廓用的。
+    // 主图的湖泊配色不动，但只要勾轮廓，那些一两个像素的小水洼就会变成
+    // 撒在陆地上的一圈圈黑点，很吵。所以单独数一次每个湖有多少格，
+    // 只把够大的湖交给描边用。
+    var bigLake = new Uint8Array(n);
+    var seenL = new Uint8Array(n);
+    var stackL = new Int32Array(n);
+    var compL = new Int32Array(n);
+    for (i = 0; i < n; i++) {
+      if (!lake[i] || seenL[i]) continue;
+      var sp = 0, cn = 0;
+      stackL[sp++] = i; seenL[i] = 1;
+      while (sp > 0) {
+        var ci = stackL[--sp];
+        compL[cn++] = ci;
+        var cxx = ci % W, cyy = (ci / W) | 0;
+        if (cxx > 0) { var n1 = ci - 1; if (lake[n1] && !seenL[n1]) { seenL[n1] = 1; stackL[sp++] = n1; } }
+        if (cxx < W - 1) { var n2 = ci + 1; if (lake[n2] && !seenL[n2]) { seenL[n2] = 1; stackL[sp++] = n2; } }
+        if (cyy > 0) { var n3 = ci - W; if (lake[n3] && !seenL[n3]) { seenL[n3] = 1; stackL[sp++] = n3; } }
+        if (cyy < H - 1) { var n4 = ci + W; if (lake[n4] && !seenL[n4]) { seenL[n4] = 1; stackL[sp++] = n4; } }
+      }
+      if (cn >= P.outlineMinLake) {
+        for (var q3 = 0; q3 < cn; q3++) bigLake[compL[q3]] = 1;
+      }
+    }
+
+    // ---------- 第 6 步：气温 + 水汽输送（含雨影） ----------
+    yield '气候模拟';
+    var temp = new Float32Array(n);
+    var lat = new Float32Array(H);
+    for (y = 0; y < H; y++) lat[y] = (0.5 - (y + 0.5) / H) * 180;  // +90 北极，-90 南极
+
+    var maxH = 0;
+    for (i = 0; i < n; i++) if (elev[i] > maxH) maxH = elev[i];
+
+    for (i = 0; i < n; i++) {
+      var la = lat[(i / W) | 0];
+      var base = P.poleTemp + (P.equatorTemp - P.poleTemp) * Math.pow(Math.max(0, Math.cos(la * Math.PI / 180)), 1.1);
+      var elevM = elev[i] > 0 ? elev[i] * P.maxElevation : 0;
+      temp[i] = Math.max(-60, base - (elevM / 1000) * P.lapseRate);
+    }
+
+    /* 水汽要能跨越整块大陆，得迭代上千次才够 —— 全分辨率上算太慢。
+       气候场本身是平滑的，所以降到 1/3 的粗网格上迭代，最后再插值回来。 */
+    var CS = P.climateCoarse;
+    var cw = Math.max(8, Math.ceil(W / CS)), ch = Math.max(8, Math.ceil(H / CS));
+    var cElev = new Float32Array(cw * ch), cCnt = new Float32Array(cw * ch);
+    for (i = 0; i < n; i++) {
+      var ci = ((i / W) | 0) / CS | 0, cj = (i % W) / CS | 0;
+      var cc = ci * cw + cj;
+      cElev[cc] += elev[i]; cCnt[cc]++;
+    }
+    for (i = 0; i < cw * ch; i++) if (cCnt[i] > 0) cElev[i] /= cCnt[i];
+
+    var cLat = new Float32Array(ch);
+    for (y = 0; y < ch; y++) cLat[y] = (0.5 - (y + 0.5) / ch) * 180;
+
+    // 海面空气的湿度按纬度给：赤道辐合带最湿，副热带高压（约 30°）最干，中纬气旋带较湿
+    var cMoist = new Float32Array(cw * ch);
+    for (y = 0; y < ch; y++) {
+      var ala = Math.abs(cLat[y]);
+      var src = clamp(
+        0.30 + 0.95 * Math.exp(-Math.pow(ala / 13, 2)) + 0.80 * Math.exp(-Math.pow((ala - 55) / 19, 2))
+        - 0.34 * Math.exp(-Math.pow((ala - 30) / 11, 2)), 0.05, 1.2);
+      for (x = 0; x < cw; x++) {
+        var cmi = y * cw + x;
+        cMoist[cmi] = cElev[cmi] > 0 ? 0 : src;   // 海面饱和，陆地从 0 开始攒
+      }
+    }
+
+    var cLand = [];
+    for (i = 0; i < cw * ch; i++) if (cElev[i] > 0) cLand.push(i);
+    var cRain = new Float32Array(cw * ch);
+
+    // 盛行风带：信风（0~30°）、西风（30~60°）、极地东风（60~90°）
+    function windAt(yy) {
+      var la3 = cLat[yy], a2 = Math.abs(la3), sgn = la3 >= 0 ? 1 : -1;
+      var wx2, wy2;
+      if (a2 < 30) { wx2 = -1; wy2 = 0.32 * sgn; }
+      else if (a2 < 60) { wx2 = 1; wy2 = -0.30 * sgn; }
+      else { wx2 = -1; wy2 = 0.22 * sgn; }
+      var l = Math.sqrt(wx2 * wx2 + wy2 * wy2);
+      return [wx2 / l, wy2 / l];
+    }
+    function cSample(field, fx, fy) {
+      var x0 = clamp(Math.floor(fx), 0, cw - 2), y0 = clamp(Math.floor(fy), 0, ch - 2);
+      var ax = clamp(fx - x0, 0, 1), ay = clamp(fy - y0, 0, 1);
+      var o = y0 * cw + x0;
+      return (field[o] * (1 - ax) + field[o + 1] * ax) * (1 - ay) +
+             (field[o + cw] * (1 - ax) + field[o + cw + 1] * ax) * ay;
+    }
+
+    for (var it = 0; it < P.climateIters; it++) {
+      for (var q = 0; q < cLand.length; q++) {
+        var idx = cLand[q];
+        var xx = idx % cw, yy2 = (idx / cw) | 0;
+        var w = windAt(yy2);
+        var sx = xx - w[0] * P.climateStep, sy = yy2 - w[1] * P.climateStep;
+        var mUp = cSample(cMoist, sx, sy);
+        // 注意：抬升要看「空气所在高度」，而空气是在海面上方流的，不是在海底。
+        // 所以上风处若是海洋，一律按 0 算，否则每格海岸线都会把水汽一次性倒光。
+        var hUp = Math.max(0, cSample(cElev, sx, sy));
+        // 迎风坡被迫抬升 -> 下雨；翻过山脊后空气已经干了（雨影）
+        // 关键是「每步只掉几个点」：真实大气里水汽是被沿途一点点榨干的，
+        // 雨影靠的是长距离累积消耗，不是一座山把水汽一次性倒光。
+        var lift = Math.min(P.orographicMax, Math.max(0, cElev[idx] - hUp) * P.orographic);
+        var pr = mUp * clamp(P.baseRain + lift, 0, 1);
+        if (pr > mUp) pr = mUp;
+        // 陆地上还有一点蒸发再循环，否则内陆会干到一滴雨都没有
+        cMoist[idx] = clamp(mUp - pr + P.recycle, 0, 1.4);
+        cRain[idx] += pr;
+      }
+    }
+
+    // 把粗网格的降水插值回原分辨率
+    var rain = new Float32Array(n);
+    for (y = 0; y < H; y++) {
+      for (x = 0; x < W; x++) {
+        rain[y * W + x] = cSample(cRain, x / CS - 0.5, y / CS - 0.5);
+      }
+    }
+
+    // 归一化成 0~1 的「湿润度」
+    var rs = rain.slice().filter(function (v, k) { return elev[k] > 0; }).sort(function (a, b) { return a - b; });
+    var pHi = rs.length ? rs[Math.min(rs.length - 1, Math.floor(rs.length * P.wetPercentile))] : 1;
+    if (!(pHi > 0)) pHi = 1;
+    var landIdx = [];
+    for (i = 0; i < n; i++) if (elev[i] > 0) landIdx.push(i);
+    var wet = new Float32Array(n);
+    for (var q2 = 0; q2 < landIdx.length; q2++) {
+      var i3 = landIdx[q2];
+      wet[i3] = clamp(rain[i3] / pHi, 0, 1);
+    }
+
+    // ---------- 第 7 步：水系汇流 ----------
+    yield '水系汇流';
+    var flux = new Float32Array(n);
+    var order = landIdx.slice().sort(function (a, b) { return filled[b] - filled[a]; });
+    for (var z = 0; z < order.length; z++) {
+      var ci = order[z];
+      flux[ci] += 0.25 + wet[ci] * 1.75;    // 每格自身的降水
+      var dn = down[ci];
+      if (dn >= 0) flux[dn] += flux[ci];
+    }
+
+    // 河网：取流量最大的若干个百分位当河道，宽度按流量开方
+    var lf = [];
+    for (var z2 = 0; z2 < order.length; z2++) if (!lake[order[z2]]) lf.push(flux[order[z2]]);
+    lf.sort(function (a, b) { return a - b; });
+    function pct(p) { return lf.length ? lf[clamp(Math.floor(lf.length * p), 0, lf.length - 1)] : 1; }
+    var riverLevels = [pct(0.955), pct(0.975), pct(0.988), pct(0.995)];
+    var riverClass = new Uint8Array(n);
+    for (var z3 = 0; z3 < order.length; z3++) {
+      var ri = order[z3];
+      if (lake[ri] || flux[ri] <= 0) continue;
+      for (var L = 3; L >= 0; L--) {
+        if (flux[ri] >= riverLevels[L]) { riverClass[ri] = L + 1; break; }
+      }
+    }
+
+    // ---------- 收尾：算生物群系和统计 ----------
+    yield '绘制地图';
+    var biome = new Uint8Array(n);
+    var peak = 0, landCount = 0, lakeCount = 0, riverCount = 0;
+    for (i = 0; i < n; i++) {
+      var e3 = elev[i];
+      if (e3 > peak) peak = e3;
+      if (e3 <= 0) {
+        var depth = -e3;
+        biome[i] = depth > ABYSS_D ? B_DEEP : (depth > SHELF_D ? B_OCEAN : B_SHELF);
+        continue;
+      }
+      landCount++;
+      if (lake[i]) { biome[i] = B_LAKE; lakeCount++; continue; }
+      if (riverClass[i]) riverCount++;
+      var elevM2 = e3 * P.maxElevation;
+      var t2 = temp[i], m2 = wet[i];
+      var bi = pickBiome(t2, m2, elevM2);
+      // 海边低地算沙滩（极地除外）
+      if (elevM2 < 20 && t2 > 2) {
+        var xx2 = i % W, yy3 = (i / W) | 0;
+        var isCoast = false;
+        if (xx2 > 0 && elev[i - 1] <= 0) isCoast = true;
+        else if (xx2 < W - 1 && elev[i + 1] <= 0) isCoast = true;
+        else if (yy3 > 0 && elev[i - W] <= 0) isCoast = true;
+        else if (yy3 < H - 1 && elev[i + W] <= 0) isCoast = true;
+        if (isCoast) bi = B_BEACH;
+      }
+      biome[i] = bi;
+    }
+
+    return {
+      W: W, H: H, n: n, seed: opts.seed, landFrac: landFrac, oceanMargin: oceanMargin,
+      elev: elev, filled: filled, temp: temp, wet: wet, flux: flux,
+      biome: biome, lake: lake, bigLake: bigLake, down: down, riverClass: riverClass,
+      plateId: plateId, plateEdge: plateEdge, plates: plates, lat: lat,
+      peak: peak, landCount: landCount, lakeCount: lakeCount, riverCount: riverCount,
+      maxH: maxH
+    };
+  }
+
+  /* ==========================================================
+     渲染：把世界数据画到 canvas 上
+     ========================================================== */
+  var canvas = document.getElementById('map');
+  var ctx = canvas.getContext('2d');
+
+  // 高程模式：陆地从低到高（绿 → 黄 → 褐 → 灰 → 白），海底从浅到深（浅蓝 → 深蓝）
+  var RAMP_ELEV = [
+    [0.00, [74, 124, 92]], [0.12, [128, 164, 106]], [0.30, [196, 186, 122]],
+    [0.50, [172, 136, 92]], [0.70, [146, 126, 112]], [0.85, [186, 184, 186]], [1.00, [250, 250, 252]]
+  ];
+  var RAMP_DEPTH = [
+    [0.00, [168, 208, 222]], [0.12, [96, 162, 194]], [0.35, [46, 104, 152]], [1.00, [10, 28, 54]]
+  ];
+  var RAMP_TEMP = [
+    [0.00, [40, 60, 150]], [0.22, [60, 130, 200]], [0.42, [90, 185, 190]],
+    [0.55, [140, 200, 120]], [0.72, [235, 195, 90]], [0.88, [225, 120, 60]], [1.00, [170, 40, 40]]
+  ];
+  var RAMP_RAIN = [
+    [0.00, [225, 205, 155]], [0.20, [200, 205, 140]], [0.40, [140, 200, 150]],
+    [0.62, [70, 165, 190]], [0.82, [40, 110, 190]], [1.00, [30, 55, 140]]
+  ];
+
+  function render(world, view) {
+    var W = world.W, H = world.H, n = world.n;
+    var img = ctx.createImageData(W, H);
+    var d = img.data;
+    var elev = world.elev, temp = world.temp, wet = world.wet, biome = world.biome;
+    var shade = document.getElementById('ovShade').checked;
+    // 勾了「大陆轮廓」时，像素级的海岸压暗就让位给那条黑线 ——
+    // 两者叠在一起会变成一条又粗又糊的黑边。
+    // 白底视图则是一律要画轮廓的：不然点进去只会看到一张白纸，像是坏了。
+    var outlineOn = document.getElementById('ovOutline').checked || view === 'blank';
+    var x, y, i, p = 0;
+
+    for (y = 0; y < H; y++) {
+      for (x = 0; x < W; x++, p += 4) {
+        i = y * W + x;
+        var rgb;
+        var isLand = elev[i] > 0;
+
+        if (view === 'elev') {
+          // 海底要「越深越暗」，和真实海图一致；陆地另用一套由绿到白的色阶
+          rgb = isLand ? ramp(RAMP_ELEV, clamp(elev[i], 0, 1))
+                       : ramp(RAMP_DEPTH, clamp(-elev[i] / 0.7, 0, 1));
+        } else if (view === 'temp') {
+          rgb = ramp(RAMP_TEMP, clamp((temp[i] + 32) / 66, 0, 1));
+        } else if (view === 'rain') {
+          rgb = isLand ? ramp(RAMP_RAIN, wet[i]) : [30, 48, 74];
+        } else if (view === 'plate') {
+          var pid = world.plateId[i];
+          var hue = (pid * 137.508) % 360;
+          rgb = hsl2rgb(hue, 0.42, isLand ? 0.58 : 0.30);
+        } else if (view === 'river') {
+          rgb = isLand ? [214, 202, 176] : [26, 48, 70];
+        } else if (view === 'blank') {
+          // 纯白底：整张画布刷白，只留叠加层。
+          // 这一档是给「线稿底图」用的 —— 白底 + 大陆轮廓黑线 = 可以直接打印/
+          // 拿去填色/画自己国家的空白地图。所以它不参与山体阴影和海岸压暗。
+          rgb = [255, 255, 255];
+        } else {
+          var bi = biome[i];
+          rgb = BIOMES[bi].c.slice();
+          // 水陆过渡：极浅的近岸提亮一点
+          if (!isLand && bi === B_SHELF) rgb = C_SHELF;
+        }
+
+        // 山体阴影（地形 / 高程 / 水系模式下开）
+        if (shade && (view === 'biome' || view === 'elev' || view === 'river')) {
+          if (view !== 'elev' || isLand) {
+            var xm = x > 0 ? i - 1 : i, xp = x < W - 1 ? i + 1 : i;
+            var ym = y > 0 ? i - W : i, yp = y < H - 1 ? i + W : i;
+            var dzdx = (elev[xp] - elev[xm]) * P.reliefScale;
+            var dzdy = (elev[yp] - elev[ym]) * P.reliefScale;
+            var nz = 1, nl = Math.sqrt(dzdx * dzdx + dzdy * dzdy + 1);
+            var nx2 = -dzdx / nl, ny2 = -dzdy / nl;
+            var lx = -0.52, ly = -0.60, lz = 0.60;
+            var dot = clamp(nx2 * lx + ny2 * ly + nz / nl * lz, 0, 1);
+            var f = isLand ? (0.60 + 0.82 * dot) : (0.72 + 0.42 * dot);
+            rgb = [rgb[0] * f, rgb[1] * f, rgb[2] * f];
+          }
+        }
+
+        // 海岸线描边：陆地格子挨着水就压暗一点（勾了大陆轮廓 / 白底时跳过，交给黑线）
+        if (!outlineOn && isLand && view !== 'temp' && view !== 'rain' && view !== 'plate' && view !== 'blank') {
+          if ((x > 0 && elev[i - 1] <= 0) || (x < W - 1 && elev[i + 1] <= 0) ||
+              (y > 0 && elev[i - W] <= 0) || (y < H - 1 && elev[i + W] <= 0)) {
+            rgb = [rgb[0] * 0.62, rgb[1] * 0.62, rgb[2] * 0.66];
+          }
+        }
+        // 湖泊也描一下边（同上）
+        if (!outlineOn && world.lake[i]) {
+          if ((x > 0 && !world.lake[i - 1]) || (x < W - 1 && !world.lake[i + 1]) ||
+              (y > 0 && !world.lake[i - W]) || (y < H - 1 && !world.lake[i + W])) {
+            rgb = [rgb[0] * 0.7, rgb[1] * 0.72, rgb[2] * 0.78];
+          }
+        }
+
+        d[p] = clamp(rgb[0], 0, 255);
+        d[p + 1] = clamp(rgb[1], 0, 255);
+        d[p + 2] = clamp(rgb[2], 0, 255);
+        d[p + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+
+    // ---------- 叠加层（画在像素之上） ----------
+    if (document.getElementById('ovRiver').checked) {
+      if (view !== 'temp' && view !== 'rain') {
+        var colors = ['#2f6f9f', '#2a6ba0', '#2564a2', '#1f5da4'];
+        var widths = [0.8, 1.4, 2.2, 3.2];
+        var scaleF = W / 768;
+        for (var L = 0; L < 4; L++) {
+          ctx.beginPath();
+          ctx.strokeStyle = colors[L];
+          ctx.lineWidth = Math.max(0.7, widths[L] * scaleF);
+          ctx.lineCap = 'round';
+          var any = false;
+          for (var k = 0; k < world.n; k++) {
+            if (world.riverClass[k] !== L + 1) continue;
+            var dn = world.down[k];
+            if (dn < 0) continue;
+            var ax = k % W, ay = (k / W) | 0;
+            var bx = dn % W, by = (dn / W) | 0;
+            ctx.moveTo(ax + 0.5, ay + 0.5);
+            ctx.lineTo(bx + 0.5, by + 0.5);
+            any = true;
+          }
+          if (any) ctx.stroke();
+        }
+      }
+    }
+
+    if (document.getElementById('ovPlate').checked) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 92, 40, .85)';
+      ctx.lineWidth = Math.max(0.8, 1.1 * (W / 768));
+      ctx.beginPath();
+      for (var y2 = 0; y2 < H; y2++) {
+        for (var x2 = 0; x2 < W; x2++) {
+          var ii = y2 * W + x2;
+          if (world.plateEdge[ii] < 0.55) continue;
+          if (x2 < W - 1 && world.plateId[ii] !== world.plateId[ii + 1]) {
+            ctx.moveTo(x2 + 1, y2 + 0.5); ctx.lineTo(x2 + 1, y2 + 1.5);
+          }
+          if (y2 < H - 1 && world.plateId[ii] !== world.plateId[ii + W]) {
+            ctx.moveTo(x2 + 0.5, y2 + 1); ctx.lineTo(x2 + 1.5, y2 + 1);
+          }
+        }
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (document.getElementById('ovGrid').checked) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,.30)';
+      ctx.setLineDash([4, 5]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (var la = -60; la <= 60; la += 30) {
+        var gy = (0.5 - la / 180) * H;
+        ctx.moveTo(0, gy); ctx.lineTo(W, gy);
+      }
+      for (var lo2 = 0; lo2 <= 180; lo2 += 30) {
+        var gx = (lo2 / 180) * W;
+        ctx.moveTo(gx, 0); ctx.lineTo(gx, H);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // ---------- 大陆轮廓：一圈黑色线条把陆地勾出来 ----------
+    // 做法是逐格看「右边 / 下面」的邻居是不是水，是水就在公共边上画一段。
+    // 这样每条边界只会被画一次，而且线条和地图本身的像素海岸完全重合。
+    // 「水」= 海（海拔 ≤ 0）或者够大的湖，所以大湖的湖岸线也会一起勾出来。
+    // 注意条件用的是 outlineOn（含白底视图），不是只看那个勾选框。
+    if (outlineOn) {
+      var elevA = world.elev, lakeA = world.bigLake;
+      ctx.save();
+      ctx.beginPath();
+      for (var yo = 0; yo < H; yo++) {
+        for (var xo = 0; xo < W; xo++) {
+          var io = yo * W + xo;
+          var wHere = elevA[io] <= 0 || lakeA[io];
+          // 右边邻居
+          if (xo < W - 1) {
+            var iR = io + 1;
+            if ((elevA[iR] <= 0 || lakeA[iR]) !== wHere) {
+              ctx.moveTo(xo + 1, yo); ctx.lineTo(xo + 1, yo + 1);
+            }
+          }
+          // 下面邻居
+          if (yo < H - 1) {
+            var iD = io + W;
+            if ((elevA[iD] <= 0 || lakeA[iD]) !== wHere) {
+              ctx.moveTo(xo, yo + 1); ctx.lineTo(xo + 1, yo + 1);
+            }
+          }
+        }
+      }
+      ctx.strokeStyle = 'rgba(10, 10, 12, .92)';
+      ctx.lineWidth = Math.max(0.9, 1.15 * (W / 768));
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function hsl2rgb(h, s, l) {
+    h = ((h % 360) + 360) % 360 / 360;
+    var r, g, b;
+    if (s === 0) { r = g = b = l; }
+    else {
+      var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      var pp = 2 * l - q;
+      function hue2rgb(t) {
+        if (t < 0) t += 1; if (t > 1) t -= 1;
+        if (t < 1 / 6) return pp + (q - pp) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return pp + (q - pp) * (2 / 3 - t) * 6;
+        return pp;
+      }
+      r = hue2rgb(h + 1 / 3); g = hue2rgb(h); b = hue2rgb(h - 1 / 3);
+    }
+    return [r * 255, g * 255, b * 255];
+  }
+
+  /* ==========================================================
+     界面逻辑
+     ========================================================== */
+  var el = function (id) { return document.getElementById(id); };
+  var QUALITY = { fast: [480, 300], std: [768, 480], fine: [1024, 640] };
+  var world = null, view = 'biome';
+
+  var statusEl = el('status'), statusText = el('statusText'), badgeEl = el('badge');
+
+  function setStatus(txt, busy) {
+    statusText.textContent = txt;
+    statusEl.classList.toggle('busy', !!busy);
+    canvas.classList.toggle('busy', !!busy);
+    el('gen').disabled = !!busy;
+  }
+
+  function fmtInt(v) { return v.toLocaleString('en-US'); }
+
+  function updateReadout(ms) {
+    var lf = world.landCount / world.n;
+    el('rLand').textContent = (lf * 100).toFixed(1) + '%';
+    el('rPeak').textContent = fmtInt(Math.round(world.peak * P.maxElevation)) + ' m';
+    el('rRiver').textContent = fmtInt(world.riverCount) + ' 格';
+    el('rLake').textContent = fmtInt(world.lakeCount) + ' 格';
+    el('rTime').textContent = (ms / 1000).toFixed(2) + ' s';
+    badgeEl.textContent = '种子 ' + world.seed + ' · ' + world.W + '×' + world.H;
+  }
+
+  function currentOpts() {
+    var q = QUALITY[el('quality').value] || QUALITY.std;
+    return {
+      seed: (el('seed').value || 'terra').trim(),
+      W: q[0], H: q[1],
+      landFrac: +el('land').value / 100,
+      oceanMargin: +el('margin').value / 100,
+      plateCount: +el('plates').value
+    };
+  }
+
+  function run() {
+    var opts = currentOpts();
+    canvas.width = opts.W; canvas.height = opts.H;
+    setStatus('正在生成…', true);
+
+    var t0 = performance.now();
+    var gen = generate(opts);
+
+    // 一步一步推进：每跑完一步就把控制权交还浏览器，它才有机会把进度画出来
+    function step() {
+      var r;
+      try {
+        r = gen.next();
+      } catch (err) {
+        setStatus('出错了：' + (err && err.message ? err.message : err), false);
+        throw err;
+      }
+      if (r.done) {
+        world = r.value;
+        var ms = performance.now() - t0;
+        render(world, view);
+        updateReadout(ms);
+        setStatus('完成 · 用时 ' + (ms / 1000).toFixed(2) + ' 秒', false);
+        try { history.replaceState(null, '', '#' + encodeURIComponent(world.seed)); } catch (e) {}
+        return;
+      }
+      setStatus(r.value + '…', true);
+      setTimeout(step, 0);
+    }
+    setTimeout(step, 30);
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  el('gen').addEventListener('click', run);
+  el('seed').addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); });
+
+  el('dice').addEventListener('click', function () {
+    var words = ['terra', 'aurora', 'vellum', 'kanto', 'mirror', 'orison', 'halcyon', 'rift',
+                 'solace', 'boreal', 'cinder', 'verdant', 'zephyr', 'obsidian', 'lantana'];
+    el('seed').value = words[(Math.random() * words.length) | 0] + '-' + ((Math.random() * 900 + 100) | 0);
+    run();
+  });
+
+  el('land').addEventListener('input', function () { el('landOut').textContent = this.value + '%'; });
+  el('margin').addEventListener('input', function () { el('marginOut').textContent = this.value + '%'; });
+  el('plates').addEventListener('input', function () { el('platesOut').textContent = this.value; });
+  // 拖完松手再重算，避免一路拖一路算
+  el('land').addEventListener('change', run);
+  el('margin').addEventListener('change', run);
+  el('plates').addEventListener('change', run);
+  el('quality').addEventListener('change', run);
+
+  var modeBtns = el('modes').querySelectorAll('button');
+  for (var m = 0; m < modeBtns.length; m++) {
+    modeBtns[m].addEventListener('click', function () {
+      for (var k = 0; k < modeBtns.length; k++) modeBtns[k].classList.remove('on');
+      this.classList.add('on');
+      view = this.getAttribute('data-mode');
+      // 换视图不需要重新生成地形，直接重画
+      if (world) render(world, view);
+    });
+  }
+
+  ['ovRiver', 'ovOutline', 'ovGrid', 'ovPlate', 'ovShade'].forEach(function (id) {
+    el(id).addEventListener('change', function () { if (world) render(world, view); });
+  });
+
+  el('save').addEventListener('click', function () {
+    if (!world) return;
+    try {
+      var a = document.createElement('a');
+      a.download = 'world-' + world.seed + '.png';
+      a.href = canvas.toDataURL('image/png');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (e) {}
+  });
+
+  // 主题切换（和主页同一套）
+  var themeToggle = el('themeToggle');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  themeToggle.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+    if (themeMeta) themeMeta.setAttribute('content', next === 'dark' ? '#100e0d' : '#faf8f4');
+  });
+
+  el('year').textContent = new Date().getFullYear();
+
+  // 图例
+  (function () {
+    var box = el('palette');
+    var names = ['沙漠', '稀树草原', '草原', '温带森林', '雨林', '针叶林', '苔原', '冰盖雪原', '高山裸岩', '湖泊'];
+    var map = { '沙漠': B_DESERT, '稀树草原': B_SAVANNA, '草原': B_GRASS, '温带森林': B_FOREST,
+                '雨林': B_JUNGLE, '针叶林': B_TAIGA, '苔原': B_TUNDRA, '冰盖雪原': B_ICE,
+                '高山裸岩': B_ROCK, '湖泊': B_LAKE };
+    for (var i = 0; i < names.length; i++) {
+      var c = BIOMES[map[names[i]]].c;
+      var s = document.createElement('span');
+      s.className = 'sw';
+      s.innerHTML = '<i style="background:rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')"></i>' + names[i];
+      box.appendChild(s);
+    }
+  })();
+
+  // 打开页面时：URL 里的 #种子 优先
+  (function () {
+    var h = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    if (h) el('seed').value = h;
+    run();
+  })();
+
+  // 给自动化测试留个钩子（不影响正常使用）
+  window.__mapgen = {
+    run: run,
+    getWorld: function () { return world; },
+    setView: function (v) { view = v; if (world) render(world, view); },
+    biomeNames: BIOMES.map(function (b) { return b.name; }),
+    render: function () { if (world) render(world, view); }
+  };
+})();
+</script>
+
+</body>
+</html>

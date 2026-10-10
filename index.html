@@ -324,7 +324,8 @@
       <!-- ↓↓↓ 改这里 ③：你的名字 和 一句话介绍 ↓↓↓ -->
       <h1>你好，我是 Yukishiro。</h1>
       <p class="tag">
-        你好，我也没想好搞这个用来干什么，以后也许会搞点小玩意？
+        高三在读中，喜欢空闲时间搞点好玩的东西，程序大部分都是 AI 帮忙写的，正在学习
+        HTML / CSS / JavaScript 等。
       </p>
       <!-- ↑↑↑ 改这里 ③ ↑↑↑ -->
 
@@ -344,13 +345,13 @@
         <!-- ↓↓↓ 改这里 ④：关于我正文（写 2～3 段最合适） ↓↓↓ -->
         <div>
           <p class="lead">
-            能点进来的应该都知道我是谁，大家好
+            我是 Yukishiro，17 岁，高三在读。          </p>
+          <p class="lead">
+            站上现在有两个项目。代码大部分交给 AI，构思想法、规则与效果是我想的；板块怎么撞、水汽怎么走、算出来的样子对不对，是我在盯。
           </p>
           <p class="lead">
-            第二段：没想好
-          </p>
-          <p class="lead">
-            第三段：没想好
+            明年要高考，所以现在的主线任务其实是复习，搞这些小东西算是偷出来的时间 —— 但偷得
+            挺开心。以后想做的事还很多，先把手上的一个个做完。
           </p>
         </div>
         <!-- ↑↑↑ 改这里 ④ ↑↑↑ -->
@@ -358,10 +359,10 @@
         <!-- ↓↓↓ 改这里 ⑤：右侧小档案 ↓↓↓ -->
         <aside class="facts">
           <dl>
-            <dt>身份</dt><dd>学生 </dd>
+            <dt>身份</dt><dd>学生</dd>
             <dt>所在城市</dt><dd>中国</dd>
-            <dt>正在学</dt><dd>Web 前端</dd>
-            <dt>状态</dt><dd>通透中......</dd>
+            <dt>正在学</dt><dd>HTML / CSS / JavaScript</dd>
+            <dt>状态</dt><dd>备考中</dd>
           </dl>
         </aside>
         <!-- ↑↑↑ 改这里 ⑤ ↑↑↑ -->
@@ -400,13 +401,17 @@
              【链接怎么写】把卡片里的 href="#" 换成你的目标，三种情况：
 
              1) 项目放在本仓库里（推荐）
-                href="projects/游戏名/"
+                href="projects/游戏名/index.html"
                 对应仓库里的 projects/游戏名/index.html，点开就能玩。
+                ⚠️ 一定要写到 index.html 为止，别只写到文件夹（写成 projects/游戏名/）。
+                因为线上会自动打开文件夹里的 index.html，但你自己在电脑上双击本文件
+                预览时不会，会跳到一个光秃秃的文件列表。写全文件名则两边都一样。
                 ⚠️ 文件夹名用英文小写，别用中文和空格，网址里会变成一串 %E4%B8%AD 乱码。
 
              2) 项目在另一个仓库，想让人直接玩
                 href="https://yukiii-26.github.io/仓库名/"
-                （那个仓库也要在 Settings → Pages 里打开）
+                （那个仓库也要在 Settings → Pages 里打开。这是别的仓库，跨站访问，
+                  所以这里写目录形式没问题，不存在本地预览的问题）
 
              3) 只想让人看代码，不做成网页
                 href="https://github.com/Yukiii-26/仓库名"
@@ -427,7 +432,15 @@
           <h3>扫雷 Minesweeper</h3>
           <p>HTML / CSS / JavaScript，零依赖。三种难度，第一下绝不会踩雷，右键（手机长按）插旗，空格键一键翻开周围已确定安全的格子。</p>
           <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span></div>
-          <a class="go" href="projects/minesweeper/">去玩 →</a>
+          <a class="go" href="projects/minesweeper/index.html">去玩 →</a>
+        </article>
+
+        <article class="card">
+          <span class="num">02</span>
+          <h3>架空世界地图生成器</h3>
+          <p>生成一个四面环海的完整世界版图：山脉沿板块碰撞带隆起，沙漠落在副热带高压下，雨林长在赤道，河流从分水岭汇进海里。可换种子、调陆地占比和环海宽度，还能切换气温、降水、板块等图层。</p>
+          <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span><span>程序化生成</span></div>
+          <a class="go" href="projects/mapgen/index.html">去看看 →</a>
         </article>
 
         <!-- 想做第 2 个项目：把上面整个 <article class="card"> ... </article> 复制一份，

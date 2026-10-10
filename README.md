@@ -14,7 +14,8 @@
 | `avatar.jpg` | 头像照片（和 `index.html` 放在同一层） |
 | `README.md` | 这份说明。⚠️ 仓库是公开的，它在 <https://yukiii-26.github.io/README.md> 也能被任何人直接打开 |
 | `projects/` | 放作品用的文件夹（一个项目一个子文件夹） |
-| `projects/minesweeper/` | 第一个作品：扫雷小游戏。网址 <https://yukiii-26.github.io/projects/minesweeper/> |
+| `projects/minesweeper/` | 作品一：扫雷小游戏。网址 <https://yukiii-26.github.io/projects/minesweeper/> |
+| `projects/mapgen/` | 作品二：架空世界地图生成器。网址 <https://yukiii-26.github.io/projects/mapgen/> |
 | `projects/template/` | 「项目详情页」模板。复制一份改个名就是新项目，见下面「怎么加一个新作品」 |
 | `egg/` | 彩蛋页。**没有任何导航链接指向它**，只能在主页上敲秘技进去 |
 | `preview/` | 只在本机存放排版效果图，**不需要上传到仓库** |
@@ -116,14 +117,15 @@ Yukiii-26.github.io/
 https://yukiii-26.github.io/projects/snake/
 ```
 
-不用写 `index.html`，目录地址会自动打开它。
+浏览器里输入上面这个目录地址就能打开（GitHub 会自动加载里面的 `index.html`）。
+但**在网页里写链接时，要写到 `index.html` 为止，别只写到文件夹** —— 原因见下面「卡片上怎么写链接」。
 
 **两种做法，按项目类型选：**
 
 | 项目类型 | 怎么做 |
 |---------|--------|
 | 本身就是个能玩的网页（小游戏、小工具） | 直接把游戏放成 `projects/游戏名/index.html`，主页卡片直接链过去。**最省事** |
-| 需要配文字说明、截图 | 复制 `projects/template/` 一份，改名成 `projects/你的项目名/`，在里面改内容当详情页；能玩的东西放同级的 `play/` 文件夹里，详情页的「在线试玩」按钮已经指向 `./play/` |
+| 需要配文字说明、截图 | 复制 `projects/template/` 一份，改名成 `projects/你的项目名/`，在里面改内容当详情页；能玩的东西放同级的 `play/` 文件夹里，详情页的「在线试玩」按钮已经指向 `./play/index.html` |
 
 > `projects/template/` 里那个页面是给你当模板用的，做好自己的项目后可以删掉它。
 > 模板里也有自己的「改这里」标记（7 处），搜法一样。
@@ -134,9 +136,14 @@ https://yukiii-26.github.io/projects/snake/
 
 | 情况 | 写法 |
 |------|------|
-| 项目在本仓库（推荐） | `href="projects/snake/"` |
-| 项目在另一个仓库，想让人直接玩 | `href="https://yukiii-26.github.io/仓库名/"`（那个仓库也要开 Pages） |
+| 项目在本仓库（推荐） | `href="projects/snake/index.html"` |
+| 项目在另一个仓库，想让人直接玩 | `href="https://yukiii-26.github.io/仓库名/"`（那个仓库也要开 Pages。跨到别的网站，目录形式没问题） |
 | 只想让人看代码 | `href="https://github.com/Yukiii-26/仓库名"` |
+
+> ⚠️ **为什么本仓库的链接要写到 `index.html` 为止？**
+> 线上会自动打开文件夹里的 `index.html`，所以 `href="projects/snake/"` 在线上的确能用。
+> **但你在电脑上双击 `index.html` 预览时不行** —— 浏览器会跳到一个光秃秃的文件列表页，
+> 你就没法在上传前先自己检查了。写全文件名，两种情况下表现一致。
 
 ### 三、怎么上传
 

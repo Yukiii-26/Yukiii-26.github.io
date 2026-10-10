@@ -1,18 +1,24 @@
 <!DOCTYPE html>
 <!--
   ============================================================================
-  Yukishiro 的个人主页  ·  index.html
+  Yukishiro 的个人主页  ·  index.html   「极简杂志风 + 深色模式」
   ============================================================================
   【怎么改内容】整份网站就这一个文件，用记事本 / VS Code 打开，搜「改这里」
-  就能找到所有需要你替换的文字。改完保存，双击本文件用浏览器打开即可预览。
+  就能找到所有需要你替换的文字（共 10 处）。改完保存，双击本文件即可预览。
 
-  【注意】不要删除 <style> 和 <script> 这两块，它们是排版和动画。
+  【浅色 / 深色】右上角 ☀ / ☾ 按钮切换。第一次打开会自动跟随你系统的深浅色设置，
+  你手动点过一次之后，就记住你的选择（存在浏览器本地，不上传）。
+
+  【想改配色】往下找到 :root 那两块（浅色 / 深色各一块），改颜色代码即可。
+
+  【注意】不要删除 <style> 和 <script> 这两块，它们是排版、主题切换和动画。
   ============================================================================
 -->
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#faf8f4" />
 
 <!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时显示的卡片文字 ↓↓↓ -->
 <title>Yukishiro · 个人主页</title>
@@ -23,155 +29,280 @@
 <!-- ↑↑↑ 改这里 ① ↑↑↑ -->
 
 <!-- 网站小图标（浏览器标签页上那个小方块），改文字就能换字母 -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232563eb'/><text x='50' y='70' font-size='60' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'>Y</text></svg>" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2316130f'/><text x='50' y='72' font-size='60' font-family='Georgia,serif' font-weight='700' fill='%23faf8f4' text-anchor='middle'>Y</text></svg>" />
+
+<script>
+  // 这段要在页面画出来之前跑，否则会先闪一下白底再变深色
+  (function () {
+    document.documentElement.classList.add('js');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', saved || (sysDark ? 'dark' : 'light'));
+  })();
+</script>
 
 <style>
-  /* ===================== 配色（想换主题色只改 --accent 这一行） ===================== */
+  /* ===================== 浅色配色（默认） ===================== */
   :root{
-    --accent:#2563eb;              /* 点缀色：现在是蓝色 */
-    --accent-soft:rgba(37,99,235,.07);
-    --bg:#ffffff;
-    --fg:#111418;
-    --muted:#6b7280;
-    --line:#e9ebef;
-    --card:#fcfcfd;
-    --max:940px;
-    --radius:14px;
+    --paper:#faf8f4;               /* 纸张底色：偏暖的近白 */
+    --surface:#ffffff;             /* 卡片 / 标签的底色 */
+    --ink:#16130f;                 /* 墨色：正文与标题 */
+    --muted:#6f675c;               /* 次要文字 */
+    --line:#e2dbd0;                /* 细分割线 */
+    --accent:#c2410c;              /* 强调色：现在是朱橙 */
+    --nav-bg:rgba(250,248,244,.92);
+    --max:1080px;
   }
+
+  /* ===================== 深色配色（整体偏暖，和朱橙强调色同一套） ===================== */
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#100e0d;               /* 暖调近黑，去掉原来的蓝味 */
+    --surface:#1a1714;             /* 卡片 / 标签的底色 */
+    --ink:#f0ece8;                 /* 暖白文字 */
+    --muted:#a29c95;               /* 暖灰次要文字 */
+    --line:rgba(255,255,255,.11);
+    --accent:#fb923c;              /* 强调色：亮朱橙（深底上要提亮才看得清） */
+    --nav-bg:rgba(16,14,13,.88);
+  }
+  :root[data-theme="light"]{color-scheme:light}
 
   *,*::before,*::after{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{
-    margin:0;background:var(--bg);color:var(--fg);line-height:1.75;
+    margin:0;background:var(--paper);color:var(--ink);line-height:1.8;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-    -webkit-font-smoothing:antialiased;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+    transition:background-color .35s ease,color .35s ease;
   }
   a{color:inherit;text-decoration:none}
-  h1,h2,h3{line-height:1.3;margin:0}
+  h1,h2,h3{line-height:1.22;margin:0;letter-spacing:-.02em}
   p{margin:0}
-  .wrap{max-width:var(--max);margin:0 auto;padding:0 22px}
+  img{max-width:100%}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 26px}
 
-  /* ===================== 顶部导航 ===================== */
+  /* ===================== 深色模式下的背景光晕（浅色时隐藏） ===================== */
+  .glow{
+    position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;
+    transition:opacity .45s ease;
+    background:
+      radial-gradient(56% 40% at 10% -6%, rgba(251,146,60,.22), transparent 70%),
+      radial-gradient(46% 36% at 92% -2%, rgba(245,158,11,.15), transparent 70%),
+      radial-gradient(64% 44% at 50% 104%, rgba(251,146,60,.10), transparent 72%);
+  }
+  :root[data-theme="dark"] .glow{opacity:1}
+
+  /* ===================== 顶部导航（底部一道粗墨线，杂志刊头的感觉） ===================== */
   .site-header{
-    position:sticky;top:0;z-index:50;
-    background:rgba(255,255,255,.85);
-    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:60;background:var(--nav-bg);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-bottom:2px solid var(--ink);
+    transition:background-color .35s ease,border-color .35s ease;
   }
-  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 22px;max-width:var(--max);margin:0 auto}
-  .brand{font-weight:700;letter-spacing:.02em;font-size:16px}
+  .nav{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:var(--max);margin:0 auto;padding:15px 26px}
+  .brand{font-weight:800;font-size:16px;letter-spacing:-.01em}
   .brand b{color:var(--accent)}
-  .nav-links{display:flex;gap:22px;font-size:14.5px;color:var(--muted)}
-  .nav-links a{transition:color .18s}
-  .nav-links a:hover{color:var(--accent)}
+  .nav-links{display:flex;gap:26px;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+  .nav-links a{color:var(--muted);padding-bottom:3px;border-bottom:1.5px solid transparent;transition:color .18s,border-color .18s}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-links a.active{color:var(--ink);border-bottom-color:var(--accent)}
+  .nav-actions{display:flex;align-items:center;gap:9px}
 
-  /* ===================== 首屏 ===================== */
-  .hero{position:relative;padding:86px 0 70px;overflow:hidden}
-  .hero::before{
-    content:"";position:absolute;left:-15%;right:-15%;top:-260px;height:600px;
-    background:radial-gradient(closest-side,var(--accent-soft),transparent 72%);
-    pointer-events:none;
+  /* ☀ / ☾ 切换按钮 */
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:32px;border-radius:2px;cursor:pointer;padding:0;
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    transition:border-color .18s,color .18s,background .18s;
   }
-  .hero .wrap{position:relative}
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+  .theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+  .theme-toggle .i-sun{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-moon{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-sun{display:block}
+
+  .nav-toggle{
+    display:none;align-items:center;justify-content:center;
+    width:36px;height:32px;border-radius:2px;cursor:pointer;
+    background:transparent;border:1px solid var(--ink);color:var(--ink);
+  }
+  .nav-toggle span{display:block;width:15px;height:1.5px;background:currentColor;position:relative}
+  .nav-toggle span::before,.nav-toggle span::after{content:"";position:absolute;left:0;width:15px;height:1.5px;background:currentColor}
+  .nav-toggle span::before{top:-5px}
+  .nav-toggle span::after{top:5px}
+
+  /* ===================== 首屏：超大标题 ===================== */
+  .hero{padding:88px 0 78px}
   .avatar{
-    position:relative;overflow:hidden;      /* 让照片被裁成圆形 */
-    width:70px;height:70px;border-radius:50%;
-    background:linear-gradient(135deg,var(--accent),#7aa2ff);
-    color:#fff;font-size:28px;font-weight:700;
+    position:relative;width:76px;height:76px;border-radius:3px;overflow:hidden;
+    background:var(--ink);color:var(--paper);
+    font-size:30px;font-weight:700;
     display:flex;align-items:center;justify-content:center;
-    box-shadow:0 8px 24px rgba(37,99,235,.25);
-    margin-bottom:22px;
+    margin-bottom:30px;border:1px solid var(--ink);
   }
   /* 有照片时，照片盖住下面的首字母；没照片时照片不存在，首字母就露出来 */
-  .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;border:0}
-  .hero h1{font-size:clamp(30px,5vw,44px);letter-spacing:-.02em}
-  .hero .tag{margin-top:12px;font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:640px}
-  .hero .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+  .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .hero h1{font-size:clamp(38px,8.4vw,84px);font-weight:800;letter-spacing:-.042em;line-height:1.04;max-width:16ch}
+  .hero .tag{margin-top:24px;font-size:clamp(15px,1.6vw,18px);color:var(--muted);max-width:52ch}
+  .hero .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
 
   .btn{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:11px 20px;border-radius:10px;font-size:15px;font-weight:600;
-    border:1px solid transparent;transition:transform .18s,box-shadow .18s,background .18s,border-color .18s;
+    display:inline-flex;align-items:center;gap:9px;
+    padding:13px 24px;border-radius:2px;font-size:14.5px;font-weight:600;
+    border:1px solid var(--ink);cursor:pointer;letter-spacing:.01em;
+    transition:background .18s,color .18s,border-color .18s,transform .18s;
   }
-  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(37,99,235,.22)}
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(37,99,235,.3)}
-  .btn-ghost{border-color:var(--line);color:var(--fg);background:#fff}
-  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--ink);transform:translateY(-2px)}
 
   /* ===================== 通用板块 ===================== */
-  .section{padding:58px 0;border-top:1px solid var(--line)}
-  .kicker{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
-  .section h2{font-size:clamp(21px,3vw,26px);letter-spacing:-.01em}
-  .section .lead{margin-top:18px;color:var(--muted);max-width:66ch}
+  .section{padding:70px 0;border-top:1px solid var(--line)}
+  /* 小标签 + 一条贯穿的细线，杂志里的栏目标题 */
+  .kicker{
+    display:flex;align-items:center;gap:14px;
+    font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:16px;
+  }
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+  .section h2{font-size:clamp(25px,3.6vw,38px);font-weight:800;letter-spacing:-.03em}
+  .section .lead{margin-top:18px;color:var(--muted);max-width:62ch}
 
   /* 关于我：左文右小档案 */
-  .about-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:34px;margin-top:20px}
-  .facts{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
-  .facts dl{margin:0;font-size:14.5px}
-  .facts dt{color:var(--muted);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;margin-top:12px}
-  .facts dt:first-child{margin-top:0}
-  .facts dd{margin:3px 0 0;font-weight:600}
+  .about-grid{display:grid;grid-template-columns:1.75fr 1fr;gap:52px;margin-top:26px}
+  /* 第一段当作「导语」，字号放大一点 */
+  .about-grid > div > .lead:first-child{font-size:19px;color:var(--ink);line-height:1.7}
+  .about-grid > div > .lead + .lead{margin-top:16px}
+
+  .facts{padding-top:2px}
+  .facts dl{margin:0}
+  .facts dt{
+    font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+    padding-top:14px;border-top:1px solid var(--line);
+  }
+  .facts dt:first-child{border-top:0;padding-top:0}
+  .facts dd{margin:6px 0 0;padding-bottom:14px;font-weight:700;font-size:15px}
 
   /* 技能标签 */
-  .tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
   .tag-pill{
-    font-size:14px;padding:7px 14px;border-radius:999px;
-    background:var(--accent-soft);color:var(--accent);font-weight:600;
-    border:1px solid rgba(37,99,235,.14);
+    font-size:13px;padding:7px 14px;border-radius:2px;font-weight:600;letter-spacing:.02em;
+    background:var(--surface);border:1px solid var(--line);color:var(--muted);
+    transition:border-color .18s,color .18s,transform .18s;
   }
+  .tag-pill:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
 
-  /* 作品卡片 */
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:18px;margin-top:26px}
+  /* 作品：杂志式编号行，一个项目一整行 */
+  .cards{margin-top:30px;border-top:1px solid var(--line)}
   .card{
-    display:flex;flex-direction:column;
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:22px;transition:transform .2s,box-shadow .2s,border-color .2s;
+    position:relative;
+    display:grid;align-items:start;gap:6px 24px;
+    grid-template-columns:78px minmax(0,1fr) auto;
+    grid-template-areas:
+      "num title go"
+      "num desc  go"
+      "num meta  go";
+    padding:26px 4px;border-bottom:1px solid var(--line);
+    transition:background .2s;
   }
-  .card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(17,20,24,.07);border-color:#d8dce3}
-  .card .num{font-size:12.5px;font-weight:700;color:var(--accent);letter-spacing:.1em}
-  .card h3{font-size:17.5px;margin-top:8px}
-  .card p{margin-top:9px;font-size:14.5px;color:var(--muted);flex:1}
-  .card .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
-  .card .meta span{font-size:12.5px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 8px;background:#fff}
-  .card .go{margin-top:16px;font-size:14px;font-weight:600;color:var(--accent)}
+  /* 悬停时左边亮起一道竖线（用绝对定位，不占格子、也不会让文字重新折行） */
+  .card::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+    background:var(--accent);transform:scaleY(0);transform-origin:top;
+    transition:transform .28s ease;
+  }
+  .card:hover{background:var(--surface)}
+  .card:hover::before{transform:scaleY(1)}
+  .card .num{grid-area:num;font-family:Georgia,"Times New Roman",serif;font-size:23px;font-weight:700;color:var(--accent);line-height:1.35}
+  .card h3{grid-area:title;font-size:19px;font-weight:800;letter-spacing:-.02em}
+  .card p{grid-area:desc;margin-top:6px;font-size:15px;color:var(--muted);max-width:52ch}
+  .card .meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .card .meta span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:2px;padding:3px 9px;background:var(--surface)}
+  .card .go{grid-area:go;align-self:center;white-space:nowrap;font-size:14px;font-weight:700;color:var(--ink);border-bottom:1.5px solid var(--ink);padding-bottom:2px;transition:color .2s,border-color .2s}
+  .card:hover .go{color:var(--accent);border-bottom-color:var(--accent)}
 
   /* 联系 */
-  .contact{text-align:center;padding:64px 0}
+  .contact{text-align:center;padding:80px 0}
+  .contact .kicker{justify-content:center}
+  .contact .kicker::after{display:none}
   .contact .lead{margin-left:auto;margin-right:auto}
-  .contact .actions{justify-content:center}
+  .contact .actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:30px}
 
-  footer{border-top:1px solid var(--line);padding:26px 0;color:var(--muted);font-size:13.5px}
+  footer{border-top:2px solid var(--ink);padding:26px 0;color:var(--muted);font-size:12.5px;letter-spacing:.02em}
   footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
 
-  /* 进场动画 */
-  .reveal{opacity:0;transform:translateY(16px);transition:opacity .65s ease,transform .65s ease}
-  .reveal.in{opacity:1;transform:none}
+  /* 回到顶部 */
+  .to-top{
+    position:fixed;right:20px;bottom:20px;z-index:70;
+    width:42px;height:42px;border-radius:2px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+    background:var(--ink);border:1px solid var(--ink);color:var(--paper);
+    opacity:0;visibility:hidden;transform:translateY(10px);
+    transition:opacity .25s,transform .25s,visibility .25s,background .2s;
+  }
+  .to-top.show{opacity:1;visibility:visible;transform:none}
+  .to-top:hover{background:var(--accent);border-color:var(--accent)}
 
-  @media (max-width:760px){
-    .about-grid{grid-template-columns:1fr;gap:22px}
-    .nav-links{gap:16px;font-size:13.5px}
-    .hero{padding:60px 0 50px}
-    .section{padding:44px 0}
+  /* 进场动画：只有浏览器启用 JS 时才隐藏，避免关掉 JS 后内容看不见 */
+  .js .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
+  .js .reveal.in{opacity:1;transform:none}
+
+  @media (max-width:820px){
+    .about-grid{grid-template-columns:1fr;gap:32px}
+    .hero{padding:60px 0 52px}
+    .section{padding:52px 0}
+    .contact{padding:60px 0}
+  }
+  @media (max-width:720px){
+    .nav-toggle{display:inline-flex}
+    .nav-links{
+      position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;
+      padding:6px 26px 14px;font-size:13px;
+      background:var(--paper);border-bottom:2px solid var(--ink);
+      display:none;
+    }
+    .nav-links.open{display:flex}
+    .nav-links a{padding:12px 0;border-bottom:1px solid var(--line)}
+    .nav-links a:last-child{border-bottom:0}
+
+    /* 作品行在小屏上改成上下排列 */
+    .card{
+      grid-template-columns:1fr;
+      grid-template-areas:"num" "title" "desc" "meta" "go";
+      gap:6px;
+    }
+    .card .go{justify-self:start;margin-top:14px}
   }
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
-    .reveal{opacity:1;transform:none;transition:none}
+    .js .reveal{opacity:1;transform:none;transition:none}
   }
 </style>
 </head>
 
 <body>
+<div class="glow" aria-hidden="true"></div>
 
 <!-- ===================== 顶部导航 ===================== -->
 <header class="site-header">
   <nav class="nav">
     <!-- ↓↓↓ 改这里 ②：左上角你的名字 ↓↓↓ -->
     <a class="brand" href="#top">Yuki<b>shiro</b></a>
-    <div class="nav-links">
+    <!-- ↑↑↑ 改这里 ② ↑↑↑ -->
+    <div class="nav-links" id="navLinks">
       <a href="#about">关于</a>
       <a href="#skills">技能</a>
       <a href="#work">作品</a>
       <a href="#contact">联系</a>
+    </div>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
+      </button>
+      <button class="nav-toggle" id="navToggle" type="button" aria-label="打开菜单" aria-expanded="false"><span></span></button>
     </div>
   </nav>
 </header>
@@ -183,7 +314,7 @@
     <div class="wrap">
       <!-- ↓↓↓ 改这里 ⑩：头像照片 ↓↓↓
            把照片命名成 avatar.jpg，传到仓库根目录（和 index.html 放一起）就行。
-           图片还没传上去时，会自动显示下面的蓝色首字母 Y，不会出现裂图。 -->
+           图片还没传上去时，会自动显示下面的首字母 Y，不会出现裂图。 -->
       <div class="avatar" aria-hidden="true">
         Y
         <img src="avatar.jpg" alt="" onerror="this.remove()" />
@@ -261,34 +392,46 @@
     <div class="wrap reveal">
       <p class="kicker">Work</p>
       <h2>作品与项目</h2>
-      <p class="lead">还没有，先留着，比空着好看。</p>
+      <p class="lead">做过的和正在做的小东西，都放在这里。点进去就能玩。</p>
 
       <div class="cards">
-        <!-- ↓↓↓ 改这里 ⑦：每个 <article class="card"> 是一张卡片，可以复制更多 ↓↓↓ -->
+        <!-- ↓↓↓ 改这里 ⑦：一个 <article class="card"> 就是一个作品，复制一份就多一个 ↓↓↓
+
+             【链接怎么写】把卡片里的 href="#" 换成你的目标，三种情况：
+
+             1) 项目放在本仓库里（推荐）
+                href="projects/游戏名/"
+                对应仓库里的 projects/游戏名/index.html，点开就能玩。
+                ⚠️ 文件夹名用英文小写，别用中文和空格，网址里会变成一串 %E4%B8%AD 乱码。
+
+             2) 项目在另一个仓库，想让人直接玩
+                href="https://yukiii-26.github.io/仓库名/"
+                （那个仓库也要在 Settings → Pages 里打开）
+
+             3) 只想让人看代码，不做成网页
+                href="https://github.com/Yukiii-26/仓库名"
+
+             想让链接在新标签页打开，就再加两个属性：target="_blank" rel="noopener"
+
+             【项目文件夹里的 index.html】
+             文件名必须正好是 index.html（全小写），这样 /projects/游戏名/ 才会自动打开它。
+             项目内部的 css / js / 图片要用相对路径，比如 ./style.css、./game.js；
+             写成 /style.css 会跑到网站根目录去找，是错的。
+
+             【最容易踩的坑】GitHub 的服务器区分大小写：你本地 Windows 上写 Game.js 能跑，
+             传到线上就是 404。文件名统一用小写最省事。
+        -->
 
         <article class="card">
           <span class="num">01</span>
-          <h3>项目名称一</h3>
-          <p>未完待续1</p>
-          <div class="meta"><span>占位</span><span>占位</span></div>
-          <a class="go" href="#">查看详情 →</a>
+          <h3>扫雷 Minesweeper</h3>
+          <p>纯手写 HTML / CSS / JavaScript，零依赖。三种难度，第一下绝不会踩雷，右键（手机长按）插旗，空格键一键翻开周围已确定安全的格子。</p>
+          <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span></div>
+          <a class="go" href="projects/minesweeper/">去玩 →</a>
         </article>
 
-        <article class="card">
-          <span class="num">02</span>
-          <h3>项目名称二</h3>
-          <p>未完待续2</p>
-          <div class="meta"><span>占位</span><span>占位</span></div>
-          <a class="go" href="#">查看详情 →</a>
-        </article>
-
-        <article class="card">
-          <span class="num">03</span>
-          <h3>项目名称三</h3>
-          <p>未完待续3</p>
-          <div class="meta"><span>占位</span><span>占位</span></div>
-          <a class="go" href="#">查看详情 →</a>
-        </article>
+        <!-- 想做第 2 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
+             改掉编号 02、标题、说明和链接就行。 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
       </div>
@@ -322,9 +465,32 @@
   </div>
 </footer>
 
+<button class="to-top" id="toTop" aria-label="回到顶部">↑</button>
+
 <script>
   // 年份自动更新
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  // ☀ / ☾ 切换深色、浅色，并记住选择
+  var themeToggle = document.getElementById('themeToggle');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  themeToggle.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+    if (themeMeta) themeMeta.setAttribute('content', next === 'dark' ? '#100e0d' : '#faf8f4');
+  });
+  // 你没手动选过之前，跟随系统的深浅色变化
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var onSysChange = function (e) {
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (err) {}
+      if (!saved) document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    };
+    if (mq.addEventListener) mq.addEventListener('change', onSysChange);
+    else if (mq.addListener) mq.addListener(onSysChange);
+  }
 
   // 滚动到哪一块，文字就轻轻浮上来
   var items = document.querySelectorAll('.reveal');
@@ -338,6 +504,44 @@
   } else {
     items.forEach(function (el) { el.classList.add('in'); });
   }
+
+  // 小屏幕上的折叠菜单
+  var navToggle = document.getElementById('navToggle');
+  var navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', function () {
+    var open = navLinks.classList.toggle('open');
+    navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  navLinks.addEventListener('click', function (e) {
+    if (e.target.tagName === 'A') {
+      navLinks.classList.remove('open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // 导航高亮：滚到哪一节，上面哪个链接就亮起来
+  var sections = [].slice.call(document.querySelectorAll('main section[id]'));
+  var links = [].slice.call(document.querySelectorAll('.nav-links a'));
+  if ('IntersectionObserver' in window && sections.length) {
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id);
+        });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    sections.forEach(function (s) { spy.observe(s); });
+  }
+
+  // 往下滚一段之后，右下角出现「回到顶部」
+  var toTop = document.getElementById('toTop');
+  window.addEventListener('scroll', function () {
+    toTop.classList.toggle('show', window.scrollY > 480);
+  }, { passive: true });
+  toTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 </script>
 
 </body>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  「项目详情页」模板  ·  projects/template/index.html
+  ============================================================================
+  【怎么用】把这个 template 文件夹整个复制一份，重命名成你的项目名（英文小写），
+  例如复制成 projects/snake/，然后在里面改内容。
+
+  【放在哪一层】这个文件假设自己在 projects/<名字>/ 里（第二层）。
+  下面「返回主页」的链接写的是 ../../ ，正好回到网站根目录。
+  如果你往里再套一层（projects/a/b/），要把 ../../ 改成 ../../../ 。
+
+  【两种项目怎么选】
+  · 项目本身就是一个能玩的网页（小游戏、小工具）→ 别用这个模板，
+    直接把你的游戏放成 projects/游戏名/index.html，主页卡片直接链过去最省事。
+  · 项目需要配文字说明、截图 → 用这个模板当 index.html（详情页），
+    再把能玩的东西放到同级的 play/ 文件夹里，"在线试玩" 按钮指向 ./play/ 。
+
+  【怎么改】搜「改这里」，一共 7 处。
+  ============================================================================
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#faf8f4" />
+
+<!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时的卡片文字 ↓↓↓ -->
+<title>项目名称 · Yukishiro</title>
+<meta name="description" content="项目名称 —— 一句话说明这个项目。" />
+<meta property="og:title" content="项目名称 · Yukishiro" />
+<meta property="og:description" content="项目名称 —— 一句话说明这个项目。" />
+<meta property="og:type" content="article" />
+<!-- ↑↑↑ 改这里 ① ↑↑↑ -->
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2316130f'/><text x='50' y='72' font-size='60' font-family='Georgia,serif' font-weight='700' fill='%23faf8f4' text-anchor='middle'>Y</text></svg>" />
+
+<script>
+  (function () {
+    document.documentElement.classList.add('js');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', saved || (sysDark ? 'dark' : 'light'));
+  })();
+</script>
+
+<style>
+  /* 配色和主页完全一致，改这里就能换主题色（浅色 / 深色各一块） */
+  :root{
+    --paper:#faf8f4;
+    --surface:#ffffff;
+    --ink:#16130f;
+    --muted:#6f675c;
+    --line:#e2dbd0;
+    --accent:#c2410c;
+    --nav-bg:rgba(250,248,244,.92);
+    --max:780px;
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#100e0d;
+    --surface:#1a1714;
+    --ink:#f0ece8;
+    --muted:#a29c95;
+    --line:rgba(255,255,255,.11);
+    --accent:#fb923c;
+    --nav-bg:rgba(16,14,13,.88);
+  }
+  :root[data-theme="light"]{color-scheme:light}
+
+  *,*::before,*::after{box-sizing:border-box}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);line-height:1.8;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+    transition:background-color .35s ease,color .35s ease;
+  }
+  a{color:inherit;text-decoration:none}
+  h1,h2{margin:0;letter-spacing:-.03em;line-height:1.15}
+  p{margin:0}
+  img{max-width:100%}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 26px}
+
+  /* 深色模式下的背景光晕 */
+  .glow{
+    position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity .45s ease;
+    background:
+      radial-gradient(56% 40% at 10% -6%, rgba(251,146,60,.22), transparent 70%),
+      radial-gradient(46% 36% at 92% -2%, rgba(245,158,11,.15), transparent 70%);
+  }
+  :root[data-theme="dark"] .glow{opacity:1}
+
+  /* 顶栏：左边名字、右边返回 + 主题按钮 */
+  .site-header{
+    position:sticky;top:0;z-index:60;background:var(--nav-bg);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-bottom:2px solid var(--ink);
+    transition:background-color .35s ease,border-color .35s ease;
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:var(--max);margin:0 auto;padding:15px 26px}
+  .brand{font-weight:800;font-size:16px}
+  .brand b{color:var(--accent)}
+  .nav-right{display:flex;align-items:center;gap:9px}
+  .back{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px solid transparent;padding-bottom:3px;transition:color .18s,border-color .18s}
+  .back:hover{color:var(--ink);border-bottom-color:var(--accent)}
+
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:32px;border-radius:2px;cursor:pointer;padding:0;
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    transition:border-color .18s,color .18s;
+  }
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+  .theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+  .theme-toggle .i-sun{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-moon{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-sun{display:block}
+
+  main{padding:64px 0 0}
+  .kicker{
+    display:flex;align-items:center;gap:14px;
+    font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:16px;
+  }
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* ↓↓↓ 改这里 ②：项目名称 ↓↓↓ */
+  h1{font-size:clamp(30px,5.4vw,50px);font-weight:800}
+  /* ↑↑↑ 改这里 ② ↑↑↑ */
+
+  /* ↓↓↓ 改这里 ③：一句话说明这个项目是干什么的 ↓↓↓ */
+  .lead{margin-top:20px;font-size:18px;color:var(--muted);max-width:56ch}
+  /* ↑↑↑ 改这里 ③ ↑↑↑ */
+
+  /* ↓↓↓ 改这里 ④：技术标签，一个 <span> 一个，想加就复制一行 ↓↓↓ */
+  .tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+  .tag-pill{
+    font-size:13px;padding:7px 14px;border-radius:2px;font-weight:600;letter-spacing:.02em;
+    background:var(--surface);border:1px solid var(--line);color:var(--muted);
+  }
+  /* ↑↑↑ 改这里 ④ ↑↑↑ */
+
+  /* ↓↓↓ 改这里 ⑤：按钮链接。
+        · 在线试玩 → 指向同级的 play/ 文件夹；如果项目本身就是游戏，直接删掉这个按钮
+        · 查看源码 → 换成你的仓库地址 ↓↓↓ */
+  .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;
+    padding:13px 24px;border-radius:2px;font-size:14.5px;font-weight:600;
+    border:1px solid var(--ink);cursor:pointer;letter-spacing:.01em;
+    transition:background .18s,color .18s,border-color .18s,transform .18s;
+  }
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--ink);transform:translateY(-2px)}
+  /* ↑↑↑ 改这里 ⑤ ↑↑↑ */
+
+  /* 截图位：把图片放进同目录，然后把下面的 div 换成
+     <img src="./shot.png" alt="项目截图" /> 就行 */
+  .shot{
+    margin:44px 0 0;border:1px dashed var(--line);border-radius:2px;
+    aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+    color:var(--muted);font-size:13.5px;background:var(--surface);
+    text-align:center;padding:16px;
+  }
+
+  .section{margin-top:56px;padding-top:34px;border-top:1px solid var(--line)}
+  .section h2{font-size:clamp(20px,3vw,26px);font-weight:800}
+  /* ↓↓↓ 改这里 ⑥：项目说明正文（想写几段就写几段） ↓↓↓ */
+  .prose{margin-top:18px;max-width:62ch}
+  .prose p + p{margin-top:15px}
+  .prose ul{margin:15px 0 0;padding-left:22px}
+  .prose li{margin-top:8px}
+  .prose code{background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:1px 6px;font-size:14px}
+  /* ↑↑↑ 改这里 ⑥ ↑↑↑ */
+
+  footer{
+    margin-top:76px;border-top:2px solid var(--ink);padding:26px 0;color:var(--muted);font-size:12.5px;
+  }
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+
+  @media (max-width:720px){
+    main{padding:44px 0 0}
+    .lead{font-size:16.5px}
+  }
+</style>
+</head>
+
+<body>
+<div class="glow" aria-hidden="true"></div>
+
+<header class="site-header">
+  <nav class="nav">
+    <a class="brand" href="../../">Yuki<b>shiro</b></a>
+    <div class="nav-right">
+      <a class="back" href="../../">← 返回主页</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="kicker">Project</p>
+
+    <h1>项目名称</h1>
+
+    <p class="lead">
+      一句话说明这个项目是干什么的、解决什么问题。
+    </p>
+
+    <div class="tags">
+      <span class="tag-pill">HTML</span>
+      <span class="tag-pill">JavaScript</span>
+      <span class="tag-pill">Canvas</span>
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-primary" href="./play/">▶ 在线试玩</a>
+      <a class="btn btn-ghost" href="https://github.com/Yukiii-26">查看源码</a>
+    </div>
+
+    <!-- ↓↓↓ 改这里 ⑦：截图。有图之后把下面这个 div 整块换成：
+         <img src="./shot.png" alt="项目截图" />  ↓↓↓ -->
+    <div class="shot">把截图放在这一层目录，命名成 shot.png，<br />然后把这段换成 &lt;img src="./shot.png" alt="项目截图" /&gt;</div>
+    <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
+
+    <section class="section">
+      <h2>关于这个项目</h2>
+      <div class="prose">
+        <p>
+          第一段：这个项目是做什么的、为什么做它。
+        </p>
+        <p>
+          第二段：怎么做的、遇到什么问题、怎么解决的。可以顺便写写学到的东西。
+        </p>
+        <ul>
+          <li>想列要点就写成这样的一行一行</li>
+          <li>不要的行整行删掉就行</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year">2025</span> Yukishiro</span>
+    <span><a href="../../">返回主页</a></span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  var themeToggle = document.getElementById('themeToggle');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  themeToggle.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+    if (themeMeta) themeMeta.setAttribute('content', next === 'dark' ? '#100e0d' : '#faf8f4');
+  });
+</script>
+
+</body>
+</html>

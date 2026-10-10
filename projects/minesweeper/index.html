@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>扫雷 Minesweeper</title>
+<style>
+  :root {
+    --face: #c0c0c0;
+    --hi: #ffffff;
+    --lo: #808080;
+    --grid: #c6c6c6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: radial-gradient(circle at 50% 0%, #3c4a63, #1b2130 70%);
+    font-family: "Segoe UI", Tahoma, "Microsoft YaHei", system-ui, sans-serif;
+    color: #dfe6f2;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    padding: 20px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    color: #f0f4ff;
+    text-shadow: 0 2px 10px rgba(0,0,0,.6);
+  }
+  .frame {
+    background: var(--face);
+    padding: 8px;
+    border-top: 4px solid var(--hi);
+    border-left: 4px solid var(--hi);
+    border-right: 4px solid #404040;
+    border-bottom: 4px solid #404040;
+    box-shadow: 0 18px 40px rgba(0,0,0,.5);
+  }
+  .panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border-top: 3px solid #808080;
+    border-left: 3px solid #808080;
+    border-right: 3px solid #ffffff;
+    border-bottom: 3px solid #ffffff;
+  }
+  .led {
+    display: flex;
+    gap: 2px;
+    background: #000;
+    padding: 2px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+  }
+  .led i {
+    width: 15px;
+    text-align: center;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 22px;
+    line-height: 26px;
+    font-weight: 700;
+    color: #ff2d2d;
+    text-shadow: 0 0 8px #ff2d2d;
+    font-style: normal;
+  }
+  .smiley {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 22px;
+    line-height: 30px;
+    background: var(--face);
+    border-width: 3px;
+    border-style: solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    cursor: pointer;
+  }
+  .smiley:active {
+    border-color: #808080 #ffffff #ffffff #808080;
+  }
+  .board {
+    display: grid;
+    gap: 0;
+    background: #404040;
+    border-width: 3px;
+    border-style: solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+  }
+  .cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    border-width: 3px;
+    border-style: solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    background: var(--face);
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .cell.revealed {
+    border-width: 1px;
+    border-color: var(--grid);
+    background: #d2d2d2;
+    cursor: default;
+  }
+  .cell.pressed {
+    border-width: 1px;
+    border-color: var(--grid);
+  }
+  .cell.mine { background: #d2d2d2; }
+  .cell.boom { background: #ff3b3b; }
+  .cell.err { background: #ffb3b3; }
+  .cell.flag { font-size: .72em; }
+  .n1 { color: #0000ff; } .n2 { color: #008200; } .n3 { color: #d40000; }
+  .n4 { color: #000080; } .n5 { color: #800000; } .n6 { color: #008080; }
+  .n7 { color: #000000; } .n8 { color: #6b6b6b; }
+  .cell.boom { animation: boom .35s ease-out; }
+  @keyframes boom { from { transform: scale(1.5); filter: brightness(2.2); } to { transform: scale(1); } }
+  .levels { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .levels button {
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    background: #2a3143;
+    color: #cfd8e8;
+    border: 1px solid #4c5773;
+    border-radius: 6px;
+  }
+  .levels button:hover { background: #35405a; }
+  .levels button.on { background: #4d6bd8; border-color: #7f96ff; color: #fff; }
+  .msg { height: 22px; font-size: 14px; color: #ffd479; }
+  .help { font-size: 12px; line-height: 1.9; color: #96a2ba; text-align: center; max-width: 620px; }
+  kbd {
+    background: #2a3143; border: 1px solid #4c5773; border-radius: 4px;
+    padding: 1px 5px; font-family: Consolas, monospace; font-size: 11px; color: #cfd8e8;
+  }
+</style>
+</head>
+<body>
+<h1>扫 雷</h1>
+
+<div class="frame">
+  <div class="panel">
+    <div class="led" id="ledMines"><i>0</i><i>0</i><i>0</i></div>
+    <button class="smiley" id="smiley" title="重新开始">🙂</button>
+    <div class="led" id="ledTime"><i>0</i><i>0</i><i>0</i></div>
+  </div>
+  <div class="board" id="board"></div>
+</div>
+
+<div class="levels" id="levels">
+  <button data-level="beginner">初级 9×9 / 10</button>
+  <button data-level="intermediate">中级 16×16 / 40</button>
+  <button data-level="expert">高级 30×16 / 99</button>
+</div>
+
+<div class="msg" id="msg">点第一下绝不会踩雷，放心点。</div>
+
+<div class="help">
+  左键翻开 · 右键插旗 🚩 · 手机：轻触翻开、长按约 0.3 秒插旗<br>
+  快捷键 <kbd>R</kbd> 重开 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 切难度 · <kbd>空格</kbd> 一键清掉已确定安全的格子
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var LEVELS = {
+    beginner:     { cols: 9,  rows: 9,  mines: 10, size: 32 },
+    intermediate: { cols: 16, rows: 16, mines: 40, size: 28 },
+    expert:       { cols: 30, rows: 16, mines: 99, size: 25 }
+  };
+
+  var boardEl = document.getElementById('board');
+  var ledMinesEl = document.getElementById('ledMines');
+  var ledTimeEl = document.getElementById('ledTime');
+  var faceEl = document.getElementById('smiley');
+  var levelsEl = document.getElementById('levels');
+  var msgEl = document.getElementById('msg');
+
+  // 兼容常见的 jQuery 风格选择器（本文件不依赖任何库）
+  function $$(sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  }
+
+  var S = {
+    level: 'beginner',
+    cols: 9, rows: 9, mines: 10, size: 32,
+    mine: null, num: null, state: null, el: null,
+    first: true, finished: false,
+    flags: 0, revealed: 0,
+    time: 0, timer: null,
+    pressTimer: null, suppressClick: false
+  };
+
+  function idx(r, c) { return r * S.cols + c; }
+
+  function fmt(n) {
+    var neg = n < 0;
+    n = Math.abs(n);
+    var s = String(n);
+    while (s.length < 3) s = '0' + s;
+    if (neg) s = '-' + s.slice(1);
+    return s.slice(-3);
+  }
+
+  function setLed(el, val) {
+    var t = fmt(val);
+    for (var i = 0; i < 3; i++) el.children[i].textContent = t.charAt(i);
+  }
+
+  function renderTime() {
+    setLed(ledTimeEl, Math.min(S.time, 999));
+  }
+
+  function stopTimer() {
+    if (S.timer) { clearInterval(S.timer); S.timer = null; }
+  }
+
+  function startTimer() {
+    stopTimer();
+    S.time = 0;
+    renderTime();
+    S.timer = setInterval(function () {
+      S.time++;
+      if (S.time > 999) { S.time = 999; renderTime(); stopTimer(); return; }
+      renderTime();
+    }, 1000);
+  }
+
+  function placeMines(safe) {
+    var total = S.cols * S.rows;
+    var forbidden = {};
+    var r0 = Math.floor(safe / S.cols), c0 = safe % S.cols;
+    for (var i = 0; i < 8; i++) {
+      var rr = r0 + [1, 1, 1, 0, 0, -1, -1, -1][i];
+      var cc = c0 + [-1, 0, 1, -1, 1, -1, 0, 1][i];
+      if (rr >= 0 && rr < S.rows && cc >= 0 && cc < S.cols) forbidden[rr * S.cols + cc] = 1;
+    }
+    forbidden[safe] = 1;
+
+    var pool = [];
+    for (var k = 0; k < total; k++) if (!forbidden[k]) pool.push(k);
+
+    var count = Math.min(S.mines, pool.length);
+    for (var j = 0; j < count; j++) {
+      var pick = j + Math.floor(Math.random() * (pool.length - j));
+      var tmp = pool[j]; pool[j] = pool[pick]; pool[pick] = tmp;
+      S.mine[pool[j]] = true;
+    }
+
+    for (var p = 0; p < total; p++) {
+      if (S.mine[p]) continue;
+      var n = 0;
+      var row = Math.floor(p / S.cols), col = p % S.cols;
+      for (var d = 0; d < 8; d++) {
+        var nr = row + [-1, -1, -1, 0, 0, 1, 1, 1][d];
+        var nc = col + [-1, 0, 1, -1, 1, -1, 0, 1][d];
+        if (nr < 0 || nr >= S.rows || nc < 0 || nc >= S.cols) continue;
+        if (S.mine[nr * S.cols + nc]) n++;
+      }
+      S.num[p] = n;
+    }
+  }
+
+  function build() {
+    stopTimer();
+    clearTimeout(S.pressTimer);
+    S.pressTimer = null;
+    S.suppressClick = false;
+
+    var total = S.cols * S.rows;
+    S.mine = new Array(total);
+    S.num = new Array(total);
+    S.state = new Array(total);
+    for (var i = 0; i < total; i++) { S.mine[i] = false; S.num[i] = 0; S.state[i] = 0; }
+
+    S.first = true;
+    S.finished = false;
+    S.flags = 0;
+    S.revealed = 0;
+    S.time = 0;
+    faceEl.textContent = '🙂';
+    setLed(ledMinesEl, S.mines);
+    renderTime();
+
+    boardEl.style.gridTemplateColumns = 'repeat(' + S.cols + ', ' + S.size + 'px)';
+    boardEl.innerHTML = '';
+    S.el = new Array(total);
+
+    var frag = document.createDocumentFragment();
+    for (var r = 0; r < S.rows; r++) {
+      for (var c = 0; c < S.cols; c++) {
+        var cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.width = cell.style.height = S.size + 'px';
+        cell.style.fontSize = Math.round(S.size * 0.56) + 'px';
+        cell.dataset.i = idx(r, c);
+        frag.appendChild(cell);
+        S.el[idx(r, c)] = cell;
+      }
+    }
+    boardEl.appendChild(frag);
+
+    $$('#levels button').forEach(function (b) {
+      b.classList.toggle('on', b.dataset.level === S.level);
+    });
+    msgEl.textContent = '点第一下绝不会踩雷，放心点。';
+  }
+
+  function startGame(level) {
+    if (level && LEVELS[level]) {
+      S.level = level;
+      S.cols = LEVELS[level].cols;
+      S.rows = LEVELS[level].rows;
+      S.mines = LEVELS[level].mines;
+      S.size = LEVELS[level].size;
+    }
+    build();
+  }
+
+  function bumpFlags(delta) {
+    S.flags += delta;
+    setLed(ledMinesEl, S.mines - S.flags);
+  }
+
+  function neighbors(i) {
+    var out = [];
+    var r = Math.floor(i / S.cols), c = i % S.cols;
+    for (var dr = -1; dr <= 1; dr++) {
+      for (var dc = -1; dc <= 1; dc++) {
+        if (!dr && !dc) continue;
+        var nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr >= S.rows || nc < 0 || nc >= S.cols) continue;
+        out.push(nr * S.cols + nc);
+      }
+    }
+    return out;
+  }
+
+  function revealCell(i) {
+    if (S.state[i] === 1) return;
+    S.state[i] = 1;
+    S.el[i].classList.add('revealed');
+    S.revealed++;
+    if (S.num[i] > 0) {
+      S.el[i].textContent = S.num[i];
+      S.el[i].classList.add('n' + S.num[i]);
+    }
+    if (S.revealed === S.cols * S.rows - S.mines) checkWin();
+  }
+
+  function reveal(i) {
+    S.state[i] = 1;
+    S.el[i].classList.add('revealed');
+    S.revealed++;
+    if (S.num[i] > 0) {
+      S.el[i].textContent = S.num[i];
+      S.el[i].classList.add('n' + S.num[i]);
+    } else {
+      // 空白格：用显式栈做泛洪展开，避免递归爆栈
+      var stack = [i], pushed = {};
+      pushed[i] = 1;
+      while (stack.length) {
+        var cur = stack.pop();
+        var nb = neighbors(cur);
+        for (var k = 0; k < nb.length; k++) {
+          var j = nb[k];
+          if (S.state[j] === 1 || pushed[j]) continue;
+          pushed[j] = 1;
+          if (S.state[j] === 2) { // 误插的旗子被空白区推翻
+            S.state[j] = 0;
+            S.el[j].classList.remove('flag');
+            S.el[j].textContent = '';
+            bumpFlags(-1);
+          }
+          S.state[j] = 1;
+          S.el[j].classList.add('revealed');
+          S.revealed++;
+          if (S.num[j] > 0) {
+            S.el[j].textContent = S.num[j];
+            S.el[j].classList.add('n' + S.num[j]);
+          } else {
+            stack.push(j);
+          }
+        }
+      }
+    }
+    if (S.revealed === S.cols * S.rows - S.mines) checkWin();
+  }
+
+  function boom(i) {
+    for (var p = 0; p < S.state.length; p++) {
+      if (S.mine[p] && S.state[p] === 2) S.el[p].classList.remove('flag');
+      if (S.mine[p] && S.state[p] !== 1) {
+        S.state[p] = 1;
+        S.el[p].classList.add('revealed', 'mine');
+        S.el[p].textContent = '💣';
+      }
+    }
+    S.el[i].classList.add('boom');
+    S.el[i].textContent = '💥';
+    S.el[i].classList.remove('mine');
+    for (var q = 0; q < S.state.length; q++) {
+      if (S.state[q] === 2 && !S.mine[q]) {
+        S.el[q].textContent = '❌';
+        S.el[q].classList.add('revealed', 'err');
+      }
+    }
+  }
+
+  function checkWin() {
+    S.finished = true;
+    stopTimer();
+    for (var p = 0; p < S.state.length; p++) {
+      if (S.mine[p] && S.state[p] !== 2) {
+        S.state[p] = 2;
+        S.el[p].textContent = '🚩';
+        S.el[p].classList.add('flag');
+      }
+    }
+    S.flags = S.mines;
+    setLed(ledMinesEl, 0);
+    faceEl.textContent = '😎';
+    msgEl.textContent = '🎉 通关！用时 ' + S.time + ' 秒。按 R 或点笑脸再来一局。';
+  }
+
+  function lose(i) {
+    S.finished = true;
+    stopTimer();
+    boom(i);
+    faceEl.textContent = '😵';
+    msgEl.textContent = '💥 踩雷了……按 R 或点笑脸重来。';
+  }
+
+  // 空格键：把周围雷数已全部插旗的格子一键翻开
+  function chord(i) {
+    if (S.state[i] !== 1 || S.num[i] <= 0) return;
+    var nb = neighbors(i), flags = 0, k;
+    for (k = 0; k < nb.length; k++) if (S.state[nb[k]] === 2) flags++;
+    if (flags !== S.num[i]) return;
+    for (k = 0; k < nb.length; k++) {
+      var j = nb[k];
+      if (S.state[j] !== 0) continue;
+      if (S.mine[j]) { lose(j); return; }
+      reveal(j);
+      if (S.finished) return;
+    }
+  }
+
+  function handleClick(i) {
+    if (S.finished) return;
+    if (S.suppressClick) { S.suppressClick = false; return; }
+    if (S.state[i] === 1) { chord(i); return; }
+    if (S.state[i] === 2) return;
+    if (S.first) {
+      S.first = false;
+      placeMines(i);
+      startTimer();
+      msgEl.textContent = '';
+    }
+    if (S.mine[i]) { lose(i); return; }
+    reveal(i);
+    if (!S.finished) faceEl.textContent = '🙂';
+  }
+
+  function toggleFlag(i) {
+    if (S.finished || S.state[i] === 1) return;
+    if (S.state[i] === 2) {
+      S.state[i] = 0;
+      S.el[i].textContent = '';
+      S.el[i].classList.remove('flag');
+      bumpFlags(-1);
+      return;
+    }
+    if (S.flags >= S.mines) return;
+    S.state[i] = 2;
+    S.el[i].textContent = '🚩';
+    S.el[i].classList.add('flag');
+    bumpFlags(1);
+  }
+
+  function clearPressed() {
+    if (!S.el) return;
+    for (var i = 0; i < S.el.length; i++) S.el[i].classList.remove('pressed');
+  }
+
+  boardEl.addEventListener('mousedown', function (e) {
+    var i = cellIndex(e.target);
+    if (i < 0 || S.finished) return;
+    e.preventDefault();
+    if (e.button === 0 && S.state[i] !== 1) S.el[i].classList.add('pressed');
+  });
+
+  document.addEventListener('mouseup', clearPressed);
+
+  boardEl.addEventListener('click', function (e) {
+    var i = cellIndex(e.target);
+    if (i < 0) return;
+    e.preventDefault();
+    handleClick(i);
+  });
+
+  boardEl.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    var i = cellIndex(e.target);
+    if (i >= 0) toggleFlag(i);
+  });
+
+  // 触屏：轻触翻开，长按约 0.3 秒插旗
+  boardEl.addEventListener('touchstart', function (e) {
+    var t = e.target;
+    var i = cellIndex(t);
+    if (i < 0 || S.finished) return;
+    clearTimeout(S.pressTimer);
+    S.pressTimer = setTimeout(function () {
+      S.suppressClick = true;
+      toggleFlag(i);
+      if (navigator.vibrate) navigator.vibrate(25);
+    }, 300);
+  }, { passive: true });
+
+  boardEl.addEventListener('touchend', function (e) {
+    clearTimeout(S.pressTimer);
+    if (S.suppressClick) e.preventDefault();
+  });
+
+  boardEl.addEventListener('touchmove', function () {
+    clearTimeout(S.pressTimer);
+    S.suppressClick = false;
+  }, { passive: true });
+
+  function cellIndex(node) {
+    if (!node || !node.dataset || node.dataset.i === undefined) return -1;
+    return Number(node.dataset.i);
+  }
+
+  faceEl.addEventListener('click', function () { startGame(); });
+
+  levelsEl.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('button[data-level]') : null;
+    if (btn) startGame(btn.dataset.level);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'r' || e.key === 'R') { startGame(); return; }
+    if (e.key === '1') { startGame('beginner'); return; }
+    if (e.key === '2') { startGame('intermediate'); return; }
+    if (e.key === '3') { startGame('expert'); return; }
+    if (e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault();
+      if (S.finished) return;
+      for (var i = 0; i < S.state.length; i++) {
+        if (S.state[i] === 1) { chord(i); if (S.finished) return; }
+      }
+    }
+  });
+
+  startGame('beginner');
+})();
+</script>
+</body>
+</html>

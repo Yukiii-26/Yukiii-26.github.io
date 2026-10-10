@@ -1,6 +1,6 @@
 # Yukishiro 的个人主页
 
-我的个人网站。纯手写 HTML / CSS / JS，网站本体只有 `index.html` 一个文件，零依赖、加载快。
+我的个人网站。网站本体只有 `index.html` 一个文件，用 HTML / CSS / JS 写成，零依赖、加载快。
 
 **在线访问：** <https://yukiii-26.github.io>
 

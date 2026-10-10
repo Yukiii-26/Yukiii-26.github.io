@@ -150,9 +150,42 @@
     background: #2a3143; border: 1px solid #4c5773; border-radius: 4px;
     padding: 1px 5px; font-family: Consolas, monospace; font-size: 11px; color: #cfd8e8;
   }
+  /* 返回主页：固定在左上角。用 fixed 定位就不参与上面那套垂直居中布局，不会把游戏挤歪 */
+  .back-home {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    text-decoration: none;
+    color: #cfd8e8;
+    background: rgba(42,49,67,.78);
+    border: 1px solid #4c5773;
+    border-radius: 6px;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition: background .18s, color .18s, border-color .18s, transform .18s;
+  }
+  .back-home:hover {
+    background: #35405a;
+    border-color: #7f96ff;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .back-home:active { transform: none; }
 </style>
 </head>
 <body>
+
+<!-- 返回主页。../../ 就是往上两层：minesweeper → projects → 网站根目录 -->
+<a class="back-home" href="../../">← 返回主页</a>
+
 <h1>扫 雷</h1>
 
 <div class="frame">

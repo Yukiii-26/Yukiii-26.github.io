@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  彩蛋页  ·  egg/index.html
+  ============================================================================
+  【怎么进来的】在主页上依次敲 W W S S A D A D B A 就会跳到这里。
+  秘技和跳转目标在主页 index.html 的 <script> 里，搜「彩蛋」就能找到。
+
+  【这一页是什么】它没有从任何导航链接进来，只认那串按键。
+  【怎么改】搜「改这里」。
+  ============================================================================
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#faf8f4" />
+<meta name="robots" content="noindex" />
+
+<!-- ↓↓↓ 改这里 ①：浏览器标签页标题 ↓↓↓ -->
+<title>🥚 你找到了彩蛋 · Yukishiro</title>
+<meta name="description" content="一个藏起来的页面。" />
+<!-- ↑↑↑ 改这里 ① ↑↑↑ -->
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2316130f'/><text x='50' y='72' font-size='60' font-family='Georgia,serif' font-weight='700' fill='%23faf8f4' text-anchor='middle'>Y</text></svg>" />
+
+<script>
+  (function () {
+    document.documentElement.classList.add('js');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', saved || (sysDark ? 'dark' : 'light'));
+  })();
+</script>
+
+<style>
+  /* 配色和主页一致，深浅色共用同一份记忆 */
+  :root{
+    --paper:#faf8f4;
+    --surface:#ffffff;
+    --ink:#16130f;
+    --muted:#6f675c;
+    --line:#e2dbd0;
+    --accent:#c2410c;
+    --nav-bg:rgba(250,248,244,.92);
+    --max:760px;
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#100e0d;
+    --surface:#1a1714;
+    --ink:#f0ece8;
+    --muted:#a29c95;
+    --line:rgba(255,255,255,.11);
+    --accent:#fb923c;
+    --nav-bg:rgba(16,14,13,.88);
+  }
+  :root[data-theme="light"]{color-scheme:light}
+
+  *,*::before,*::after{box-sizing:border-box}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);line-height:1.8;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+    transition:background-color .35s ease,color .35s ease;
+  }
+  a{color:inherit;text-decoration:none}
+  h1,h2{margin:0;letter-spacing:-.03em;line-height:1.15}
+  p{margin:0}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 26px}
+
+  .glow{
+    position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity .45s ease;
+    background:
+      radial-gradient(56% 40% at 10% -6%, rgba(251,146,60,.22), transparent 70%),
+      radial-gradient(46% 36% at 92% -2%, rgba(245,158,11,.15), transparent 70%);
+  }
+  :root[data-theme="dark"] .glow{opacity:1}
+
+  .site-header{
+    position:sticky;top:0;z-index:60;background:var(--nav-bg);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-bottom:2px solid var(--ink);
+    transition:background-color .35s ease,border-color .35s ease;
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:var(--max);margin:0 auto;padding:15px 26px}
+  .brand{font-weight:800;font-size:16px}
+  .brand b{color:var(--accent)}
+  .nav-right{display:flex;align-items:center;gap:9px}
+  .back{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px solid transparent;padding-bottom:3px;transition:color .18s,border-color .18s}
+  .back:hover{color:var(--ink);border-bottom-color:var(--accent)}
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:32px;border-radius:2px;cursor:pointer;padding:0;
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    transition:border-color .18s,color .18s;
+  }
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+  .theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+  .theme-toggle .i-sun{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-moon{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-sun{display:block}
+
+  main{padding:72px 0 0}
+  .kicker{
+    display:flex;align-items:center;gap:14px;
+    font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:16px;
+  }
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  h1{font-size:clamp(30px,5.6vw,52px);font-weight:800}
+  .lead{margin-top:20px;font-size:18px;color:var(--muted);max-width:52ch}
+
+  /* 把秘技画成键盘按键 */
+  .keys{display:flex;flex-wrap:wrap;gap:8px;margin-top:34px}
+  .keys kbd{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:44px;height:44px;padding:0 10px;
+    font-family:Consolas,"Courier New",monospace;font-size:17px;font-weight:700;
+    color:var(--ink);background:var(--surface);
+    border:1px solid var(--line);border-bottom-width:3px;border-radius:5px;
+  }
+  /* 逐个弹出来；系统开了「减少动态效果」就不动 */
+  .js .keys kbd{opacity:0;transform:translateY(6px);animation:keyIn .34s ease forwards}
+  @keyframes keyIn{to{opacity:1;transform:none}}
+  .js .keys kbd:nth-child(1){animation-delay:.05s}
+  .js .keys kbd:nth-child(2){animation-delay:.13s}
+  .js .keys kbd:nth-child(3){animation-delay:.21s}
+  .js .keys kbd:nth-child(4){animation-delay:.29s}
+  .js .keys kbd:nth-child(5){animation-delay:.37s}
+  .js .keys kbd:nth-child(6){animation-delay:.45s}
+  .js .keys kbd:nth-child(7){animation-delay:.53s}
+  .js .keys kbd:nth-child(8){animation-delay:.61s}
+  .js .keys kbd:nth-child(9){animation-delay:.69s}
+  .js .keys kbd:nth-child(10){animation-delay:.77s}
+
+  .note{margin-top:14px;font-size:13.5px;color:var(--muted)}
+
+  .section{margin-top:56px;padding-top:34px;border-top:1px solid var(--line)}
+  .section h2{font-size:clamp(20px,3vw,26px);font-weight:800}
+  .prose{margin-top:18px;max-width:60ch}
+  .prose p + p{margin-top:15px}
+
+  .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:40px}
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;
+    padding:13px 24px;border-radius:2px;font-size:14.5px;font-weight:600;
+    border:1px solid var(--ink);cursor:pointer;letter-spacing:.01em;
+    transition:background .18s,color .18s,border-color .18s,transform .18s;
+  }
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:translateY(-2px)}
+
+  footer{margin-top:76px;border-top:2px solid var(--ink);padding:26px 0;color:var(--muted);font-size:12.5px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+
+  @media (max-width:720px){
+    main{padding:48px 0 0}
+    .lead{font-size:16.5px}
+    .keys kbd{min-width:38px;height:38px;font-size:15px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .js .keys kbd{opacity:1;transform:none;animation:none}
+  }
+</style>
+</head>
+
+<body>
+<div class="glow" aria-hidden="true"></div>
+
+<header class="site-header">
+  <nav class="nav">
+    <a class="brand" href="../index.html">Yuki<b>shiro</b></a>
+    <div class="nav-right">
+      <a class="back" href="../index.html">← 返回主页</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="kicker">Secret</p>
+
+    <!-- ↓↓↓ 改这里 ②：标题和开场白 ↓↓↓ -->
+    <h1>你找到了这个彩蛋 🥚</h1>
+    <p class="lead">
+      在你敲下最后一个 A 的那一刻，这一页才存在。
+    </p>
+    <!-- ↑↑↑ 改这里 ② ↑↑↑ -->
+
+    <div class="keys" aria-hidden="true">
+      <kbd>W</kbd><kbd>W</kbd><kbd>S</kbd><kbd>S</kbd><kbd>A</kbd><kbd>D</kbd><kbd>A</kbd><kbd>D</kbd><kbd>B</kbd><kbd>A</kbd>
+    </div>
+    <p class="note">W = 上　S = 下　A = 左　D = 右 —— 也就是「上上下下左右左右 BA」的键盘版。</p>
+
+    <section class="section">
+      <h2>关于这串按键</h2>
+      <!-- ↓↓↓ 改这里 ③：关于秘技的说明正文 ↓↓↓ -->
+      <div class="prose">
+        <p>
+          原版是 ↑ ↑ ↓ ↓ ← → ← → B A，由科乐美的桥本和久（Kazuhisa Hashimoto）设计。
+          它因为能在《魂斗罗》里调出 30 条命，成了全世界玩家都记得的一串按键。
+        </p>
+        <p>
+          这一页算是给它的一点小小致敬。
+        </p>
+      </div>
+      <!-- ↑↑↑ 改这里 ③ ↑↑↑ -->
+    </section>
+
+    <div class="actions">
+      <a class="btn btn-primary" href="../index.html">← 回到主页</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year">2025</span> Yukishiro</span>
+    <span>这一页没有链接指向它</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  var themeToggle = document.getElementById('themeToggle');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  themeToggle.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+    if (themeMeta) themeMeta.setAttribute('content', next === 'dark' ? '#100e0d' : '#faf8f4');
+  });
+</script>
+
+</body>
+</html>

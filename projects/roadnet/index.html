@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#faf8f4" />
 
 <title>城市路网生成器 · Yukishiro</title>
-<meta name="description" content="按一个种子随机生成架空城市的路网草图：主干道、环路、河流、街区与公园。纯前端单文件，零依赖。" />
+<meta name="description" content="按一个种子随机生成架空城市的路网切片：中心密、外围疏，路网延伸到画面之外。纯前端单文件，零依赖。" />
 
 <script>
   // 主题要在页面画出来之前就读出来，否则会先闪一下白底
@@ -30,7 +30,7 @@
     --muted:#6f675c;
     --line:#e2dbd0;
     --accent:#c2410c;
-    --max:1080px;
+    --max:1240px;
   }
   :root[data-theme="dark"]{
     color-scheme:dark;
@@ -152,7 +152,7 @@
     <p class="kicker">作品 · 生成器</p>
     <h1>城市路网</h1>
     <p class="lede">
-      给一个种子，长出一座架空城市的街道：主干道、环路、河流、街区与公园。
+      给一个种子，生成一座架空城市的街道切片：中心密、外围疏，路网一直延伸到画面之外，没有边界线。
       <b>所有参数都在文件开头的「可改参数区」</b>，改数字就能换手感。
     </p>
   </header>
@@ -195,11 +195,13 @@
     <span>路口节点<b id="statNodes">—</b></span>
   </div>
   <p class="hint">
+    越靠近城市核心，街区越小、路越密；往外围逐渐变稀疏——就像真实城市那样。画面只是一块切片，路网不会在边缘停下。<br />
     快捷键：<kbd>R</kbd> 重新生成 · <kbd>S</kbd> 存图。链接里带上 <code>#种子</code> 可以分享同一座城。
   </p>
 
   <footer class="foot">
     纯前端 · 单文件 · 零依赖。种子相同，城市就相同；换个种子，街道、河流和公园全部重来。
+    画面没有边界：外围的街区只是被画框切断了，路网本身还在继续。
   </footer>
 
 </div>
@@ -221,8 +223,8 @@
   };
 
   var KM_ACROSS = 6;     // 整张图横向按 6 公里估算，只影响统计数字
-  var MAX_DEPTH = 8;     // 街区递归分裂的最深层数
-  var MIN_SIZE = function (scale) { return 100 - scale * 14; }; // 5 档：86 / 72 / 58 / 44 / 30
+  var MAX_DEPTH = 11;    // 街区递归分裂的最深层数
+  var MIN_SIZE = function (scale) { return 32 - scale * 3.5; }; // 5 档：28.5 / 25 / 21.5 / 18 / 14.5（像素，1 公里≈200px）
 
   /* =====================================================================
      工具：随机数、噪声
@@ -278,8 +280,18 @@
      ===================================================================== */
   function buildModel(opt, width, height) {
     var rnd = mulberry32(hash32(opt.seed));
-    var margin = Math.min(width, height) * 0.07;
-    var b = { x: margin, y: margin, w: width - margin * 2, h: height - margin * 2 };
+
+    // 画面只是城市的一个切片：路网向四面延伸到画面之外，没有「城墙」一样的边界
+    var bleed = Math.min(width, height) * 0.16;
+    var b = { x: -bleed, y: -bleed, w: width + bleed * 2, h: height + bleed * 2 };
+
+    // 城市中心（2~3 个核心）：离核心越近，街区越小、路越密 —— 密度梯度
+    var nuclei = [{ x: width * (0.4 + rnd() * 0.2), y: height * (0.42 + rnd() * 0.16), w: 1 }];
+    var extra = 1 + Math.floor(rnd() * 2);
+    for (var ni = 0; ni < extra; ni++) {
+      nuclei.push({ x: width * (0.12 + rnd() * 0.76), y: height * (0.12 + rnd() * 0.76), w: 0.5 + rnd() * 0.4 });
+    }
+    var diag = Math.hypot(width, height);
 
     // 两层噪声做坐标扭曲：大尺度揉弯边界，小尺度掰直线上那种「假直」感
     var warpAmp = opt.warp / 100 * 38;
@@ -314,14 +326,27 @@
       return out;
     }
 
-    var minSize = MIN_SIZE(opt.scale);
+    var baseMin = MIN_SIZE(opt.scale);   // 市中心最小的街区尺寸
+
+    // 每块地按「离最近的城市核心多远」决定还能切到多小：中心细、外围粗
+    function localMin(r) {
+      var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+      var best = Infinity;
+      for (var k = 0; k < nuclei.length; k++) {
+        var dist = Math.hypot(cx - nuclei[k].x, cy - nuclei[k].y) / nuclei[k].w;
+        if (dist < best) best = dist;
+      }
+      var ratio = Math.min(1, best / (diag * 0.55));
+      return baseMin * (1 + 2.6 * ratio * ratio);
+    }
     var roads = [];   // 街道（BSP 切出来的）
     var blocks = [];  // 叶子街区（矩形）
     var nodes = {};   // 端点集合，用来数路口
 
     (function split(r, depth) {
-      var canV = r.w > minSize * 2;
-      var canH = r.h > minSize * 2;
+      var m = localMin(r);
+      var canV = r.w > m * 2;
+      var canH = r.h > m * 2;
       if ((!canV && !canH) || depth >= MAX_DEPTH) {
         if (r.w > 6 && r.h > 6) blocks.push(r);
         return;
@@ -334,7 +359,8 @@
       else if (r.h > r.w * 1.25) vertical = false;
       else vertical = rnd() < 0.5;
 
-      var t = 0.5 + (rnd() - 0.5) * 0.55;   // 切在 22% ~ 78% 之间，避免总在正中间
+      // 市中心切得随意（老城肌理），郊区更规整（新城）：切分抖动随离中心的距离收窄
+      var t = 0.5 + (rnd() - 0.5) * (0.62 - 0.32 * Math.min(1, (m / baseMin - 1) / 2.2));
       if (vertical) {
         var x = r.x + r.w * t;
         roads.push({ x1: x, y1: r.y, x2: x, y2: r.y + r.h, level: Math.min(depth, 5) });
@@ -352,34 +378,7 @@
       }
     })(b, 0);
 
-    // ---- 环路：带圆角的矩形，套在城外一圈 ----
-    function roundedRectPoints(r, rad) {
-      var pts = [], step = 12;
-      var x0 = r.x, y0 = r.y, x1 = r.x + r.w, y1 = r.y + r.h;
-      function line(ax, ay, bx, by) {
-        var d = Math.hypot(bx - ax, by - ay);
-        var n = Math.max(1, Math.round(d / step));
-        for (var i = 0; i < n; i++) pts.push([ax + (bx - ax) * i / n, ay + (by - ay) * i / n]);
-      }
-      function arc(cx, cy, a0, a1) {
-        var n = 6;
-        for (var i = 0; i <= n; i++) {
-          var a = a0 + (a1 - a0) * i / n;
-          pts.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad]);
-        }
-      }
-      line(x0 + rad, y0, x1 - rad, y0);
-      arc(x1 - rad, y0 + rad, -Math.PI / 2, 0);
-      line(x1, y0 + rad, x1, y1 - rad);
-      arc(x1 - rad, y1 - rad, 0, Math.PI / 2);
-      line(x1 - rad, y1, x0 + rad, y1);
-      arc(x0 + rad, y1 - rad, Math.PI / 2, Math.PI);
-      line(x0, y1 - rad, x0, y0 + rad);
-      arc(x0 + rad, y0 + rad, Math.PI, Math.PI * 1.5);
-      pts.push(pts[0]);
-      return pts;
-    }
-    var ring = warpPolyline(roundedRectPoints(b, Math.min(b.w, b.h) * 0.09));
+    // 不再画环城公路：城市没有边界，外围的街区直接延伸出画面
 
     // ---- 斜向干道：两条，斜穿整座城 ----
     function edgePoint(side) {
@@ -429,7 +428,7 @@
         var idx = Math.floor(rnd() * blocks.length);
         if (picked[idx]) continue;
         var blk = blocks[idx];
-        if (blk.w * blk.h < minSize * minSize * 1.8) continue;
+        if (blk.w * blk.h < baseMin * baseMin * 2.6) continue;
         picked[idx] = 1;
         parks.push(idx);
       }
@@ -462,31 +461,46 @@
       return warpPolyline(per.concat([per[0]]));
     });
 
-    // ---- 统计 ----
+    // ---- 统计：只算画面里看得见的那部分 ----
+    function clippedLen(seg) {
+      var t0 = 0, t1 = 1;
+      var dx = seg.x2 - seg.x1, dy = seg.y2 - seg.y1;
+      var p = [-dx, dx, -dy, dy];
+      var q = [seg.x1, width - seg.x1, seg.y1, height - seg.y1];
+      for (var i = 0; i < 4; i++) {
+        if (Math.abs(p[i]) < 1e-9) { if (q[i] < 0) return 0; continue; }
+        var t = q[i] / p[i];
+        if (p[i] < 0) { if (t > t1) return 0; if (t > t0) t0 = t; }
+        else { if (t < t0) return 0; if (t < t1) t1 = t; }
+      }
+      return Math.hypot(dx, dy) * Math.max(0, t1 - t0);
+    }
+
     var totalPx = 0;
-    roads.forEach(function (r) { totalPx += Math.hypot(r.x2 - r.x1, r.y2 - r.y1); });
-    totalPx += ringLength(ring);
+    roads.forEach(function (r) { totalPx += clippedLen(r); });
+
+    var visBlocks = 0;
+    blocks.forEach(function (r) {
+      var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+      if (cx >= 0 && cx <= width && cy >= 0 && cy <= height) visBlocks++;
+    });
+
+    var visNodes = 0;
+    Object.keys(nodes).forEach(function (key) {
+      var xy = key.split(',');
+      var nx = +xy[0], ny = +xy[1];
+      if (nx >= 0 && nx <= width && ny >= 0 && ny <= height) visNodes++;
+    });
 
     return {
       width: width, height: height,
       streets: streetPaths,
       blocks: blockPaths,
       parks: parks.map(function (i) { return blockPaths[i]; }),
-      ring: ring,
       diagonals: diagonals,
       river: river,
-      stats: {
-        blocks: blocks.length,
-        nodes: Object.keys(nodes).length,
-        lengthPx: totalPx
-      }
+      stats: { blocks: visBlocks, nodes: visNodes, lengthPx: totalPx }
     };
-  }
-
-  function ringLength(pts) {
-    var s = 0;
-    for (var i = 0; i < pts.length - 1; i++) s += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
-    return s;
   }
 
   /* =====================================================================
@@ -573,12 +587,7 @@
     ctx.lineWidth = 5.4 * scale;
     model.diagonals.forEach(function (p) { polyPath(p); ctx.stroke(); });
 
-    // 6) 环路
-    ctx.globalAlpha = 0.9;
-    ctx.lineWidth = 7 * scale;
-    polyPath(model.ring); ctx.stroke();
-
-    // 7) 比例尺 + 指北针
+    // 6) 比例尺 + 指北针
     ctx.globalAlpha = 1;
     var pxPerKm = W / KM_ACROSS;
     var barLen = Math.min(pxPerKm, W * 0.3);
@@ -615,7 +624,7 @@
   function resizeCanvas() {
     var dpr = window.devicePixelRatio || 1;
     var cssW = Math.max(300, Math.floor(wrap.getBoundingClientRect().width));
-    var cssH = Math.round(Math.min(760, Math.max(340, cssW * 0.62)));
+    var cssH = Math.round(Math.min(940, Math.max(420, cssW * 0.68)));
     W = cssW; H = cssH;
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);

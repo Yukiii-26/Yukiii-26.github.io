@@ -337,6 +337,7 @@
         var a = r() * Math.PI * 2, rad = Math.sqrt(r()) * c[2];
         var x = c[0] + Math.cos(a) * rad, y = c[1] + Math.sin(a) * rad;
         if (Math.hypot(x - 13, y - 13) > 11.5) continue;
+        if (nearWater(x, y, 1.7)) continue;   // 房子不长在河面上
         var w = 1.1 + r() * 0.9, d = 1.0 + r() * 0.8;
         list.push({ x: x, y: y, w: w, d: d, rot: (r() - 0.5) * 0.18, seed: r() });
       }
@@ -367,9 +368,10 @@
     return list;
   })();
 
-  function nearWater(x, y) {
+  function nearWater(x, y, margin) {
+    var m = margin || 1.1;
     for (var i = 0; i < river.length - 1; i++) {
-      if (distToSeg(x, y, river[i][0], river[i][1], river[i + 1][0], river[i + 1][1]) < 1.1) return true;
+      if (distToSeg(x, y, river[i][0], river[i][1], river[i + 1][0], river[i + 1][1]) < m) return true;
     }
     return false;
   }
@@ -410,7 +412,7 @@
     ctx.globalAlpha = 1;
   }
 
-  // 双坡屋顶（alpha 参与时代淡入淡出）
+  // 双坡屋顶（alpha 参与时代淡入淡出），外加一道深色屋檐
   function roof(x, y, w, d, base, rh, colA, colB, alpha) {
     ctx.globalAlpha = alpha == null ? 1 : alpha;
     var r0 = p(x + w / 2, y, base + rh);
@@ -419,6 +421,58 @@
     var e0 = p(x + w, y, base), e1 = p(x + w, y + d, base);
     poly([w0, w1, r1, r0], colA);
     poly([r0, r1, e1, e0], colB);
+
+    // 屋檐 / 屋脊的深色边：让屋顶有厚度
+    ctx.strokeStyle = shade(colA, 0.62);
+    ctx.lineWidth = Math.max(1, 0.055 * S);
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(w0[0], w0[1]); ctx.lineTo(r0[0], r0[1]); ctx.lineTo(r1[0], r1[1]);
+    ctx.lineTo(w1[0], w1[1]);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(e0[0], e0[1]); ctx.lineTo(r0[0], r0[1]); ctx.lineTo(r1[0], r1[1]);
+    ctx.lineTo(e1[0], e1[1]);
+    ctx.stroke();
+    // 前檐口的一道亮边（受光）
+    ctx.strokeStyle = shade(colA, 1.18);
+    ctx.lineWidth = Math.max(1, 0.035 * S);
+    ctx.beginPath();
+    ctx.moveTo(w1[0], w1[1]); ctx.lineTo(e1[0], e1[1]);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // 在某栋楼朝南的墙上画窗
+  function facadeWindows(x, y, w, d, h, rows, cols, alpha, color, inset) {
+    var A = p(x, y + d, 0), B = p(x + w, y + d, 0), D = p(x, y + d, h);
+    function pt(u, v) {
+      return [
+        A[0] + (B[0] - A[0]) * u + (D[0] - A[0]) * v,
+        A[1] + (B[1] - A[1]) * u + (D[1] - A[1]) * v
+      ];
+    }
+    var ins = inset == null ? 0.16 : inset;
+    var cw = (1 - ins * 2) / cols, chh = (1 - ins * 2 - 0.04) / rows;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color || 'rgba(38,42,46,.55)';
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var u0 = ins + c * cw + cw * 0.2, u1 = ins + (c + 1) * cw - cw * 0.2;
+        var v0 = ins + r * chh + chh * 0.22, v1 = ins + (r + 1) * chh - chh * 0.26;
+        poly([pt(u0, v0), pt(u1, v0), pt(u1, v1), pt(u0, v1)], ctx.fillStyle);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // 平顶楼的深色女儿墙边
+  function parapet(x, y, w, d, h, alpha, color) {
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color || 'rgba(70,80,86,.75)';
+    ctx.lineWidth = Math.max(1, 0.06 * S);
+    var a = p(x, y, h), b = p(x + w, y, h), c = p(x + w, y + d, h), e = p(x, y + d, h);
+    poly([a, b, c, e], null, ctx.strokeStyle, ctx.lineWidth);
     ctx.globalAlpha = 1;
   }
 
@@ -585,6 +639,7 @@
         var radT = 1.35 + r() * 2.3;
         var x = 12.9 + Math.cos(angT) * radT, y = 12.3 + Math.sin(angT) * radT * 0.82;
         var sz = 0.85 + r() * 0.6;
+        if (nearWater(x, y, 0.9)) continue;
         list.push({ d: x + y, draw: (function (xx, yy, ss) {
           return function (al) { tent(xx, yy, ss, al); };
         })(x, y, sz) });
@@ -594,7 +649,7 @@
       list.push({ d: 15.2 + 11.6, draw: function (al) { dryingRack(15.1, 11.5, al); } });
 
       // 猎人：一个在营地边、一个在河边、一个蹲在兽群外圈
-      list.push({ d: 11.4 + 14.2, draw: function (al) { hunter(11.4, 14.1, -0.5, al, 0.0); } });
+      list.push({ d: 13.6 + 14.4, draw: function (al) { hunter(13.5, 14.3, -0.5, al, 0.0); } });
       list.push({ d: 14.4 + 10.8, draw: function (al) { hunter(14.4, 10.7, -1.0, al, 2.2); } });
       list.push({ d: 16.6 + 14.9, draw: function (al) { hunter(16.5, 14.8, -0.15, al, 4.1); } });
 
@@ -602,6 +657,7 @@
       [[17.4, 15.6, 5], [8.0, 8.2, 4]].forEach(function (herd) {
         for (var k = 0; k < herd[2]; k++) {
           var hx = herd[0] + (r() - 0.5) * 2.9, hy = herd[1] + (r() - 0.5) * 2.2;
+          if (nearWater(hx, hy, 0.75)) continue;
           list.push({ d: hx + hy, draw: (function (xx, yy, ph) {
             return function (al) { deer(xx, yy, 0.8 + (ph % 0.35), al, ph); };
           })(hx, hy, r() * 6) });
@@ -616,21 +672,29 @@
         list.push({ d: lot.x + lot.y, draw: function (al) {
           box(lot.x, lot.y, lot.w, lot.d, 0.65, '#d8c9ad', '#b6a68a', '#9c8c72', al);
           roof(lot.x, lot.y, lot.w, lot.d, 0.65, 0.55, '#7a5c46', '#5f4636', al);
+          // 一扇窗 + 一扇门
+          facadeWindows(lot.x, lot.y, lot.w, lot.d, 0.65, 1, 1, al * 0.85, 'rgba(70,54,38,.62)', 0.2);
+          var dc = p(lot.x + lot.w * 0.82, lot.y + lot.d, 0.001);
+          var dc2 = p(lot.x + lot.w * 0.72, lot.y + lot.d, 0.34);
+          poly([dc, dc2, p(lot.x + lot.w * 0.94, lot.y + lot.d, 0.34)], 'rgba(58,42,30,.55)');
         } });
       });
       // 教堂
       list.push({ d: 15 + 14, draw: function (al) {
         box(14.6, 13.2, 1.6, 1.1, 0.9, '#e0d3b8', '#bfae90', '#a5947a', al);
         roof(14.6, 13.2, 1.6, 1.1, 0.9, 0.6, '#6b5344', '#54402f', al);
+        // 教堂正面的长窗
+        facadeWindows(14.6, 13.2, 1.6, 1.1, 0.9, 1, 3, al * 0.8, 'rgba(64,58,74,.55)', 0.18);
         box(15.9, 13.0, 0.55, 0.55, 2.4, '#e6dcc6', '#c9bda4', '#b0a48c', al);
         var t = p(16.18, 13.28, 3.0);
         poly([p(16.18, 13.28, 2.4), t, p(16.18, 13.28, 2.9)], '#6b5344');
       } });
       // 磨坊（风车）
-      list.push({ d: 9.6 + 12.4, draw: function (al) {
-        box(9.4, 12.2, 0.9, 0.9, 1.5, '#cfc2a8', '#ad9f86', '#94866e', al);
+      list.push({ d: 8.6 + 9.8, draw: function (al) {
+        box(8.6, 9.8, 0.9, 0.9, 1.5, '#cfc2a8', '#ad9f86', '#94866e', al);
+        facadeWindows(8.6, 9.8, 0.9, 0.9, 1.5, 2, 1, al * 0.7, 'rgba(68,56,42,.6)');
         ctx.globalAlpha = al;
-        var c = p(9.85, 12.65, 1.75);
+        var c = p(9.05, 10.25, 1.75);
         ctx.strokeStyle = '#6b5344'; ctx.lineWidth = 1.4;
         for (var k = 0; k < 4; k++) {
           var a = time * 0.5 + k * Math.PI / 2;
@@ -650,11 +714,15 @@
         var w = 2.0 + (i % 2) * 0.8, d = 1.4;
         list.push({ d: x + y, draw: function (al) {
           box(x, y, w, d, 1.25, '#8e5140', '#7a4232', '#63342a', al);
-          // 锯齿屋顶
+          // 锯齿屋顶：每颗齿一个受光斜面 + 一片深色天窗
           for (var k = 0; k < 3; k++) {
-            var sx = x + (k * w) / 3;
-            poly([p(sx, y, 1.25), p(sx + w / 3, y, 1.25), p(sx + w / 3, y, 1.55), p(sx, y, 1.55)], '#6d3d30');
+            var sx = x + (k * w) / 3, ex = sx + w / 3;
+            poly([p(sx, y, 1.25), p(ex, y, 1.55), p(ex, y + d, 1.55), p(sx, y + d, 1.25)], '#b3765c');
+            poly([p(ex, y, 1.25), p(ex, y, 1.55), p(ex, y + d, 1.55), p(ex, y + d, 1.25)], '#4e2f26');
+            poly([p(sx, y, 1.25), p(ex, y, 1.55), p(ex, y + d, 1.55), p(sx, y + d, 1.25)], null, 'rgba(58,32,26,.7)', Math.max(1, 0.04 * S));
           }
+          // 厂房高窗
+          facadeWindows(x, y, w, d, 1.25, 2, 3, al * 0.85, 'rgba(246,232,203,.72)', 0.16);
         } });
         list.push({ d: x + y + 0.2, draw: function (al) {
           box(x + w * 0.62, y + d * 0.45, 0.34, 0.34, 2.5, '#b9a08e', '#8f7767', '#77614f', al);
@@ -665,8 +733,10 @@
       LOTS.forEach(function (lot, i) {
         if (i % 3 !== 1) return;
         list.push({ d: lot.x + lot.y, draw: function (al) {
-          box(lot.x, lot.y, lot.w * 1.4, lot.d * 0.9, 0.9, '#a4593f', '#8a4833', '#6f3a29', al);
-          roof(lot.x, lot.y, lot.w * 1.4, lot.d * 0.9, 0.9, 0.45, '#4c3a2f', '#3a2b23', al);
+          var bw = lot.w * 1.4, bd = lot.d * 0.9;
+          box(lot.x, lot.y, bw, bd, 0.9, '#a4593f', '#8a4833', '#6f3a29', al);
+          roof(lot.x, lot.y, bw, bd, 0.9, 0.45, '#5d4636', '#46332a', al);
+          facadeWindows(lot.x, lot.y, bw, bd, 0.9, 1, 2, al * 0.75, 'rgba(52,38,30,.62)', 0.18);
         } });
       });
       // 铁路高架
@@ -679,22 +749,19 @@
         if (i % 4 === 3) return;
         var h = 1.4 + (lot.seed * 1.5);
         list.push({ d: lot.x + lot.y, draw: function (al) {
-          box(lot.x, lot.y, lot.w * 1.15, lot.d * 1.05, h, '#c8cfd2', '#a7b0b4', '#8d979c', al);
-          // 窗格
-          ctx.globalAlpha = al * 0.5;
-          for (var k = 1; k < 3; k++) {
-            var y0 = lot.y + lot.d * 1.05;
-            var q1 = p(lot.x, y0, h * k / 3), q2 = p(lot.x + lot.w * 1.15, y0, h * k / 3);
-            ctx.strokeStyle = '#6f7b80'; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(q1[0], q1[1]); ctx.lineTo(q2[0], q2[1]); ctx.stroke();
-          }
-          ctx.globalAlpha = 1;
+          var bw = lot.w * 1.15, bd = lot.d * 1.05;
+          box(lot.x, lot.y, bw, bd, h, '#c8cfd2', '#a7b0b4', '#8d979c', al);
+          facadeWindows(lot.x, lot.y, bw, bd, h, Math.max(2, Math.round(h / 0.7)), 2, al * 0.78, 'rgba(76,94,102,.55)', 0.14);
+          parapet(lot.x, lot.y, bw, bd, h, al * 0.72, 'rgba(92,106,112,.8)');
         } });
       });
       // 一座塔
       list.push({ d: 14.4 + 12.6, draw: function (al) {
         box(14.0, 12.2, 1.5, 1.5, 3.6, '#b9c6cc', '#93a2a9', '#7b8a91', al);
+        facadeWindows(14.0, 12.2, 1.5, 1.5, 3.6, 6, 3, al * 0.8, 'rgba(70,88,96,.5)', 0.1);
         box(14.15, 12.35, 1.2, 1.2, 4.1, '#d3dde0', '#aab7bc', '#8e9ca2', al * 0.9);
+        facadeWindows(14.15, 12.35, 1.2, 1.2, 4.1, 7, 2, al * 0.7, 'rgba(64,82,90,.45)', 0.1);
+        parapet(14.15, 12.35, 1.2, 1.2, 4.1, al * 0.7, 'rgba(120,136,142,.85)');
       } });
       // 公路与车
       list.push({ d: 0, draw: function (al) { modernRoad(al); } });
@@ -734,9 +801,9 @@
     smokeParts.forEach(function (s) {
       var k = s.life / s.max;
       var q = p(s.x + Math.sin(s.life * 2 + s.z) * 0.25, s.y, s.z + s.life * 0.9);
-      ctx.globalAlpha = (1 - k) * 0.4 * al;
-      ctx.fillStyle = '#cdc8c0';
-      ctx.beginPath(); ctx.arc(q[0], q[1], (0.28 + k * 0.7) * S, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = (1 - k) * 0.18 * al;
+      ctx.fillStyle = '#cfcac2';
+      ctx.beginPath(); ctx.arc(q[0], q[1], (0.22 + k * 0.55) * S, 0, Math.PI * 2); ctx.fill();
     });
     ctx.globalAlpha = 1;
   }
@@ -813,6 +880,28 @@
     for (var j = 1; j < road.length; j++) { var qq = p(road[j][0], road[j][1], 0.06); ctx.lineTo(qq[0], qq[1]); }
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // 过河的一段：架桥（只在有水的地方画桥面）
+    ctx.strokeStyle = 'rgba(150,138,120,.95)';
+    ctx.lineWidth = 0.78 * S;
+    ctx.lineCap = 'butt';
+    var drawing = false;
+    ctx.beginPath();
+    for (var b1 = 0; b1 < road.length - 1; b1++) {
+      var ra = road[b1], rb = road[b1 + 1];
+      for (var tt = 0; tt <= 1.0001; tt += 0.06) {
+        var wx = ra[0] + (rb[0] - ra[0]) * tt, wy = ra[1] + (rb[1] - ra[1]) * tt;
+        if (nearWater(wx, wy, 0.9)) {
+          var wq = p(wx, wy, 0.07);
+          if (!drawing) { ctx.moveTo(wq[0], wq[1]); drawing = true; }
+          else ctx.lineTo(wq[0], wq[1]);
+        } else {
+          drawing = false;
+        }
+      }
+    }
+    ctx.stroke();
+    ctx.lineCap = 'round';
 
     // 车
     for (var c = 0; c < 5; c++) {
@@ -910,8 +999,8 @@
     // 每个时代有一扇「窗口」：建筑从地面慢慢长出来，离开时缩回地面。
     // 两个时代在窗口两端交叠，所以画面不会突然"闪一下"。
     var u = t - e;
-    var rise = smooth01((u + 0.85) / 0.85);
-    var fall = 1 - smooth01((u - 0.5) / 0.85);
+    var rise = smooth01((u + 0.75) / 0.75);
+    var fall = 1 - smooth01((u - 0.25) / 0.75);
     return Math.max(0, Math.min(1, rise * fall));
   }
   function smooth01(x) {

@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#faf8f4" />
+
+<title>城市路网生成器 · Yukishiro</title>
+<meta name="description" content="按一个种子随机生成架空城市的路网草图：主干道、环路、河流、街区与公园。纯前端单文件，零依赖。" />
+
+<script>
+  // 主题要在页面画出来之前就读出来，否则会先闪一下白底
+  (function () {
+    try {
+      var saved = localStorage.getItem('theme');
+      var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', saved || (sysDark ? 'dark' : 'light'));
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
+
+<style>
+  /* ===================== 和主页同一套颜色 ===================== */
+  :root{
+    --paper:#faf8f4;
+    --surface:#ffffff;
+    --ink:#16130f;
+    --muted:#6f675c;
+    --line:#e2dbd0;
+    --accent:#c2410c;
+    --max:1080px;
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#100e0d;
+    --surface:#1a1714;
+    --ink:#f0ece8;
+    --muted:#a29c95;
+    --line:rgba(255,255,255,.11);
+    --accent:#fb923c;
+  }
+  :root[data-theme="light"]{color-scheme:light}
+
+  *,*::before,*::after{box-sizing:border-box}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);line-height:1.8;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    transition:background-color .35s ease,color .35s ease;
+    padding:0 0 60px;
+  }
+  a{color:inherit;text-decoration:none}
+  h1,h2{margin:0;line-height:1.15;letter-spacing:-.03em}
+  p{margin:0}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 26px}
+
+  /* ===================== 返回主页 + 主题按钮 ===================== */
+  .back-home,.theme-btn{
+    position:fixed;top:14px;z-index:20;display:inline-flex;align-items:center;gap:6px;
+    padding:7px 13px;font-size:13px;font-weight:600;letter-spacing:.02em;
+    background:var(--surface);border:1px solid var(--line);border-radius:2px;
+    cursor:pointer;color:var(--ink);
+    transition:border-color .18s,color .18s,transform .18s,background .18s;
+  }
+  .back-home{left:14px}
+  .theme-btn{right:14px;padding:7px 11px}
+  .back-home:hover,.theme-btn:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+  .back-home:active,.theme-btn:active{transform:none}
+
+  /* ===================== 标题区 ===================== */
+  .head{padding:78px 0 26px}
+  .kicker{
+    font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:12px;
+  }
+  h1{font-size:clamp(34px,6vw,64px);font-weight:800}
+  .lede{margin-top:16px;max-width:620px;color:var(--muted);font-size:15px}
+  .lede b{color:var(--ink);font-weight:600}
+
+  /* ===================== 参数面板 ===================== */
+  .panel{
+    margin-top:26px;border:1px solid var(--line);background:var(--surface);
+    padding:18px 20px;display:flex;flex-direction:column;gap:14px;
+  }
+  .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .row + .row{padding-top:14px;border-top:1px solid var(--line)}
+  .field{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+  .field input[type=text]{
+    width:180px;padding:6px 9px;font:inherit;font-size:13px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);border-radius:2px;outline:none;
+  }
+  .field input[type=text]:focus{border-color:var(--accent)}
+  .field input[type=range]{width:130px;accent-color:var(--accent)}
+  .num{font-variant-numeric:tabular-nums;color:var(--ink);min-width:2.4em;display:inline-block;text-align:right}
+  .chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+  .chk input{accent-color:var(--accent);width:15px;height:15px}
+
+  button{
+    font:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;
+    padding:7px 14px;border-radius:2px;cursor:pointer;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);
+    transition:border-color .18s,color .18s,background .18s;
+  }
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.primary{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+  button.primary:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+  .spacer{flex:1 1 auto}
+
+  /* ===================== 画布 ===================== */
+  .stage{margin:22px 0 0}
+  .canvas-wrap{
+    position:relative;border:1px solid var(--line);background:var(--paper);
+    overflow:hidden;
+  }
+  canvas{display:block;width:100%;height:auto}
+
+  /* ===================== 数据条 ===================== */
+  .stats{
+    display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:14px;
+    font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  }
+  .stats b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:0;font-size:14px;margin-left:6px;text-transform:none}
+  .hint{margin-top:10px;font-size:12px;color:var(--muted)}
+  kbd{
+    font-family:ui-monospace,Consolas,monospace;font-size:11px;
+    border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;
+    padding:1px 5px;color:var(--ink);background:var(--surface);
+  }
+  .foot{margin-top:44px;padding-top:18px;border-top:2px solid var(--ink);font-size:12px;color:var(--muted)}
+
+  @media (max-width:640px){
+    .head{padding-top:70px}
+    .field input[type=text]{width:130px}
+    .panel{padding:15px 14px}
+    .back-home,.theme-btn{font-size:12px;padding:6px 10px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important}
+  }
+</style>
+</head>
+<body>
+
+<a class="back-home" href="../../index.html">← 返回主页</a>
+<button class="theme-btn" id="themeBtn" title="切换深色 / 浅色">☾ 深色</button>
+
+<div class="wrap">
+
+  <header class="head">
+    <p class="kicker">作品 · 生成器</p>
+    <h1>城市路网</h1>
+    <p class="lede">
+      给一个种子，长出一座架空城市的街道：主干道、环路、河流、街区与公园。
+      <b>所有参数都在文件开头的「可改参数区」</b>，改数字就能换手感。
+    </p>
+  </header>
+
+  <section class="panel" aria-label="生成参数">
+    <div class="row">
+      <label class="field">种子
+        <input type="text" id="seed" value="yukishiro" spellcheck="false" autocomplete="off" />
+      </label>
+      <button id="dice" title="换一个随机种子">🎲 随机种子</button>
+      <button id="gen" class="primary">重新生成</button>
+      <span class="spacer"></span>
+      <button id="save" title="把当前画面存成图片">⬇ 存成 PNG</button>
+    </div>
+
+    <div class="row">
+      <label class="field">细密度
+        <input type="range" id="scale" min="1" max="5" step="1" value="4" />
+        <span class="num" id="scaleVal">4</span>
+      </label>
+      <label class="field">弯曲度
+        <input type="range" id="warp" min="0" max="100" step="5" value="45" />
+        <span class="num" id="warpVal">45</span>
+      </label>
+      <label class="chk"><input type="checkbox" id="river" checked /> 河流</label>
+      <label class="chk"><input type="checkbox" id="blockFill" checked /> 街区填充</label>
+      <label class="chk"><input type="checkbox" id="park" checked /> 公园</label>
+    </div>
+  </section>
+
+  <figure class="stage" style="margin:22px 0 0">
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="canvas"></canvas>
+    </div>
+  </figure>
+
+  <div class="stats" id="stats">
+    <span>街区<b id="statBlocks">—</b></span>
+    <span>道路总长<b id="statLength">—</b></span>
+    <span>路口节点<b id="statNodes">—</b></span>
+  </div>
+  <p class="hint">
+    快捷键：<kbd>R</kbd> 重新生成 · <kbd>S</kbd> 存图。链接里带上 <code>#种子</code> 可以分享同一座城。
+  </p>
+
+  <footer class="foot">
+    纯前端 · 单文件 · 零依赖。种子相同，城市就相同；换个种子，街道、河流和公园全部重来。
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     可改参数区 —— 想换手感就改这里
+     ===================================================================== */
+  var DEFAULTS = {
+    seed: 'yukishiro',   // 种子：任何文字都行
+    scale: 4,            // 1=稀疏（大块） .. 5=细密（小街区）
+    warp: 45,            // 0=笔直 .. 100=弯得厉害
+    river: true,
+    blocks: true,
+    parks: true
+  };
+
+  var KM_ACROSS = 6;     // 整张图横向按 6 公里估算，只影响统计数字
+  var MAX_DEPTH = 8;     // 街区递归分裂的最深层数
+  var MIN_SIZE = function (scale) { return 100 - scale * 14; }; // 5 档：86 / 72 / 58 / 44 / 30
+
+  /* =====================================================================
+     工具：随机数、噪声
+     ===================================================================== */
+  function $id(id) { return document.getElementById(id); }
+
+  function hash32(str) {
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function mulberry32(a) {
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // 平滑的值噪声（0 附近的小数值），用来做「道路弯曲」和「河流」
+  function makeNoise(rnd) {
+    var perm = new Uint8Array(512);
+    var vals = new Float32Array(256);
+    var order = [];
+    var i, j, tmp;
+    for (i = 0; i < 256; i++) order.push(i);
+    for (i = 255; i > 0; i--) {
+      j = Math.floor(rnd() * (i + 1));
+      tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+    }
+    for (i = 0; i < 512; i++) perm[i] = order[i & 255];
+    for (i = 0; i < 256; i++) vals[i] = rnd() * 2 - 1;
+
+    function fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+    function at(ix, iy) { return vals[perm[(ix & 255) + perm[iy & 255]]]; }
+
+    return function (x, y) {
+      var xi = Math.floor(x), yi = Math.floor(y);
+      var u = fade(x - xi), v = fade(y - yi);
+      var a = at(xi, yi), b = at(xi + 1, yi), c = at(xi, yi + 1), d = at(xi + 1, yi + 1);
+      return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+    };
+  }
+
+  /* =====================================================================
+     生成模型：街区 / 道路 / 环路 / 斜向干道 / 河流 / 公园
+     ===================================================================== */
+  function buildModel(opt, width, height) {
+    var rnd = mulberry32(hash32(opt.seed));
+    var margin = Math.min(width, height) * 0.07;
+    var b = { x: margin, y: margin, w: width - margin * 2, h: height - margin * 2 };
+
+    // 两层噪声做坐标扭曲：大尺度揉弯边界，小尺度掰直线上那种「假直」感
+    var warpAmp = opt.warp / 100 * 38;
+    var warpK = 1 / 300;
+    var n1, n2, n3, n4, warpFn = null;
+    if (warpAmp > 0.01) {
+      n1 = makeNoise(rnd); n2 = makeNoise(rnd); n3 = makeNoise(rnd); n4 = makeNoise(rnd);
+      warpFn = function (x, y) {
+        var dx = n1(x * warpK, y * warpK) * warpAmp + n3(x * warpK * 2.6, y * warpK * 2.6) * warpAmp * 0.4;
+        var dy = n2(x * warpK, y * warpK) * warpAmp + n4(x * warpK * 2.6, y * warpK * 2.6) * warpAmp * 0.4;
+        return [x + dx, y + dy];
+      };
+    }
+
+    // 把一条折线采样后扭曲，得到画出来用的点列（相邻路段共享端点，所以不会裂开）
+    function warpPolyline(pts) {
+      var out = [];
+      var step = 9;
+      for (var i = 0; i < pts.length - 1; i++) {
+        var ax = pts[i][0], ay = pts[i][1];
+        var bx = pts[i + 1][0], by = pts[i + 1][1];
+        var seg = Math.hypot(bx - ax, by - ay);
+        var n = Math.max(1, Math.ceil(seg / step));
+        for (var j = 0; j < n; j++) {
+          var t = j / n;
+          var x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
+          out.push(warpFn ? warpFn(x, y) : [x, y]);
+        }
+      }
+      var last = pts[pts.length - 1];
+      out.push(warpFn ? warpFn(last[0], last[1]) : [last[0], last[1]]);
+      return out;
+    }
+
+    var minSize = MIN_SIZE(opt.scale);
+    var roads = [];   // 街道（BSP 切出来的）
+    var blocks = [];  // 叶子街区（矩形）
+    var nodes = {};   // 端点集合，用来数路口
+
+    (function split(r, depth) {
+      var canV = r.w > minSize * 2;
+      var canH = r.h > minSize * 2;
+      if ((!canV && !canH) || depth >= MAX_DEPTH) {
+        if (r.w > 6 && r.h > 6) blocks.push(r);
+        return;
+      }
+
+      var vertical;
+      if (canV && !canH) vertical = true;
+      else if (canH && !canV) vertical = false;
+      else if (r.w > r.h * 1.25) vertical = true;
+      else if (r.h > r.w * 1.25) vertical = false;
+      else vertical = rnd() < 0.5;
+
+      var t = 0.5 + (rnd() - 0.5) * 0.55;   // 切在 22% ~ 78% 之间，避免总在正中间
+      if (vertical) {
+        var x = r.x + r.w * t;
+        roads.push({ x1: x, y1: r.y, x2: x, y2: r.y + r.h, level: Math.min(depth, 5) });
+        nodes[Math.round(x) + ',' + Math.round(r.y)] = 1;
+        nodes[Math.round(x) + ',' + Math.round(r.y + r.h)] = 1;
+        split({ x: r.x, y: r.y, w: x - r.x, h: r.h }, depth + 1);
+        split({ x: x, y: r.y, w: r.x + r.w - x, h: r.h }, depth + 1);
+      } else {
+        var y = r.y + r.h * t;
+        roads.push({ x1: r.x, y1: y, x2: r.x + r.w, y2: y, level: Math.min(depth, 5) });
+        nodes[Math.round(r.x) + ',' + Math.round(y)] = 1;
+        nodes[Math.round(r.x + r.w) + ',' + Math.round(y)] = 1;
+        split({ x: r.x, y: r.y, w: r.w, h: y - r.y }, depth + 1);
+        split({ x: r.x, y: y, w: r.w, h: r.y + r.h - y }, depth + 1);
+      }
+    })(b, 0);
+
+    // ---- 环路：带圆角的矩形，套在城外一圈 ----
+    function roundedRectPoints(r, rad) {
+      var pts = [], step = 12;
+      var x0 = r.x, y0 = r.y, x1 = r.x + r.w, y1 = r.y + r.h;
+      function line(ax, ay, bx, by) {
+        var d = Math.hypot(bx - ax, by - ay);
+        var n = Math.max(1, Math.round(d / step));
+        for (var i = 0; i < n; i++) pts.push([ax + (bx - ax) * i / n, ay + (by - ay) * i / n]);
+      }
+      function arc(cx, cy, a0, a1) {
+        var n = 6;
+        for (var i = 0; i <= n; i++) {
+          var a = a0 + (a1 - a0) * i / n;
+          pts.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad]);
+        }
+      }
+      line(x0 + rad, y0, x1 - rad, y0);
+      arc(x1 - rad, y0 + rad, -Math.PI / 2, 0);
+      line(x1, y0 + rad, x1, y1 - rad);
+      arc(x1 - rad, y1 - rad, 0, Math.PI / 2);
+      line(x1 - rad, y1, x0 + rad, y1);
+      arc(x0 + rad, y1 - rad, Math.PI / 2, Math.PI);
+      line(x0, y1 - rad, x0, y0 + rad);
+      arc(x0 + rad, y0 + rad, Math.PI, Math.PI * 1.5);
+      pts.push(pts[0]);
+      return pts;
+    }
+    var ring = warpPolyline(roundedRectPoints(b, Math.min(b.w, b.h) * 0.09));
+
+    // ---- 斜向干道：两条，斜穿整座城 ----
+    function edgePoint(side) {
+      if (side === 0) return [b.x, b.y + rnd() * b.h];
+      if (side === 1) return [b.x + b.w, b.y + rnd() * b.h];
+      if (side === 2) return [b.x + rnd() * b.w, b.y];
+      return [b.x + rnd() * b.w, b.y + b.h];
+    }
+    var diagonals = [];
+    var pairs = [[0, 1], [2, 3]];
+    for (var d = 0; d < pairs.length; d++) {
+      var p0 = edgePoint(pairs[d][0]);
+      var p1 = edgePoint(pairs[d][1]);
+      var mx = (p0[0] + p1[0]) / 2 + (rnd() - 0.5) * b.w * 0.18;
+      var my = (p0[1] + p1[1]) / 2 + (rnd() - 0.5) * b.h * 0.18;
+      diagonals.push(warpPolyline([p0, [mx, my], p1]));
+    }
+
+    // ---- 河流：横穿或竖穿，宽度略有变化 ----
+    var river = null;
+    if (opt.river) {
+      var horizontal = rnd() < 0.55;
+      var base = horizontal ? b.y + b.h * (0.3 + rnd() * 0.4) : b.x + b.w * (0.3 + rnd() * 0.4);
+      var phase = rnd() * 10;
+      var amp = (horizontal ? b.h : b.w) * 0.13;
+      var pts = [];
+      if (horizontal) {
+        for (var x = -40; x <= width + 40; x += 16) {
+          pts.push([x, base + Math.sin(x / 210 + phase) * amp * 0.6 + nRiv(x) * amp]);
+        }
+      } else {
+        for (var y = -40; y <= height + 40; y += 16) {
+          pts.push([base + Math.sin(y / 210 + phase) * amp * 0.6 + nRiv(y) * amp, y]);
+        }
+      }
+      river = warpPolyline(pts);
+    }
+    function nRiv(t) { return Math.sin(t / 97 + phase) * 0.35 + Math.sin(t / 41 + phase * 2) * 0.18; }
+
+    // ---- 公园：随机挑几个够大的街区 ----
+    var parks = [];
+    if (opt.parks && blocks.length) {
+      var want = Math.max(3, Math.round(blocks.length * 0.08));
+      var picked = {};
+      var guard = 0;
+      while (parks.length < want && guard++ < 500) {
+        var idx = Math.floor(rnd() * blocks.length);
+        if (picked[idx]) continue;
+        var blk = blocks[idx];
+        if (blk.w * blk.h < minSize * minSize * 1.8) continue;
+        picked[idx] = 1;
+        parks.push(idx);
+      }
+    }
+
+    // ---- 预先算好所有画线用的点，画的时候只管描边 ----
+    var streetPaths = roads.map(function (r) {
+      return {
+        level: r.level,
+        pts: warpPolyline([[r.x1, r.y1], [r.x2, r.y2]])
+      };
+    });
+
+    var blockPaths = blocks.map(function (blk) {
+      var inset = 2.2;
+      var r = {
+        x: blk.x + inset, y: blk.y + inset,
+        w: Math.max(2, blk.w - inset * 2), h: Math.max(2, blk.h - inset * 2)
+      };
+      var per = [], step = 12;
+      function edge(ax, ay, bx, by) {
+        var dd = Math.hypot(bx - ax, by - ay);
+        var n = Math.max(1, Math.round(dd / step));
+        for (var i = 0; i < n; i++) per.push([ax + (bx - ax) * i / n, ay + (by - ay) * i / n]);
+      }
+      edge(r.x, r.y, r.x + r.w, r.y);
+      edge(r.x + r.w, r.y, r.x + r.w, r.y + r.h);
+      edge(r.x + r.w, r.y + r.h, r.x, r.y + r.h);
+      edge(r.x, r.y + r.h, r.x, r.y);
+      return warpPolyline(per.concat([per[0]]));
+    });
+
+    // ---- 统计 ----
+    var totalPx = 0;
+    roads.forEach(function (r) { totalPx += Math.hypot(r.x2 - r.x1, r.y2 - r.y1); });
+    totalPx += ringLength(ring);
+
+    return {
+      width: width, height: height,
+      streets: streetPaths,
+      blocks: blockPaths,
+      parks: parks.map(function (i) { return blockPaths[i]; }),
+      ring: ring,
+      diagonals: diagonals,
+      river: river,
+      stats: {
+        blocks: blocks.length,
+        nodes: Object.keys(nodes).length,
+        lengthPx: totalPx
+      }
+    };
+  }
+
+  function ringLength(pts) {
+    var s = 0;
+    for (var i = 0; i < pts.length - 1; i++) s += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+    return s;
+  }
+
+  /* =====================================================================
+     绘制
+     ===================================================================== */
+  var canvas = $id('canvas');
+  var ctx = canvas.getContext('2d');
+  var wrap = $id('canvasWrap');
+  var model = null;
+  var W = 960, H = 600;
+  var opts = {
+    seed: DEFAULTS.seed, scale: DEFAULTS.scale, warp: DEFAULTS.warp,
+    river: DEFAULTS.river, blocks: DEFAULTS.blocks, parks: DEFAULTS.parks
+  };
+
+  function cssVar(name, fallback) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  function polyPath(pts) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  }
+
+  function draw() {
+    if (!model) return;
+    var dpr = window.devicePixelRatio || 1;
+    var ink = cssVar('--ink', '#16130f');
+    var paper = cssVar('--paper', '#faf8f4');
+    var accent = cssVar('--accent', '#c2410c');
+    var scale = Math.max(0.7, Math.min(1.25, W / 1050));
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = paper;
+    ctx.fillRect(0, 0, W, H);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // 1) 街区填充（很淡的墨色，像纸上的阴影）
+    if (opts.blocks) {
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = ink;
+      model.blocks.forEach(function (p) { polyPath(p); ctx.closePath(); ctx.fill(); });
+    }
+
+    // 2) 公园
+    if (opts.parks) {
+      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = 'rgb(96,132,82)';
+      model.parks.forEach(function (p) { polyPath(p); ctx.closePath(); ctx.fill(); });
+    }
+
+    // 3) 河流（先画，道路压在上面，看起来就是桥）
+    if (opts.river && model.river) {
+      ctx.globalAlpha = 0.2;
+      ctx.strokeStyle = 'rgb(96,132,166)';
+      ctx.lineWidth = 30 * scale;
+      polyPath(model.river); ctx.stroke();
+      ctx.globalAlpha = 0.42;
+      ctx.lineWidth = 11 * scale;
+      polyPath(model.river); ctx.stroke();
+    }
+
+    // 4) 街道：细的先画，粗的后画
+    var widths = [5.2, 3.9, 2.8, 2.0, 1.5, 1.1];
+    var alphas = [0.92, 0.86, 0.76, 0.64, 0.54, 0.46];
+    ctx.strokeStyle = ink;
+    for (var lv = 5; lv >= 0; lv--) {
+      ctx.globalAlpha = alphas[lv];
+      ctx.lineWidth = widths[lv] * scale;
+      for (var i = 0; i < model.streets.length; i++) {
+        var s = model.streets[i];
+        if (s.level !== lv) continue;
+        polyPath(s.pts);
+        ctx.stroke();
+      }
+    }
+
+    // 5) 斜向干道
+    ctx.globalAlpha = 0.82;
+    ctx.lineWidth = 5.4 * scale;
+    model.diagonals.forEach(function (p) { polyPath(p); ctx.stroke(); });
+
+    // 6) 环路
+    ctx.globalAlpha = 0.9;
+    ctx.lineWidth = 7 * scale;
+    polyPath(model.ring); ctx.stroke();
+
+    // 7) 比例尺 + 指北针
+    ctx.globalAlpha = 1;
+    var pxPerKm = W / KM_ACROSS;
+    var barLen = Math.min(pxPerKm, W * 0.3);
+    var bx = 22, by = H - 26;
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bx, by); ctx.lineTo(bx + barLen, by);
+    ctx.moveTo(bx, by - 4); ctx.lineTo(bx, by + 4);
+    ctx.moveTo(bx + barLen, by - 4); ctx.lineTo(bx + barLen, by + 4);
+    ctx.stroke();
+    ctx.fillStyle = ink;
+    ctx.globalAlpha = 0.75;
+    ctx.font = '11px ui-monospace, Consolas, monospace';
+    ctx.fillText('1 km', bx + barLen + 8, by + 4);
+
+    ctx.globalAlpha = 0.8;
+    ctx.strokeStyle = accent;
+    ctx.fillStyle = accent;
+    ctx.lineWidth = 1.5;
+    var nx = W - 34, ny = 34;
+    ctx.beginPath(); ctx.moveTo(nx, ny - 12); ctx.lineTo(nx, ny + 8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(nx, ny - 14); ctx.lineTo(nx - 4, ny - 6); ctx.lineTo(nx + 4, ny - 6); ctx.closePath(); ctx.fill();
+    ctx.font = '11px ui-monospace, Consolas, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('N', nx, ny + 22);
+    ctx.textAlign = 'start';
+    ctx.globalAlpha = 1;
+  }
+
+  /* =====================================================================
+     尺寸 / 生成 / 统计
+     ===================================================================== */
+  function resizeCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = Math.max(300, Math.floor(wrap.getBoundingClientRect().width));
+    var cssH = Math.round(Math.min(760, Math.max(340, cssW * 0.62)));
+    W = cssW; H = cssH;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    canvas.style.width = '100%';
+    canvas.style.height = cssH + 'px';
+  }
+
+  function readControls() {
+    opts.seed = ($id('seed').value || 'seed').trim() || 'seed';
+    opts.scale = +$id('scale').value;
+    opts.warp = +$id('warp').value;
+    opts.river = $id('river').checked;
+    opts.blocks = $id('blockFill').checked;
+    opts.parks = $id('park').checked;
+  }
+
+  function syncLabels() {
+    $id('scaleVal').textContent = opts.scale;
+    $id('warpVal').textContent = opts.warp;
+  }
+
+  function updateStats() {
+    var km = model.stats.lengthPx * (KM_ACROSS / W);
+    $id('statBlocks').textContent = model.stats.blocks;
+    $id('statLength').textContent = km.toFixed(1) + ' km';
+    $id('statNodes').textContent = model.stats.nodes;
+  }
+
+  function regenerate() {
+    readControls();
+    syncLabels();
+    model = buildModel(opts, W, H);
+    draw();
+    updateStats();
+    try { history.replaceState(null, '', '#' + encodeURIComponent(opts.seed)); } catch (e) {}
+  }
+
+  function fullRegenerate() {
+    resizeCanvas();
+    regenerate();
+  }
+
+  /* =====================================================================
+     事件
+     ===================================================================== */
+  $id('gen').addEventListener('click', fullRegenerate);
+  $id('dice').addEventListener('click', function () {
+    var pool = 'abcdefghijkmnpqrstuvwxyz23456789';
+    var s = '';
+    for (var i = 0; i < 6; i++) s += pool[Math.floor(Math.random() * pool.length)];
+    $id('seed').value = s;
+    fullRegenerate();
+  });
+  $id('save').addEventListener('click', function () {
+    canvas.toBlob(function (blob) {
+      if (!blob) return;
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'city-roads-' + opts.seed.replace(/[^\w\u4e00-\u9fa5-]+/g, '_') + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+    }, 'image/png');
+  });
+
+  ['river', 'blockFill', 'park'].forEach(function (id) {
+    $id(id).addEventListener('change', function () { readControls(); draw(); updateStats(); });
+  });
+
+  var sliderTimer = null;
+  ['scale', 'warp'].forEach(function (id) {
+    $id(id).addEventListener('input', function () {
+      readControls(); syncLabels();
+      clearTimeout(sliderTimer);
+      sliderTimer = setTimeout(function () { model = buildModel(opts, W, H); draw(); updateStats(); }, 120);
+    });
+  });
+
+  $id('seed').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') fullRegenerate();
+  });
+
+  var themeBtn = $id('themeBtn');
+  function paintThemeLabel() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    themeBtn.textContent = dark ? '☀ 浅色' : '☾ 深色';
+  }
+  themeBtn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+    paintThemeLabel();
+    draw();
+  });
+  paintThemeLabel();
+
+  document.addEventListener('keydown', function (e) {
+    if (/input|textarea|select/i.test(e.target.tagName || '')) return;
+    if (e.key === 'r' || e.key === 'R') { fullRegenerate(); }
+    if (e.key === 's' || e.key === 'S') { $id('save').click(); }
+  });
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { resizeCanvas(); regenerate(); }, 220);
+  });
+
+  // 系统主题变化时，只在用户没手动选过的时候跟随
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var onChange = function () {
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (e) {}
+      if (saved) return;
+      document.documentElement.setAttribute('data-theme', mq.matches ? 'dark' : 'light');
+      paintThemeLabel();
+      draw();
+    };
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+  }
+
+  /* =====================================================================
+     启动：优先读链接里的 #种子
+     ===================================================================== */
+  (function init() {
+    var hash = '';
+    try { hash = decodeURIComponent(location.hash.replace(/^#/, '')); } catch (e) {}
+    if (hash) $id('seed').value = hash;
+    $id('seed').value = $id('seed').value || DEFAULTS.seed;
+    $id('scale').value = String(DEFAULTS.scale);
+    $id('warp').value = String(DEFAULTS.warp);
+    fullRegenerate();
+  })();
+
+})();
+</script>
+</body>
+</html>

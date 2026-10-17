@@ -1,0 +1,10 @@
+# 本机专用，永远不推送到 GitHub
+preview/
+项目交接.md
+AGENTS.md
+.setup/
+
+# 杂项
+*.log
+Thumbs.db
+desktop.ini

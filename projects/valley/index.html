@@ -261,7 +261,7 @@
   var ERAS = [
     {
       key: 'pre', cn: '史前', en: 'Prehistory', year: '约公元前 8000 年',
-      desc: '河谷里只有临时营地：兽皮帐篷围着篝火，河水比现在宽，林地一直漫到坡顶。'
+      desc: '河谷里只有临时营地：兽皮帐篷围着篝火，晾肉架上挂着昨天的收成，猎人蹲在林缘盯着鹿群，几条被踩出来的小径通向河边。'
     },
     {
       key: 'agri', cn: '农耕', en: 'Agricultural Age', year: '约公元 1200 年',
@@ -437,6 +437,117 @@
     ctx.globalAlpha = 1;
   }
 
+  /* ---------------- 史前营地的小东西 ---------------- */
+
+  function tent(x, y, s, alpha) {
+    ctx.globalAlpha = alpha;
+    var b = p(x, y, 0), t = p(x, y, 1.15 * s);
+    var l0 = p(x - 0.74 * s, y + 0.42 * s, 0), r0 = p(x + 0.74 * s, y + 0.42 * s, 0);
+    poly([b, l0, t], '#a2855f');
+    poly([b, r0, t], '#8a6d4c');
+    poly([p(x - 0.13 * s, y + 0.44 * s, 0), t, p(x + 0.13 * s, y + 0.44 * s, 0)], '#6d5439');
+    ctx.globalAlpha = 1;
+  }
+
+  // 被踩出来的小径：一条很淡的土色曲线
+  function troddenPath(pts, alpha) {
+    ctx.globalAlpha = alpha * 0.42;
+    ctx.strokeStyle = '#8f7454';
+    ctx.lineWidth = 0.22 * S;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    var a = p(pts[0][0], pts[0][1], 0.015);
+    ctx.moveTo(a[0], a[1]);
+    for (var i = 1; i < pts.length - 1; i++) {
+      var b = p(pts[i][0], pts[i][1], 0.015);
+      var c = p(pts[i + 1][0], pts[i + 1][1], 0.015);
+      ctx.quadraticCurveTo(b[0], b[1], (b[0] + c[0]) / 2, (b[1] + c[1]) / 2);
+    }
+    var e = p(pts[pts.length - 1][0], pts[pts.length - 1][1], 0.015);
+    ctx.lineTo(e[0], e[1]);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // 猎人：一根身体、两条腿、一颗头、一杆矛
+  function hunter(x, y, dir, alpha, phase) {
+    var sway = Math.sin(time * 1.1 + phase) * 0.02;
+    var base = p(x, y, 0), hip = p(x, y, 0.32), head = p(x + sway, y, 0.62);
+    ctx.globalAlpha = alpha;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#46372a';
+    ctx.lineWidth = 0.13 * S;
+    ctx.beginPath(); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(head[0], head[1]); ctx.stroke();
+    ctx.lineWidth = 0.085 * S;
+    ctx.beginPath();
+    ctx.moveTo(hip[0], hip[1]); ctx.lineTo(base[0] - 0.1 * S, base[1]);
+    ctx.moveTo(hip[0], hip[1]); ctx.lineTo(base[0] + 0.12 * S, base[1]);
+    ctx.stroke();
+    ctx.fillStyle = '#3a2e23';
+    ctx.beginPath(); ctx.arc(head[0], head[1] - 0.05 * S, 0.085 * S, 0, Math.PI * 2); ctx.fill();
+    // 矛
+    var tip = p(x + Math.cos(dir) * 0.5, y + Math.sin(dir) * 0.5, 1.0);
+    ctx.strokeStyle = '#6b5340';
+    ctx.lineWidth = 0.055 * S;
+    ctx.beginPath();
+    ctx.moveTo(tip[0], tip[1]);
+    ctx.lineTo(hip[0] - Math.cos(dir) * 0.15 * S, hip[1] + 0.25 * S);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // 鹿 / 兽群
+  function deer(x, y, size, alpha, phase) {
+    var step = Math.sin(time * 0.7 + phase) * 0.07;
+    var ground = p(x + step, y, 0), c = p(x + step, y, 0.34);
+    var w = 0.42 * size * S, h = 0.2 * size * S;
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = '#57412a';
+    ctx.lineWidth = Math.max(1, 0.05 * S);
+    for (var i = 0; i < 4; i++) {
+      var ox = (i % 2 ? 0.55 : -0.55) * w, oy = (i < 2 ? -0.35 : 0.35) * h;
+      ctx.beginPath(); ctx.moveTo(c[0] + ox, c[1] + oy); ctx.lineTo(c[0] + ox, ground[1]); ctx.stroke();
+    }
+    ctx.fillStyle = '#6d5236';
+    ctx.beginPath(); ctx.ellipse(c[0], c[1], w, h, 0, 0, Math.PI * 2); ctx.fill();
+    var hd = p(x + step + 0.34 * size, y + 0.06 * size, 0.52);
+    ctx.strokeStyle = '#6d5236';
+    ctx.lineWidth = 0.08 * S;
+    ctx.beginPath(); ctx.moveTo(c[0] + w * 0.8, c[1] - 0.02 * S); ctx.lineTo(hd[0], hd[1]); ctx.stroke();
+    ctx.fillStyle = '#7a5c3c';
+    ctx.beginPath(); ctx.ellipse(hd[0], hd[1], 0.1 * size * S, 0.075 * size * S, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#e6d8bc';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(hd[0] - 1, hd[1] - 0.05 * S); ctx.lineTo(hd[0] - 0.12 * S, hd[1] - 0.24 * S);
+    ctx.moveTo(hd[0] + 1, hd[1] - 0.05 * S); ctx.lineTo(hd[0] + 0.12 * S, hd[1] - 0.24 * S);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // 晾肉架
+  function dryingRack(x, y, alpha) {
+    ctx.globalAlpha = alpha;
+    ctx.lineCap = 'round';
+    var a0 = p(x, y, 0), a1 = p(x, y, 0.78);
+    var b0 = p(x + 0.85, y + 0.15, 0), b1 = p(x + 0.85, y + 0.15, 0.78);
+    ctx.strokeStyle = '#5b4632';
+    ctx.lineWidth = 0.07 * S;
+    ctx.beginPath();
+    ctx.moveTo(a0[0], a0[1]); ctx.lineTo(a1[0], a1[1]);
+    ctx.moveTo(b0[0], b0[1]); ctx.lineTo(b1[0], b1[1]);
+    ctx.moveTo(a1[0], a1[1]); ctx.lineTo(b1[0], b1[1]);
+    ctx.stroke();
+    ctx.strokeStyle = '#8c4a3a';
+    ctx.lineWidth = 0.07 * S;
+    for (var i = 1; i <= 3; i++) {
+      var tt = i / 4;
+      var top = p(x + 0.85 * tt, y + 0.15 * tt, 0.78);
+      ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.lineTo(top[0], top[1] + 0.3 * S); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
   /* =====================================================================
      各时代的建筑（返回 {depth, draw} 列表）
      ===================================================================== */
@@ -445,8 +556,8 @@
     var r = mulberry32(4242 + e * 97);
 
     if (e === 0) {
-      // 史前：兽皮帐篷 + 篝火
-      list.push({ d: 13 + 13, draw: function (al) { campfire(13.2, 12.4, al); } });
+      // 史前：营地空地 + 小径 + 帐篷 + 篝火 + 晾肉架 + 猎人 + 兽群
+
       // 营地空地（被踩出来的土）
       list.push({ d: 0, draw: function (al) {
         ctx.globalAlpha = al * 0.45;
@@ -455,25 +566,47 @@
         ctx.beginPath(); ctx.ellipse(c[0], c[1], 3.1 * S * 0.86, 1.7 * S, 0, 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = 1;
       } });
+
+      // 被踩出来的小径：通向河边、猎场、还有两个外出的方向
+      [
+        [[12.9, 12.3], [12.2, 13.6], [11.4, 15.0], [10.8, 16.4]],
+        [[12.9, 12.3], [14.4, 12.0], [16.0, 13.2], [17.4, 15.4]],
+        [[12.9, 12.3], [13.4, 10.6], [13.2, 9.0], [12.6, 7.4]],
+        [[12.9, 12.3], [12.3, 10.9], [11.0, 9.8], [9.0, 9.0]]
+      ].forEach(function (pp) {
+        list.push({ d: 0.4, draw: function (al) { troddenPath(pp, al); } });
+      });
+
       list.push({ d: 13 + 13, draw: function (al) { campfire(13.2, 12.4, al); } });
-      for (var i = 0; i < 8; i++) {
-        var angT = (i / 8) * Math.PI * 2 + r() * 0.45;
-        var radT = 1.5 + r() * 1.4;
-        var x = 12.9 + Math.cos(angT) * radT, y = 12.3 + Math.sin(angT) * radT * 0.8;
-        var sz = 0.9 + r() * 0.55;
+
+      // 帐篷：围着营地一圈，大小不一，外圈还散着几顶
+      for (var i = 0; i < 12; i++) {
+        var angT = (i / 12) * Math.PI * 2 + r() * 0.5;
+        var radT = 1.35 + r() * 2.3;
+        var x = 12.9 + Math.cos(angT) * radT, y = 12.3 + Math.sin(angT) * radT * 0.82;
+        var sz = 0.85 + r() * 0.6;
         list.push({ d: x + y, draw: (function (xx, yy, ss) {
-          return function (al) {
-            ctx.globalAlpha = al;
-            var b = p(xx, yy, 0), t = p(xx, yy, 1.3 * ss);
-            var l0 = p(xx - 0.6 * ss, yy + 0.4 * ss, 0), r0 = p(xx + 0.6 * ss, yy + 0.4 * ss, 0);
-            poly([b, l0, t], '#a2855f');
-            poly([b, r0, t], '#8a6d4c');
-            // 帐篷口的阴影
-            poly([p(xx - 0.12 * ss, yy + 0.42 * ss, 0), t, p(xx + 0.12 * ss, yy + 0.42 * ss, 0)], '#6d5439');
-            ctx.globalAlpha = 1;
-          };
+          return function (al) { tent(xx, yy, ss, al); };
         })(x, y, sz) });
       }
+
+      // 晾肉架
+      list.push({ d: 15.2 + 11.6, draw: function (al) { dryingRack(15.1, 11.5, al); } });
+
+      // 猎人：一个在营地边、一个在河边、一个蹲在兽群外圈
+      list.push({ d: 11.4 + 14.2, draw: function (al) { hunter(11.4, 14.1, -0.5, al, 0.0); } });
+      list.push({ d: 14.4 + 10.8, draw: function (al) { hunter(14.4, 10.7, -1.0, al, 2.2); } });
+      list.push({ d: 16.6 + 14.9, draw: function (al) { hunter(16.5, 14.8, -0.15, al, 4.1); } });
+
+      // 兽群：两小群鹿，一群在东坡，一群在西边林缘
+      [[17.4, 15.6, 5], [8.0, 8.2, 4]].forEach(function (herd) {
+        for (var k = 0; k < herd[2]; k++) {
+          var hx = herd[0] + (r() - 0.5) * 2.9, hy = herd[1] + (r() - 0.5) * 2.2;
+          list.push({ d: hx + hy, draw: (function (xx, yy, ph) {
+            return function (al) { deer(xx, yy, 0.8 + (ph % 0.35), al, ph); };
+          })(hx, hy, r() * 6) });
+        }
+      });
     }
 
     if (e === 1) {

@@ -217,6 +217,12 @@
   .card:hover::before{transform:scaleY(1)}
   .card .num{grid-area:num;font-family:Georgia,"Times New Roman",serif;font-size:23px;font-weight:700;color:var(--accent);line-height:1.35}
   .card h3{grid-area:title;font-size:19px;font-weight:800;letter-spacing:-.02em}
+  .card h3 .badge{
+    display:inline-block;margin-left:10px;vertical-align:2px;
+    font-size:11px;font-weight:700;letter-spacing:.06em;
+    color:var(--accent);border:1px solid var(--accent);border-radius:999px;
+    padding:2px 9px;white-space:nowrap;
+  }
   .card p{grid-area:desc;margin-top:6px;font-size:15px;color:var(--muted);max-width:52ch}
   .card .meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
   .card .meta span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:2px;padding:3px 9px;background:var(--surface)}
@@ -347,7 +353,7 @@
           <p class="lead">
             我是 Yukishiro，17 岁，高三在读。          </p>
           <p class="lead">
-            站上现在有两个项目。代码大部分交给 AI，构思想法、规则与效果是我想的；板块怎么撞、水汽怎么走、算出来的样子对不对，是我在盯。
+            站上现在有四个项目。代码大部分交给 AI，构思想法、规则与效果是我想的；板块怎么撞、水汽怎么走、算出来的样子对不对，是我在盯。
           </p>
           <p class="lead">
             明年要高考，所以现在的主线任务其实是复习，搞这些小东西算是偷出来的时间 —— 但偷得
@@ -443,8 +449,24 @@
           <a class="go" href="projects/mapgen/index.html">去看看 →</a>
         </article>
 
-        <!-- 想做第 3 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
-             改掉编号 03、标题、说明和链接就行。 -->
+        <article class="card">
+          <span class="num">03</span>
+          <h3>岁月山谷 Valley of Ages<span class="badge">新作 · 打磨中</span></h3>
+          <p>一条河谷的四个时代：史前营地、农耕村落、工业城镇、现代城市。拖动时间轴，建筑会从地面长出来、离开时又缩回去，而且变化是从河谷中心一圈圈往外推的。烟囱冒烟、河水在流、公路上的车在跑。</p>
+          <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span><span>等距 3D</span></div>
+          <a class="go" href="projects/valley/index.html">去看看 →</a>
+        </article>
+
+        <article class="card">
+          <span class="num">04</span>
+          <h3>城市路网生成器<span class="badge">新作 · 打磨中</span></h3>
+          <p>给一个种子，长出一座架空城市：块状、辐射状、条状三种肌理可选，城中心街区细密、外围稀疏，城外散着村庄、乡道和带编号的国道。可以调细密度和弯曲度，也能把当前画面存成 PNG。</p>
+          <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span><span>程序化生成</span></div>
+          <a class="go" href="projects/roadnet/index.html">去看看 →</a>
+        </article>
+
+        <!-- 想做第 5 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
+             改掉编号 05、标题、说明和链接就行。 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
       </div>

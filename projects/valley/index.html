@@ -971,22 +971,29 @@
 
     var items = [];
     [0, 1, 2, 3].forEach(function (e) {
-      var w = eraWeight(e);
-      if (w <= 0.001) return;
+      var prog = eraWeight(e);
+      if (prog <= 0.001) return;
       if (!cache[e]) cache[e] = eraObjects(e);
-      cache[e].forEach(function (o) { items.push({ d: o.d, w: w, draw: o.draw }); });
+      cache[e].forEach(function (o) { items.push({ d: o.d, prog: prog, draw: o.draw }); });
     });
     // 树：工业时代少，现代稍多
     var treeW = [1, 1, 0.45, 0.9];
     TREES.forEach(function (tr) {
       for (var e = 0; e < 4; e++) {
         var w2 = eraWeight(e) * treeW[e];
-        if (w2 > 0.01) items.push({ d: tr.x + tr.y - 0.1, w: w2, draw: function (al) { tree(tr.x, tr.y, tr.s, al); } });
+        if (w2 > 0.01) items.push({ d: tr.x + tr.y - 0.1, prog: w2, draw: function (al) { tree(tr.x, tr.y, tr.s, al); } });
       }
     });
 
+    // 变化的「波」：从河谷中心开始，一圈圈往外推，而不是整片同时出现
     items.sort(function (a, b) { return a.d - b.d; });
-    items.forEach(function (it) { zScale = it.w; it.draw(it.w); });
+    items.forEach(function (it) {
+      var delay = Math.min(1, Math.abs(it.d - 26) / 26);
+      var local = smooth01((it.prog - delay * 0.78) / 0.22);
+      if (local <= 0.002) return;
+      zScale = local;
+      it.draw(local);
+    });
     zScale = 1;
     ctx.restore();
     ctx.restore();

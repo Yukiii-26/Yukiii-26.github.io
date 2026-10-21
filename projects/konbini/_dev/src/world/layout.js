@@ -1,0 +1,52 @@
+/* Shared measurements for the corner shop and its little plot. */
+export const STORE = {
+  x1: -5.2,
+  x2: 4.0,
+  z1: -4.2,
+  z2: 0.6,
+  wall: 0.14,
+  floor: 0.18,
+  ceiling: 3.36,
+  top: 3.56,
+  sill: 0.46,
+  glassTop: 2.92,
+  frontGlass: { x1: -3.4, x2: 1.82, z: 0.55 },
+  door: { x1: 1.95, x2: 3.82, z: 0.55 },
+  sideGlass: { z1: -1.32, z2: 0.46, x: 3.95 },
+  canopyY: 2.94,
+  signY: 3.58,
+  signZ: 0.7,
+};
+
+export const INTERIOR = {
+  x1: -5.04,
+  x2: 3.84,
+  z1: -4.04,
+  z2: 0.46,
+  counter: { x1: 1.0, x2: 3.3, z1: -1.78, z2: -0.72, h: 1.02 },
+  backCounter: { x1: 0.95, x2: 3.3, z1: -3.36, z2: -2.56, h: 1.02 },
+  coffee: { x1: 3.36, x2: 3.82, z1: -2.95, z2: -1.9, h: 1.04 },
+  freezer: { x1: 3.38, x2: 3.82, z1: -1.15, z2: -0.2, h: 1.78 },
+  fridges: { x1: -2.35, x2: 2.82, z1: -3.96, z2: -3.36, h: 2.4 },
+  bento: { x1: -3.98, x2: -2.55, z1: -4.0, z2: -3.44, h: 2.05 },
+  frontFridge: { x1: -0.62, x2: 0.5, z1: -0.98, z2: -0.34, h: 1.98 },
+  gondolaA: { x1: -4.2, x2: -1.35, z: -1.45, d: 0.62, h: 1.28 },
+  gondolaB: { x1: -4.2, x2: -1.35, z: -2.72, d: 0.62, h: 1.28 },
+  magazines: { x1: -3.3, x2: -1.3, z: -0.2, d: 0.54, h: 0.92 },
+};
+
+export const PAL = {
+  exterior: 0xf1e6d1,
+  exteriorShade: 0xd7c8ad,
+  trim: 0x1c4a40,
+  trimLight: 0x2d6d5c,
+  frame: 0x243a35,
+  interiorWall: 0xf8efdc,
+  interiorWallWarm: 0xf0e2c8,
+  shelf: 0xeee3cc,
+  shelfEdge: 0xd8cab0,
+  counter: 0xf0e6d0,
+  counterTop: 0xcdbfa4,
+  glassTint: 0xbfe0ea,
+  roof: 0x565b66,
+};

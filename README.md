@@ -16,6 +16,7 @@
 | `projects/` | 放作品用的文件夹（一个项目一个子文件夹） |
 | `projects/minesweeper/` | 作品一：扫雷小游戏。网址 <https://yukiii-26.github.io/projects/minesweeper/> |
 | `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。网址 <https://yukiii-26.github.io/projects/konbini/> |
+| `projects/konbini/_dev/` | 上面那个单文件的**开发源码**（src / vendor / 打包脚本）。下划线开头，GitHub Pages 不会发布它，只在本地用 |
 | `projects/mapgen/` | 作品三：架空世界地图生成器。网址 <https://yukiii-26.github.io/projects/mapgen/> |
 | `projects/valley/` | 作品四：岁月山谷（打磨中）。Three.js + Blender 低多边形，七个时代可自由旋转视角，网址 <https://yukiii-26.github.io/projects/valley/> |
 | `assets/` | 主页用到的图片：作品缩略图 `thumb-*.jpg`（16:10、800×500）与背景图 `bg-dusk.jpg` / `bg-dusk-mobile.jpg` |

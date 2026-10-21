@@ -6,13 +6,13 @@
   【怎么改内容】整份网站就这一个文件，用记事本 / VS Code 打开，搜「改这里」
   就能找到所有需要你替换的文字（共 10 处）。改完保存，双击本文件即可预览。
 
-  【浅色 / 深色】默认深色（和夜景背景最搭），右上角 ☀ / ☾ 按钮切换，
-  点过一次之后记住你的选择（存在浏览器本地，不上传）。
+  【深色 / 浅色】现在只有深色（亮色版压在照片上看不清，先隐藏了）。
+  浅色的样式整块留在 :root[data-theme="light"] 里，恢复方法见 README。
 
   【背景图】assets/bg-dusk.jpg（电脑）与 assets/bg-dusk-mobile.jpg（手机）。
   换图用同名文件覆盖即可，不用改这里；想调暗/调亮，搜 .bg::after 与 .section。
 
-  【想改配色】往下找到 :root 那两块（深色 / 亮色各一块），改颜色代码即可。
+  【想改配色】往下找到 :root 那块（现在只有深色生效），改颜色代码即可。
 
   【注意】不要删除 <style> 和 <script> 这两块，它们是排版、主题切换和动画。
   ============================================================================
@@ -38,15 +38,15 @@
   // 这段要在页面画出来之前跑，否则会先闪一下白底再变深色
   (function () {
     document.documentElement.classList.add('js');
-    var saved = null;
-    try { saved = localStorage.getItem('theme'); } catch (e) {}
-    // 背景是夜景图，默认就用深色；点右上角 ☀ 可以切到米白的亮色版
-    document.documentElement.setAttribute('data-theme', saved || 'dark');
+    // 目前只保留深色模式（亮色版看不清，先隐藏）。
+    // 旧版存过 'light' 的浏览器也强制回深色，等以后要恢复浅色再去掉这一行。
+    try { localStorage.removeItem('theme'); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', 'dark');
   })();
 </script>
 
 <style>
-  /* ===================== 配色（取自背景图：夜空深蓝 + 晚霞暖橘） ===================== */
+  /* ===================== 配色（取自背景图：夜空深蓝 + 天蓝强调色） ===================== */
   :root{
     color-scheme:dark;
     --paper:#0b1220;                  /* 兜底底色：夜空深蓝，图没加载出来也不会白屏 */
@@ -54,12 +54,14 @@
     --ink:#f4efe8;                    /* 暖白文字 */
     --muted:#bcb5ab;                  /* 次要文字，暗底上仍保持足够对比度 */
     --line:rgba(255,255,255,.14);      /* 细分割线 */
-    --accent:#f7ac80;                 /* 强调色：晚霞橘 */
+    --accent:#6ec1f2;                 /* 强调色：夜空里的天蓝，和背景同一套冷色 */
+    --accent-hi:#9ad6ff;              /* 悬停时的更亮蓝 */
+    --accent-ink:#06121e;             /* 压在蓝底上的字色（深蓝黑，保证对比度） */
     --nav-bg:rgba(9,14,24,.70);
     --max:1080px;
   }
 
-  /* ===================== 亮色（同一张背景图，上面压一层米白纱） ===================== */
+  /* ===================== 亮色（暂时隐藏，样式保留随时能恢复） ===================== */
   :root[data-theme="light"]{
     color-scheme:light;
     --paper:#f6f1e8;
@@ -67,7 +69,9 @@
     --ink:#1a1510;
     --muted:#5f574c;
     --line:rgba(26,21,16,.14);
-    --accent:#b4471b;
+    --accent:#1d6fa5;
+    --accent-hi:#2a86c2;
+    --accent-ink:#ffffff;
     --nav-bg:rgba(246,241,232,.80);
   }
 
@@ -147,7 +151,7 @@
   /* ☀ / ☾ 切换按钮 */
   .theme-toggle{
     display:inline-flex;align-items:center;justify-content:center;
-    width:36px;height:32px;border-radius:2px;cursor:pointer;padding:0;
+    width:36px;height:32px;border-radius:10px;cursor:pointer;padding:0;
     background:transparent;border:1px solid var(--line);color:var(--ink);
     transition:border-color .18s,color .18s,background .18s;
   }
@@ -159,7 +163,7 @@
 
   .nav-toggle{
     display:none;align-items:center;justify-content:center;
-    width:36px;height:32px;border-radius:2px;cursor:pointer;
+    width:36px;height:32px;border-radius:10px;cursor:pointer;
     background:transparent;border:1px solid var(--ink);color:var(--ink);
   }
   .nav-toggle span{display:block;width:15px;height:1.5px;background:currentColor;position:relative}
@@ -185,7 +189,7 @@
       rgba(246,241,232,0) 66%);
   }
   .avatar{
-    position:relative;width:76px;height:76px;border-radius:3px;overflow:hidden;
+    position:relative;width:76px;height:76px;border-radius:14px;overflow:hidden;
     background:var(--ink);color:var(--paper);
     font-size:30px;font-weight:700;
     display:flex;align-items:center;justify-content:center;
@@ -199,13 +203,13 @@
 
   .btn{
     display:inline-flex;align-items:center;gap:9px;
-    padding:13px 24px;border-radius:2px;font-size:14.5px;font-weight:600;
+    padding:13px 24px;border-radius:12px;font-size:14.5px;font-weight:600;
     border:1px solid var(--line);cursor:pointer;letter-spacing:.01em;
     transition:background .18s,color .18s,border-color .18s,transform .18s;
   }
-  /* 主按钮用晚霞橘，深色字保证对比度 */
-  .btn-primary{background:var(--accent);border-color:var(--accent);color:#1a1208}
-  .btn-primary:hover{background:#ffc79b;border-color:#ffc79b;color:#1a1208;transform:translateY(-2px)}
+  /* 主按钮用天蓝，深色字保证对比度 */
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn-primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);color:var(--accent-ink);transform:translateY(-2px)}
   .btn-ghost{background:rgba(255,255,255,.06);color:var(--ink);border-color:var(--line)}
   .btn-ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
   :root[data-theme="light"] .btn-ghost{background:rgba(255,255,255,.55)}
@@ -245,14 +249,14 @@
   /* 技能标签 */
   .tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
   .tag-pill{
-    font-size:13px;padding:7px 14px;border-radius:2px;font-weight:600;letter-spacing:.02em;
+    font-size:13px;padding:7px 14px;border-radius:999px;font-weight:600;letter-spacing:.02em;
     background:var(--surface);border:1px solid var(--line);color:var(--muted);
     transition:border-color .18s,color .18s,transform .18s;
   }
   .tag-pill:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
 
-  /* 作品：杂志式编号行 + 预览缩略图，一个项目一整行 */
-  .cards{margin-top:30px;border-top:1px solid var(--line)}
+  /* 作品：一张卡片一个项目，圆角 + 悬停微微抬起 */
+  .cards{margin-top:26px;display:flex;flex-direction:column;gap:12px}
   .card{
     position:relative;
     display:grid;align-items:start;gap:6px 24px;
@@ -261,21 +265,14 @@
       "num shot title go"
       "num shot desc  go"
       "num shot meta  go";
-    padding:26px 4px;border-bottom:1px solid var(--line);
-    transition:background .2s;
+    padding:22px 20px;border:1px solid rgba(255,255,255,.06);border-radius:20px;
+    transition:background .22s,border-color .22s,transform .22s;
   }
-  /* 悬停时左边亮起一道竖线（用绝对定位，不占格子、也不会让文字重新折行） */
-  .card::before{
-    content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
-    background:var(--accent);transform:scaleY(0);transform-origin:top;
-    transition:transform .28s ease;
-  }
-  .card:hover{background:var(--surface)}
-  .card:hover::before{transform:scaleY(1)}
+  .card:hover{background:var(--surface);border-color:var(--line);transform:translateY(-2px)}
   .card .num{grid-area:num;font-family:Georgia,"Times New Roman",serif;font-size:23px;font-weight:700;color:var(--accent);line-height:1.35}
   /* 预览缩略图：统一 16:10，鼠标移上去轻微放大 */
   .card .shot{
-    grid-area:shot;display:block;overflow:hidden;border-radius:2px;
+    grid-area:shot;display:block;overflow:hidden;border-radius:12px;
     border:1px solid var(--line);background:var(--surface);
     transition:border-color .2s,box-shadow .2s;
   }
@@ -294,7 +291,7 @@
   }
   .card p{grid-area:desc;margin-top:6px;font-size:15px;color:var(--muted);max-width:52ch}
   .card .meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
-  .card .meta span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:2px;padding:3px 9px;background:var(--surface)}
+  .card .meta span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--surface)}
   .card .go{grid-area:go;align-self:center;white-space:nowrap;font-size:14px;font-weight:700;color:var(--ink);border-bottom:1.5px solid var(--ink);padding-bottom:2px;transition:color .2s,border-color .2s}
   .card:hover .go{color:var(--accent);border-bottom-color:var(--accent)}
   /* 整张卡片都能点（铺一层透明热区，键盘仍然只停在文字链接上） */
@@ -314,14 +311,14 @@
   /* 回到顶部 */
   .to-top{
     position:fixed;right:20px;bottom:20px;z-index:70;
-    width:42px;height:42px;border-radius:2px;cursor:pointer;
+    width:42px;height:42px;border-radius:14px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;font-size:16px;
-    background:var(--ink);border:1px solid var(--ink);color:var(--paper);
+    background:var(--accent);border:1px solid var(--accent);color:var(--accent-ink);
     opacity:0;visibility:hidden;transform:translateY(10px);
     transition:opacity .25s,transform .25s,visibility .25s,background .2s;
   }
   .to-top.show{opacity:1;visibility:visible;transform:none}
-  .to-top:hover{background:var(--accent);border-color:var(--accent)}
+  .to-top:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
 
   /* 进场动画：只有浏览器启用 JS 时才隐藏，避免关掉 JS 后内容看不见 */
   .js .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
@@ -350,7 +347,8 @@
       grid-template-columns:1fr;
       grid-template-areas:"num" "title" "shot" "desc" "meta" "go";
       gap:10px;
-      padding:22px 2px;
+      padding:18px 16px;
+      border-radius:18px;
     }
     .card .go{justify-self:start;margin-top:6px}
     .card .shot{max-width:420px}
@@ -378,10 +376,13 @@
       <a href="#contact">联系</a>
     </div>
     <div class="nav-actions">
+      <!-- 深色 / 浅色切换按钮暂时隐藏（亮色版在背景图上不够清楚）。
+           想恢复：把下面这段的注释去掉，并把 <script> 里强制 'dark' 那行删掉即可。
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
       </button>
+      -->
       <button class="nav-toggle" id="navToggle" type="button" aria-label="打开菜单" aria-expanded="false"><span></span></button>
     </div>
   </nav>
@@ -587,16 +588,9 @@
   // 年份自动更新
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // ☀ / ☾ 切换深色、浅色，并记住选择
-  var themeToggle = document.getElementById('themeToggle');
-  var themeMeta = document.querySelector('meta[name="theme-color"]');
-  themeToggle.addEventListener('click', function () {
-    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    try { localStorage.setItem('theme', next); } catch (e) {}
-    if (themeMeta) themeMeta.setAttribute('content', next === 'dark' ? '#0b1220' : '#f6f1e8');
-  });
-  // 主题只由用户的点击决定（默认深色），不再跟随系统，避免"看系统心情换脸"
+  // 主题切换暂时下线：目前固定深色，等以后要恢复浅色时把这段和按钮一起放回来
+  // var themeToggle = document.getElementById('themeToggle');
+  // ...
 
   // 滚动到哪一块，文字就轻轻浮上来
   var items = document.querySelectorAll('.reveal');

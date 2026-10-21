@@ -36,23 +36,36 @@ node tools/serve.mjs
 
 ## 改完之后怎么更新线上页面
 
-三步，缺一不可：
+三步，缺一不可（先在 `_dev/` 目录里）：
 
 ```powershell
 # 1) 把 src/ + vendor/ 重新打包成 dist/bundle.js
-npx esbuild src/main.js --bundle --minify --format=iife --alias:three=./vendor/three.module.js --outfile=dist/bundle.js
+..\..\..\path\to\esbuild.exe src/main.js --bundle --minify --format=iife --alias:three=./vendor/three.module.js --outfile=dist/bundle.js
 
-# 2) 把 dist/bundle.js + styles.css 拼成单文件
-node tools/make-single.mjs        # 产出 雨夜便利店.html
-
-# 3) 覆盖线上的那一份
-copy 雨夜便利店.html ..\index.html
+# 2) 直接生成线上那一份（带「← 返回主页」，覆盖 ../index.html）
+node tools/make-single.mjs --site
 ```
 
-> ⚠️ 第 1 步需要联网装一次 esbuild（`npx` 会自动下载）。
+> `node tools/make-single.mjs`（不带 `--site`）只生成 `雨夜便利店.html` 给本地双击看，不会碰线上文件。
+
+> ⚠️ 第 1 步需要 esbuild。这台机器没有 npm，所以用的是独立可执行文件
+> （`C:\Users\Admin\.dsh\tools\esbuild.exe`，0.21.5，从 unpkg 下的）。
 > 当初这套工程就是这么打的包：`src/main.js` 里 `import * as THREE from 'three'`，
-> 靠 `--alias:three=./vendor/three.module.js` 指向本地那份 Three.js，所以打包时不需要联网下载 three。
-> 如果哪天 `npx` 不好使，也可以把 `dist/bundle.js` 换成别的方式产出，第 2、3 步不受影响。
+> 靠 `--alias:three=./vendor/three.module.js` 指向本地那份 Three.js，打包时不需要联网。
+
+## 页面上的控制面板
+
+右上角「⚙ 控制」展开后有三组开关，全部在运行时生效、不需要刷新：
+
+| 控件 | 作用 | 实现位置 |
+|---|---|---|
+| 自动门：自动 / 开 / 关 | 覆盖原本每 20 秒自动开合的循环；手动切换时门是插值滑动的，不会瞬移 | `effects.js` 的 `state.doorMode` + `setDoorMode()` |
+| 下雨 开 / 关 | 雨丝、地面溅水、玻璃雨痕一起平滑淡入淡出 | `state.rainTarget` + `setRain()` |
+| 重播组装 | 把所有零件复位到"还没升起"，重新走一遍入场动画 | `BuildDirector.restart()` |
+| 复位视角 | 回到初始机位 | `OrbitCam.reset()` |
+
+面板本身由 `src/main.js` 动态创建（样式在 `styles.css` 的 `.hud` 段），
+所以单文件版里也自带，不需要改 HTML 模板。
 
 ## 操作
 

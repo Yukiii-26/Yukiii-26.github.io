@@ -138,6 +138,57 @@ if (params.has('r') || params.has('th') || params.has('ph') || params.has('ty') 
   controls.update(0);
 }
 
+/* ---------------- 控制面板：自动门 / 下雨 / 重播组装 / 复位视角 ---------------- */
+const hud = document.createElement('div');
+hud.className = 'hud';
+hud.innerHTML = `
+  <button class="hud-btn" type="button" aria-expanded="false" aria-controls="hudPanel">⚙ 控制</button>
+  <div class="hud-panel" id="hudPanel" hidden>
+    <div class="hud-row">
+      <span class="hud-label">自动门</span>
+      <div class="hud-seg" id="hudDoor">
+        <button type="button" data-mode="auto" class="on">自动</button>
+        <button type="button" data-mode="open">开</button>
+        <button type="button" data-mode="closed">关</button>
+      </div>
+    </div>
+    <div class="hud-row">
+      <span class="hud-label">下雨</span>
+      <button class="hud-switch on" type="button" id="hudRain" aria-pressed="true" aria-label="下雨开关"><i></i></button>
+    </div>
+    <div class="hud-row hud-acts">
+      <button class="hud-act" type="button" id="hudReplay">重播组装</button>
+      <button class="hud-act" type="button" id="hudReset">复位视角</button>
+    </div>
+  </div>`;
+document.body.appendChild(hud);
+
+const hudBtn = hud.querySelector('.hud-btn');
+const hudPanel = hud.querySelector('#hudPanel');
+hudBtn.addEventListener('click', () => {
+  const willOpen = hudPanel.hidden;
+  hudPanel.hidden = !willOpen;
+  hudBtn.setAttribute('aria-expanded', String(willOpen));
+});
+
+hud.querySelector('#hudDoor').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-mode]');
+  if (!btn) return;
+  hud.querySelectorAll('#hudDoor button').forEach((b) => b.classList.toggle('on', b === btn));
+  effects.setDoorMode(btn.dataset.mode);
+});
+
+const rainBtn = hud.querySelector('#hudRain');
+rainBtn.addEventListener('click', () => {
+  const on = !rainBtn.classList.contains('on');
+  rainBtn.classList.toggle('on', on);
+  rainBtn.setAttribute('aria-pressed', String(on));
+  effects.setRain(on);
+});
+
+hud.querySelector('#hudReplay').addEventListener('click', () => build.restart(0.2));
+hud.querySelector('#hudReset').addEventListener('click', () => controls.reset());
+
 function resize() {
   const w = window.innerWidth;
   const h = window.innerHeight;

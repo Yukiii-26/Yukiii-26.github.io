@@ -42,3 +42,151 @@ body.dragging { cursor: grabbing; }
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.55'/></svg>");
   mix-blend-mode: soft-light;
 }
+
+/* ---------------- 控制面板（与个人主页同一套外观） ---------------- */
+.hud {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font: 600 12px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #f4efe8;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hud-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  color: #f4efe8;
+  background: rgba(9, 14, 24, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.hud-btn:hover { border-color: #6ec1f2; }
+.hud-btn[aria-expanded="true"] { border-color: #6ec1f2; background: rgba(20, 30, 46, 0.88); }
+
+.hud-panel {
+  margin-top: 8px;
+  width: 236px;
+  padding: 12px 14px 14px;
+  border-radius: 16px;
+  background: rgba(9, 14, 24, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.5);
+}
+
+.hud-panel[hidden] { display: none; }
+
+.hud-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+}
+
+.hud-row + .hud-row { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+
+.hud-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: rgba(244, 239, 232, 0.68);
+}
+
+.hud-seg {
+  display: flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hud-seg button {
+  border: 0;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(244, 239, 232, 0.72);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.16s, color 0.16s;
+}
+
+.hud-seg button.on {
+  background: #6ec1f2;
+  color: #06121e;
+}
+
+.hud-switch {
+  position: relative;
+  width: 46px;
+  height: 24px;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  transition: background 0.18s, border-color 0.18s;
+}
+
+.hud-switch i {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(244, 239, 232, 0.82);
+  transition: transform 0.18s, background 0.18s;
+}
+
+.hud-switch.on {
+  background: rgba(110, 193, 242, 0.28);
+  border-color: #6ec1f2;
+}
+
+.hud-switch.on i {
+  transform: translateX(22px);
+  background: #6ec1f2;
+}
+
+.hud-acts {
+  gap: 8px;
+  justify-content: stretch;
+}
+
+.hud-act {
+  flex: 1;
+  padding: 8px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11.5px;
+  color: #f4efe8;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  transition: background 0.16s, border-color 0.16s, color 0.16s;
+}
+
+.hud-act:hover {
+  border-color: #6ec1f2;
+  color: #9ad6ff;
+}
+
+@media (max-width: 520px) {
+  .hud-panel { width: 208px; }
+}

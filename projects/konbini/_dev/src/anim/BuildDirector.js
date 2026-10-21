@@ -36,6 +36,20 @@ export class BuildDirector {
     this.time = -delay;
   }
 
+  /** 从头再放一次组装动画：先把每个零件复位到"还没升起"的状态 */
+  restart(delay = 0.2) {
+    for (const it of this.items) {
+      it.obj.visible = false;
+      it.obj.position.y = it.y0 - it.rise;
+      if (it.scale > 0) {
+        const s = it.s0.x * it.scale;
+        it.obj.scale.set(s, it.s0.y * it.scale, s);
+      }
+    }
+    this.done = false;
+    this.begin(delay);
+  }
+
   update(dt) {
     if (!this.started) return;
     this.time += dt;

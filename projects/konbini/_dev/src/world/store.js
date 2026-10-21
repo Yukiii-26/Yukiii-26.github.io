@@ -231,7 +231,9 @@ export function buildStore(scene, build) {
   detail.add(sensorEye);
 
   // mats
-  const matOut = floorPlane(1.15, 0.62, basic(0xffffff, { map: doorMatTexture }), 2.88, 0.92, 0.145);
+  // 门外那块铺在台阶顶上（台阶 y 0.18~0.24，深 0.5），所以压到 0.245 并缩到 0.44 深，
+  // 否则它会有一半埋进台阶里
+  const matOut = floorPlane(1.15, 0.44, basic(0xffffff, { map: doorMatTexture }), 2.88, 0.70, 0.245);
   add(matOut); reg(matOut, T0 + 0.9, 0.3, 0.4);
   const matIn = floorPlane(1.15, 0.62, basic(0xffffff, { map: doorMatTexture }), 2.88, 0.36, 0.192);
   detail.add(matIn);

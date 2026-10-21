@@ -255,7 +255,9 @@ function buildVending(root, build, variant, x, z, start) {
 /*  Bicycle                                                           */
 /* ------------------------------------------------------------------ */
 function buildBicycle(root, build) {
-  const g = group(root, -2.05, 0.13, 1.06);
+  // 站在店前的沥青面上（实测 y=0.046），并整体前移到台阶（z 0.45~0.95，高 0.24）之外，
+  // 否则后半截车轮会埋进台阶里。轮胎外径 0.353、轮心 0.33，所以组高度 = 0.046 + 0.023。
+  const g = group(root, -2.05, 0.069, 1.45);
   g.rotation.y = 0.2;
   const frameMat = toon(0x235e5c);
   const tireMat = toon(0x1c2026);
@@ -347,7 +349,7 @@ function buildBicycle(root, build) {
   // kickstand
   const stand = rod(new THREE.Vector3(-0.32, 0.36, 0.05), new THREE.Vector3(-0.42, 0.02, 0.18), 0.012, silver);
   g.add(stand);
-  contactShadow(g, 1.6, 0.8, 0, -0.05, 0.34, -0.12);
+  contactShadow(g, 1.6, 0.8, 0, -0.05, 0.34, -0.017);
   build?.add(g, { start: 4.45, dur: 0.65, rise: 1.4 });
   return g;
 }
@@ -356,7 +358,8 @@ function buildBicycle(root, build) {
 /*  Small props                                                       */
 /* ------------------------------------------------------------------ */
 function umbrellaStand(root, build) {
-  const g = group(root, 1.55, 0.13, 0.95);
+  // 底座落在沥青面（0.046），并前移出台阶，避免伞架被台面切掉
+  const g = group(root, 1.55, 0.046, 1.30);
   const base = box(0.4, 0.06, 0.34, metalDark, { outline: 'hairline' });
   base.position.y = 0.03;
   g.add(base);
@@ -425,7 +428,8 @@ function trashBins(root, build) {
 }
 
 function aFrameSign(root, build) {
-  const g = group(root, 0.78, 0.13, 1.12);
+  // 立牌整体前移出台阶，两只脚落在沥青面（0.046）
+  const g = group(root, 0.78, 0.046, 1.42);
   g.rotation.y = 0.2;
   const tex = posterTexture('oden');
   for (const side of [-1, 1]) {

@@ -565,8 +565,11 @@ export function buildEffects(scene, { build, store, street, neighbors }) {
   const state = {
     t: 0,
     rainOn: 0,
+    rainLevel: 1,        // 0..1，控制面板的「下雨」开关
+    rainTarget: 1,
     fxOn: 0,
     doorOpen: 0,
+    doorMode: 'auto',    // 'auto' | 'open' | 'closed'
     signFlicker: 1,
     signal: 'green',
     signalTimer: 0,
@@ -607,12 +610,14 @@ export function buildEffects(scene, { build, store, street, neighbors }) {
 
     // fade the wet world in once the model is mostly assembled
     const fx = THREE.MathUtils.smoothstep(t, 4.8, 7.6);
-    const rainFade = THREE.MathUtils.smoothstep(t, 5.2, 7.8);
+    // 手动开关：平滑淡入淡出，避免瞬间跳变
+    state.rainLevel += (state.rainTarget - state.rainLevel) * Math.min(1, dt * 4);
+    const rainFade = THREE.MathUtils.smoothstep(t, 5.2, 7.8) * state.rainLevel;
     state.rainOn = rainFade;
     rain.material.uniforms.uOpacity.value = 0.27 * rainFade;
     splashes.material.uniforms.uOpacity.value = 0.42 * rainFade;
     glassMats.forEach((m, i) => {
-      m.uniforms.uOpacity.value = 0.5 * THREE.MathUtils.smoothstep(t, 5.6 + i * 0.05, 7.4 + i * 0.05);
+      m.uniforms.uOpacity.value = 0.5 * THREE.MathUtils.smoothstep(t, 5.6 + i * 0.05, 7.4 + i * 0.05) * state.rainLevel;
     });
 
     puddles.forEach((p, i) => {
@@ -685,19 +690,25 @@ export function buildEffects(scene, { build, store, street, neighbors }) {
     // traffic-light reflection glows through the puddles a touch
     signalPool.material.opacity = signalPool.userData.baseOpacity * fx * (0.85 + 0.15 * Math.sin(t * 1.7));
 
-    // automatic door — every 20 seconds, after the shop is assembled
-    if (t > doorStart) {
-      const phase = (t - doorStart) % doorCycle;
-      let open = 0;
-      if (phase < 1.3) open = easeInOut(phase / 1.3);
-      else if (phase < 8.8) open = 1;
-      else if (phase < 10.2) open = 1 - easeInOut((phase - 8.8) / 1.4);
-      if (open > 0.02 && !state.firstDoorOpened) {
-        state.firstDoorOpened = true;
+    // automatic door — every 20 seconds, or driven by the control panel
+    if (t > doorStart || state.doorMode !== 'auto') {
+      let target = 0;
+      if (state.doorMode === 'open') {
+        target = 1;
+      } else if (state.doorMode === 'closed') {
+        target = 0;
+      } else {
+        const phase = (t - doorStart) % doorCycle;
+        if (phase < 1.3) target = easeInOut(phase / 1.3);
+        else if (phase < 8.8) target = 1;
+        else if (phase < 10.2) target = 1 - easeInOut((phase - 8.8) / 1.4);
+        else target = 0;
       }
-      state.doorOpen = open;
-      store.door.left.position.x = store.door.leftBaseX - open * 0.74;
-      store.door.right.position.x = store.door.rightBaseX + open * 0.74;
+      // 手动切换时用插值过渡，门不会瞬移
+      state.doorOpen += (target - state.doorOpen) * Math.min(1, dt * 6);
+      if (state.doorOpen > 0.02) state.firstDoorOpened = true;
+      store.door.left.position.x = store.door.leftBaseX - state.doorOpen * 0.74;
+      store.door.right.position.x = store.door.rightBaseX + state.doorOpen * 0.74;
     }
 
     // beacon on the far roof
@@ -717,6 +728,14 @@ export function buildEffects(scene, { build, store, street, neighbors }) {
     // rain glass beads are fully shader driven
   }
 
+  function setDoorMode(mode) {
+    state.doorMode = mode === 'open' || mode === 'closed' ? mode : 'auto';
+  }
+
+  function setRain(on) {
+    state.rainTarget = on ? 1 : 0;
+  }
+
   return {
     root,
     update,
@@ -724,5 +743,7 @@ export function buildEffects(scene, { build, store, street, neighbors }) {
     reflections,
     state,
     setSignal,
+    setDoorMode,
+    setRain,
   };
 }

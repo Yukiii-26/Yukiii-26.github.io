@@ -52,10 +52,8 @@
     return { json: json, bin: new Uint8Array(buf, binStart + 8, binLen) };
   }
 
-  function readAccessor(glb, index) {
-    var acc = glb.json.accessors[index];
+  function readRaw(glb, acc, comps) {
     var bv = glb.json.bufferViews[acc.bufferView];
-    var comps = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 }[acc.type];
     var Ctor = {
       5120: Int8Array, 5121: Uint8Array, 5122: Int16Array,
       5123: Uint16Array, 5125: Uint32Array, 5126: Float32Array
@@ -71,6 +69,22 @@
         else if (Ctor === Uint16Array) out[i * comps + c] = dv.getUint16(at, true);
         else out[i * comps + c] = dv.getUint32(at, true);
       }
+    }
+    return out;
+  }
+
+  /* 坐标 / UV 是量化过的（uint16 归一化，见 tools/slim_glb.py）：
+     按 accessor 的 min/max 还原成 float，下游代码照旧当 float 用。 */
+  function readAccessor(glb, index) {
+    var acc = glb.json.accessors[index];
+    var comps = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 }[acc.type];
+    var raw = readRaw(glb, acc, comps);
+    if (!acc.normalized || !acc.min || !acc.max) return raw;
+    var den = acc.componentType === 5123 ? 65535 : 255;
+    var out = new Float32Array(raw.length);
+    for (var i = 0; i < raw.length; i++) {
+      var c = i % comps;
+      out[i] = acc.min[c] + (raw[i] / den) * (acc.max[c] - acc.min[c]);
     }
     return out;
   }

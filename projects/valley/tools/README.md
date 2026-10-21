@@ -9,7 +9,7 @@
 tools/
 ├── blender_assets.py     用 Blender 的 Python 批量生成全部模型
 ├── pack_models.py        把 models/*.glb 打包成 ../data/models.js
-└── models/               19 个 GLB（房子、树、船、路灯……）
+└── models/               46 个 GLB（房子、树、船、路灯……已瘦身见下）
 ```
 
 ## 改模型的标准流程
@@ -25,13 +25,19 @@ tools/
    （脚本里的 `OUT` 常量需要指向 `tools/models/`；如果跑在 preview 里，跑完把
    `preview\_assets\*.glb` 复制回 `tools/models/`。）
 
-3. 重新打包：
+3. 瘦身（删法线 + 坐标/UV 量化成 uint16，可重复跑）：
+
+   ```powershell
+   python projects\valley\tools\slim_glb.py
+   ```
+
+4. 重新打包：
 
    ```powershell
    python projects\valley\tools\pack_models.py
    ```
 
-4. 刷新网页看效果。
+5. 刷新网页看效果。
 
 ## 模型约定
 
@@ -41,7 +47,7 @@ tools/
 - **材质**：纯色 Principled BSDF，无贴图。网页端按 `baseColorFactor` 取颜色。
 - **导出**：GLB、`export_apply=True`、`export_yup=True`。
 
-## 当前 36 个资产
+## 当前 46 个资产
 
 - 自然：`tree_broadleaf`、`tree_pine`、`rock`、`tent`、`haystack`、`barrel`
 - 农耕：`house_wood_a/b`、`house_stone_a/b`、`townhouse_a/b`、`church_a/b`、`mill`、
@@ -49,4 +55,8 @@ tools/
 - 工业：`factory_a/b`、`warehouse`、`silo`、`watertower`、`telephone_pole`、`dock`、`boat`
 - 现代：`apartment_a/b/c`、`tower`、`lamp`、`signpost`、`bench`
 
-合计约 **1,368 KB**（GLB 原始大小）。
+合计 **3,623 KB**（2026-10-21 瘦身后；瘦身前 8,396 KB）。
+
+> 瘦身脚本 `slim_glb.py` 做两件事：删掉网页用不到的 `NORMAL`（valley.js 自己
+> `computeVertexNormals()`），把 `POSITION`/`TEXCOORD_0` 量化成 uint16 归一化。
+> 网页端由 `valley.js` 的 `readAccessor()` 按 accessor 的 min/max 还原，肉眼无差别。

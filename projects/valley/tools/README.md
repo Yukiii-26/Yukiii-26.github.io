@@ -9,6 +9,7 @@
 tools/
 ├── blender_assets.py     用 Blender 的 Python 批量生成全部模型
 ├── pack_models.py        把 models/*.glb 打包成 ../data/models.js
+├── shot_cdp.js          用 CDP 截图（这台机器用 --screenshot 会挂死）
 └── models/               46 个 GLB（房子、树、船、路灯……已瘦身见下）
 ```
 

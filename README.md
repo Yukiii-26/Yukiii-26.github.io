@@ -15,8 +15,10 @@
 | `README.md` | 这份说明。⚠️ 仓库是公开的，它在 <https://yukiii-26.github.io/README.md> 也能被任何人直接打开 |
 | `projects/` | 放作品用的文件夹（一个项目一个子文件夹） |
 | `projects/minesweeper/` | 作品一：扫雷小游戏。网址 <https://yukiii-26.github.io/projects/minesweeper/> |
-| `projects/mapgen/` | 作品二：架空世界地图生成器。网址 <https://yukiii-26.github.io/projects/mapgen/> |
-| `projects/valley/` | 作品三：岁月山谷（新作，打磨中）。Three.js + Blender 低多边形，七个时代可自由旋转视角，网址 <https://yukiii-26.github.io/projects/valley/> |
+| `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。网址 <https://yukiii-26.github.io/projects/konbini/> |
+| `projects/mapgen/` | 作品三：架空世界地图生成器。网址 <https://yukiii-26.github.io/projects/mapgen/> |
+| `projects/valley/` | 作品四：岁月山谷（打磨中）。Three.js + Blender 低多边形，七个时代可自由旋转视角，网址 <https://yukiii-26.github.io/projects/valley/> |
+| `assets/` | 主页作品卡片的预览缩略图（`thumb-*.jpg`，统一 16:10、800×500） |
 | `projects/template/` | 「项目详情页」模板。复制一份改个名就是新项目，见下面「怎么加一个新作品」 |
 | `egg/` | 彩蛋页。**没有任何导航链接指向它**，只能在主页上敲秘技进去 |
 | `preview/` | 只在本机存放排版效果图，**不需要上传到仓库** |
@@ -145,6 +147,20 @@ https://yukiii-26.github.io/projects/snake/
 > 线上会自动打开文件夹里的 `index.html`，所以 `href="projects/snake/"` 在线上的确能用。
 > **但你在电脑上双击 `index.html` 预览时不行** —— 浏览器会跳到一个光秃秃的文件列表页，
 > 你就没法在上传前先自己检查了。写全文件名，两种情况下表现一致。
+
+### 二·五、卡片上的预览缩略图
+
+每张卡片左边那张图放在 `assets/` 里，命名 `thumb-<项目名>.jpg`，**统一 16:10（800×500）**，
+一张 40 KB 左右，四张加起来还不到 200 KB。换图只要替换同名文件，HTML 不用动：
+
+```html
+<div class="shot"><img src="assets/thumb-snake.jpg" alt="一句话描述画面" width="800" height="500" loading="lazy" decoding="async"></div>
+```
+
+- `alt` 写一句人话，搜索引擎和读屏软件读的是它，别留空
+- `loading="lazy"` 让图片滚到附近才下载，首屏更快
+- 想重新截图：用浏览器打开作品页，按 `F12` → `Ctrl + Shift + P` → 输入 `screenshot` 选
+  「Capture screenshot」，或者直接截屏后按 16:10 裁切
 
 ### 三、怎么上传
 

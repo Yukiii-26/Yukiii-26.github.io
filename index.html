@@ -194,16 +194,16 @@
   }
   .tag-pill:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
 
-  /* 作品：杂志式编号行，一个项目一整行 */
+  /* 作品：杂志式编号行 + 预览缩略图，一个项目一整行 */
   .cards{margin-top:30px;border-top:1px solid var(--line)}
   .card{
     position:relative;
     display:grid;align-items:start;gap:6px 24px;
-    grid-template-columns:78px minmax(0,1fr) auto;
+    grid-template-columns:78px 290px minmax(0,1fr) auto;
     grid-template-areas:
-      "num title go"
-      "num desc  go"
-      "num meta  go";
+      "num shot title go"
+      "num shot desc  go"
+      "num shot meta  go";
     padding:26px 4px;border-bottom:1px solid var(--line);
     transition:background .2s;
   }
@@ -216,6 +216,18 @@
   .card:hover{background:var(--surface)}
   .card:hover::before{transform:scaleY(1)}
   .card .num{grid-area:num;font-family:Georgia,"Times New Roman",serif;font-size:23px;font-weight:700;color:var(--accent);line-height:1.35}
+  /* 预览缩略图：统一 16:10，鼠标移上去轻微放大 */
+  .card .shot{
+    grid-area:shot;display:block;overflow:hidden;border-radius:2px;
+    border:1px solid var(--line);background:var(--surface);
+    transition:border-color .2s,box-shadow .2s;
+  }
+  .card .shot img{
+    display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;
+    transition:transform .45s ease;
+  }
+  .card:hover .shot{border-color:var(--accent);box-shadow:0 6px 18px -12px rgba(0,0,0,.6)}
+  .card:hover .shot img{transform:scale(1.04)}
   .card h3{grid-area:title;font-size:19px;font-weight:800;letter-spacing:-.02em}
   .card h3 .badge{
     display:inline-block;margin-left:10px;vertical-align:2px;
@@ -228,6 +240,8 @@
   .card .meta span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:2px;padding:3px 9px;background:var(--surface)}
   .card .go{grid-area:go;align-self:center;white-space:nowrap;font-size:14px;font-weight:700;color:var(--ink);border-bottom:1.5px solid var(--ink);padding-bottom:2px;transition:color .2s,border-color .2s}
   .card:hover .go{color:var(--accent);border-bottom-color:var(--accent)}
+  /* 整张卡片都能点（铺一层透明热区，键盘仍然只停在文字链接上） */
+  .card .go::after{content:"";position:absolute;inset:0;z-index:1}
 
   /* 联系 */
   .contact{text-align:center;padding:80px 0}
@@ -273,13 +287,15 @@
     .nav-links a{padding:12px 0;border-bottom:1px solid var(--line)}
     .nav-links a:last-child{border-bottom:0}
 
-    /* 作品行在小屏上改成上下排列 */
+    /* 作品行在小屏上改成上下排列，缩略图放到标题下面占满整行 */
     .card{
       grid-template-columns:1fr;
-      grid-template-areas:"num" "title" "desc" "meta" "go";
-      gap:6px;
+      grid-template-areas:"num" "title" "shot" "desc" "meta" "go";
+      gap:10px;
+      padding:22px 2px;
     }
-    .card .go{justify-self:start;margin-top:14px}
+    .card .go{justify-self:start;margin-top:6px}
+    .card .shot{max-width:420px}
   }
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
@@ -351,10 +367,10 @@
         <!-- ↓↓↓ 改这里 ④：关于我正文（写 2～3 段最合适） ↓↓↓ -->
         <div>
           <p class="lead">
-            我是 Yukishiro，17 岁，高三在读。这个页面是我自己搭的一个小角落，里面放着我这段时间折腾出来的东西。
+            我是 Yukishiro，17 岁，高三在读。
           </p>
           <p class="lead">
-            站上现在有三个项目。代码大部分交给 AI，想法、规则与效果是我想的；板块怎么撞、水汽怎么走、算出来的样子对不对，是我在盯。
+            站上现在有四个项目。代码大部分都是 AI 帮忙写的。
           </p>
           <p class="lead">
             明年要高考，所以现在的主线任务其实是复习，搞这些小东西算是偷出来的时间 —— 但偷得
@@ -438,6 +454,7 @@
 
         <article class="card">
           <span class="num">01</span>
+          <div class="shot"><img src="assets/thumb-minesweeper.jpg" alt="扫雷游戏界面：经典数字面板与已翻开的棋盘" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>扫雷 Minesweeper</h3>
           <p>HTML / CSS / JavaScript，零依赖。三种难度，第一下绝不会踩雷，右键（手机长按）插旗，空格键一键翻开周围已确定安全的格子。</p>
           <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span></div>
@@ -446,6 +463,16 @@
 
         <article class="card">
           <span class="num">02</span>
+          <div class="shot"><img src="assets/thumb-konbini.jpg" alt="雨夜便利店街角：亮着灯的日式便利店与湿漉漉的斑马线" width="800" height="500" loading="lazy" decoding="async"></div>
+          <h3>雨夜便利店 · Rainy Night Konbini</h3>
+          <p>一个可以拖动、旋转、缩放的雨夜街角小场景：日式便利店、发光的冷柜、自动贩卖机、自行车、斑马线和一直下着的雨。三渲二卡通渲染，开场时零件从地面逐件升起，组装成这个街角。使用DeepSeek-v4.1-Flash-1017生成。</p>
+          <div class="meta"><span>Three.js</span><span>三渲二</span><span>微缩场景</span><span>零依赖单文件</span><span>DeepSeek-v4.1-Flash-1017</span></div>
+          <a class="go" href="projects/konbini/index.html">去看看 →</a>
+        </article>
+
+        <article class="card">
+          <span class="num">03</span>
+          <div class="shot"><img src="assets/thumb-mapgen.jpg" alt="架空世界地图：四周环海的大陆与山脉、河流" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>架空世界地图生成器</h3>
           <p>生成一个四面环海的完整世界版图：山脉沿板块碰撞带隆起，沙漠落在副热带高压下，雨林长在赤道，河流从分水岭汇进海里。可换种子、调陆地占比和环海宽度，还能切换气温、降水、板块等图层。</p>
           <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span><span>程序化生成</span></div>
@@ -453,15 +480,16 @@
         </article>
 
         <article class="card">
-          <span class="num">03</span>
-          <h3>岁月山谷 Valley of Ages<span class="badge">新作 · 打磨中</span></h3>
+          <span class="num">04</span>
+          <div class="shot"><img src="assets/thumb-valley.jpg" alt="岁月山谷史前时代：河边帐篷营地与时间轴" width="800" height="500" loading="lazy" decoding="async"></div>
+          <h3>岁月山谷 Valley of Ages<span class="badge">打磨中</span></h3>
           <p>一条河谷的七个时代：史前营地、农耕村落、中世纪城堡、文艺复兴城镇、工业城市、现代都市、未来聚落。建筑是 Blender 建模的低多边形模型，Three.js 实时渲染：屋檐、窗框、烟囱、阳台都在模型里。拖动时间轴看七个时代轮替，拖动画面绕谷地转一圈，滚轮拉近看细节。</p>
           <div class="meta"><span>Three.js</span><span>Blender</span><span>WebGL</span><span>低多边形</span><span>真 3D · 自由视角</span></div>
           <a class="go" href="projects/valley/index.html">去看看 →</a>
         </article>
 
-        <!-- 想做第 4 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
-             改掉编号 04、标题、说明和链接就行。 -->
+        <!-- 想做第 5 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
+             改掉编号 05、标题、说明和链接；截图放到 assets/ 里（16:10，800×500 左右最省流量）。 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
       </div>

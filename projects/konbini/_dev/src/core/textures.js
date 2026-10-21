@@ -969,6 +969,39 @@ export function binLabelTexture(label, sub) {
   });
 }
 
+/* 「小心地滑」的黄色 A 字牌：正反面都用这张，省得从背面看是个空白的黄块 */
+export const wetFloorTexture = canvasTexture(256, 384, (g, w, h) => {
+  g.fillStyle = '#f2c94c';
+  g.fillRect(0, 0, w, h);
+  g.fillStyle = '#d8a72b';
+  g.fillRect(0, 0, w, 16);
+  g.fillRect(0, h - 16, w, 16);
+
+  text(g, '清掃中', 128, 82, `800 46px ${JP}`, '#3b2d0a', 'center');
+  text(g, '足元にご注意ください', 128, 126, `600 19px ${JP}`, '#4a3a12', 'center');
+
+  // 滑倒的小人：头 + 斜身子 + 四肢
+  g.fillStyle = '#3b2d0a';
+  g.beginPath();
+  g.arc(112, 172, 13, 0, Math.PI * 2);
+  g.fill();
+  g.save();
+  g.translate(112, 194);
+  g.rotate(-0.5);
+  fillRR(g, -9, -4, 18, 54, 8, '#3b2d0a');
+  g.restore();
+  g.strokeStyle = '#3b2d0a';
+  g.lineWidth = 9;
+  g.lineCap = 'round';
+  g.beginPath(); g.moveTo(120, 238); g.lineTo(148, 266); g.stroke();
+  g.beginPath(); g.moveTo(108, 234); g.lineTo(84, 260); g.stroke();
+  g.beginPath(); g.moveTo(124, 204); g.lineTo(152, 188); g.stroke();
+
+  text(g, 'CAUTION', 128, 306, `800 27px ${EN}`, '#4a3a12', 'center');
+  text(g, 'WET FLOOR', 128, 338, `700 18px ${EN}`, '#5c4a12', 'center');
+});
+
+
 export const openSignTexture = canvasTexture(512, 256, (g, w, h) => {
   g.clearRect(0, 0, w, h);
   fillRR(g, 36, 48, 440, 160, 26, 'rgba(17,80,65,0.95)');

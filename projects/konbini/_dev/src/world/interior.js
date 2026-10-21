@@ -3,7 +3,7 @@ import { C, toon, basic, attachOutline, glowSprite } from '../core/materials.js'
 import { put, group, box, cyl, plane, floorPlane, instanced, canvasTexture, seeded, rod } from '../core/geo.js';
 import { INTERIOR, PAL } from './layout.js';
 import {
-  posterTexture, magazineTexture, menuBoardTexture, shelfTagTexture, floorArrowTexture,
+  posterTexture, magazineTexture, menuBoardTexture, shelfTagTexture, floorArrowTexture, wetFloorTexture,
 } from '../core/textures.js';
 
 const JP = '"Yu Gothic UI","Yu Gothic","Meiryo","Noto Sans JP",sans-serif';
@@ -855,17 +855,22 @@ export function buildInterior(parent, build, T0) {
   detail.add(centreLine);
 
   /* ---------------- wet floor sign near the door ---------------- */
-  const wet = group(root, 2.25, 0, 0.1);
-  const wA = plane(0.26, 0.42, toon(0xf1c94b), { outline: false });
-  wA.position.set(0, 0.4, 0);
+  // 黄色 A 字牌：两块板都贴「清掃中」贴图，并且强制双面可见 ——
+  // 单面材质从背后看会整块消失，只剩顶盖悬在空中。
+  const wet = group(root, 2.45, 0, 0.22);
+  wet.rotation.y = 0.25;
+  const wetMat = new THREE.MeshBasicMaterial({
+    map: wetFloorTexture, side: THREE.DoubleSide, toneMapped: false,
+  });
+  const wA = plane(0.26, 0.42, wetMat, { outline: false });
+  wA.position.set(0, 0.38, 0.09);
   wA.rotation.x = -0.28;
-  const wB = wA.clone();
+  const wB = plane(0.26, 0.42, wetMat, { outline: false });
+  wB.position.set(0, 0.38, -0.09);
   wB.rotation.x = 0.28;
-  wB.rotation.y = Math.PI;
-  wB.position.z = -0.16;
   wet.add(wA); wet.add(wB);
-  const wTop = box(0.26, 0.02, 0.18, toon(0xd9b238));
-  wTop.position.y = 0.6;
+  const wTop = box(0.26, 0.02, 0.16, toon(0xd9b238));
+  wTop.position.y = 0.585;
   wet.add(wTop);
   reg(wet, T0 + 2.25, 0.35, 0.8);
   build?.add(detail, { start: T0 + 2.2, dur: 0.5, rise: 1.1 });

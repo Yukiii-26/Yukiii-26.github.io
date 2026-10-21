@@ -1,28 +1,34 @@
 :root{
-    --paper:#faf8f4;
-    --surface:#ffffff;
-    --ink:#16130f;
-    --muted:#6f675c;
-    --line:#e2dbd0;
-    --accent:#c2410c;
-
-    --sky-top:#cfd8d2;
-    --sky-bottom:#f3e8d8;
-    --haze:rgba(243,232,216,.55);
-  }
-  :root[data-theme="dark"]{
+    /* 与主页同一套：夜空深蓝 + 天蓝强调色（2026-10-21 统一） */
     color-scheme:dark;
-    --paper:#100e0d;
-    --surface:#1a1714;
-    --ink:#f0ece8;
-    --muted:#a29c95;
-    --line:rgba(255,255,255,.11);
-    --accent:#fb923c;
-    --sky-top:#161d20;
-    --sky-bottom:#2a2320;
-    --haze:rgba(20,18,16,.5);
+    --paper:#0b1220;
+    --surface:rgba(18,27,42,.72);
+    --ink:#f4efe8;
+    --muted:#bcb5ab;
+    --line:rgba(255,255,255,.14);
+    --accent:#6ec1f2;
+    --accent-hi:#9ad6ff;
+    --accent-ink:#06121e;
+
+    --sky-top:#0d1526;
+    --sky-bottom:#1b2638;
+    --haze:rgba(12,18,30,.55);
   }
-  :root[data-theme="light"]{color-scheme:light}
+  /* 亮色模式暂时隐藏：整块钉回深色，存过 light 也不会变白 */
+  :root[data-theme="light"]{
+    color-scheme:dark;
+    --paper:#0b1220;
+    --surface:rgba(18,27,42,.72);
+    --ink:#f4efe8;
+    --muted:#bcb5ab;
+    --line:rgba(255,255,255,.14);
+    --accent:#6ec1f2;
+    --accent-hi:#9ad6ff;
+    --accent-ink:#06121e;
+    --sky-top:#0d1526;
+    --sky-bottom:#1b2638;
+    --haze:rgba(12,18,30,.55);
+  }
 
   *,*::before,*::after{box-sizing:border-box}
   html,body{height:100%}
@@ -36,6 +42,10 @@
   a{color:inherit;text-decoration:none}
   h1,h2,p{margin:0}
   button{font:inherit;color:inherit}
+
+  /* 全站统一的背景图（首屏被 3D 舞台盖住，主要给下方说明区用） */
+  .site-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background:#0b1220 url("../../assets/bg-dusk.jpg") center 42%/cover no-repeat}
+  .site-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,12,20,.88),rgba(8,12,20,.94))}
 
   .stage{position:relative;width:100%;height:min(90vh,860px);min-height:540px;overflow:hidden;background:linear-gradient(180deg,var(--sky-top),var(--sky-bottom))}
   canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
@@ -56,7 +66,7 @@
   .brand{
     position:absolute;top:22px;left:26px;
     font-size:10px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;
-    color:rgba(255,255,255,.82);text-shadow:0 1px 6px rgba(0,0,0,.35);
+    color:rgba(244,239,232,.82);text-shadow:0 1px 6px rgba(0,0,0,.35);
   }
   .brand small{display:block;margin-top:5px;font-size:9px;letter-spacing:.2em;opacity:.7;font-weight:500}
 
@@ -65,13 +75,15 @@
     display:inline-flex;align-items:center;gap:7px;
     padding:7px 12px;border-radius:999px;cursor:pointer;
     font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
-    color:rgba(255,255,255,.85);
-    background:rgba(20,18,14,.28);border:1px solid rgba(255,255,255,.22);
+    color:rgba(244,239,232,.86);
+    background:rgba(9,14,24,.42);border:1px solid rgba(255,255,255,.20);
     -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
     transition:background .2s,border-color .2s,color .2s;
   }
-  .chip:hover{background:rgba(20,18,14,.45);border-color:rgba(255,255,255,.4);color:#fff}
-  .chip.on{background:rgba(194,65,12,.75);border-color:rgba(255,255,255,.5)}
+  .chip:hover{background:rgba(20,30,46,.72);border-color:rgba(122,200,242,.55);color:#fff}
+  .chip.on{background:rgba(110,193,242,.22);border-color:var(--accent);color:#fff}
+  /* 深浅色切换按钮：跟着主页一起隐藏（亮色版看不清） */
+  #themeBtn{display:none}
 
   .caption{
     position:absolute;left:26px;bottom:120px;max-width:min(340px,42vw);
@@ -80,7 +92,7 @@
   }
   .caption::before{
     content:"";position:absolute;inset:-20px -70px -20px -30px;z-index:-1;
-    background:radial-gradient(72% 92% at 18% 62%, rgba(12,10,8,.42), rgba(12,10,8,0) 76%);
+    background:radial-gradient(72% 92% at 18% 62%, rgba(8,12,20,.5), rgba(8,12,20,0) 76%);
     pointer-events:none;
   }
   .era-en{
@@ -106,10 +118,10 @@
     position:relative;width:min(760px,82vw);height:2px;
     background:rgba(255,255,255,.28);cursor:pointer;
   }
-  .track-fill{position:absolute;left:0;top:0;height:100%;background:rgba(255,255,255,.9);width:0}
+  .track-fill{position:absolute;left:0;top:0;height:100%;background:var(--accent);width:0}
   .knob{
     position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;
-    background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.4);
+    background:var(--accent);box-shadow:0 2px 10px rgba(0,0,0,.4);
   }
   .stops{display:flex;justify-content:space-between;width:min(760px,82vw);margin-top:-2px}
   .stop{
@@ -118,29 +130,29 @@
     color:rgba(255,255,255,.82);text-shadow:0 1px 6px rgba(0,0,0,.45);transition:color .2s;
   }
   .stop:hover{color:#fff}
-  .stop.on{color:#fff}
+  .stop.on{color:var(--accent)}
   .stop b{display:block;font-size:11px;letter-spacing:.08em;margin-top:2px}
   .hint{
     font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-    color:rgba(255,255,255,.8);text-shadow:0 1px 6px rgba(0,0,0,.45);
+    color:rgba(255,255,255,.78);text-shadow:0 1px 6px rgba(0,0,0,.45);
   }
 
   .back-home{
     position:absolute;top:20px;left:50%;transform:translateX(-50%);
-    font-size:11px;letter-spacing:.1em;color:rgba(255,255,255,.7);
-    padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);
-    background:rgba(20,18,14,.22);
+    font-size:11px;letter-spacing:.1em;color:rgba(244,239,232,.82);
+    padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.20);
+    background:rgba(9,14,24,.52);
     -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-    transition:color .2s,border-color .2s;
+    transition:color .2s,border-color .2s,background .2s;
   }
-  .back-home:hover{color:#fff;border-color:rgba(255,255,255,.45)}
+  .back-home:hover{color:#fff;border-color:var(--accent);background:rgba(20,30,46,.78)}
 
   .below{max-width:1080px;margin:0 auto;padding:56px 26px 80px}
   .below h2{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.02em}
   .below p{margin-top:14px;color:var(--muted);font-size:14.5px;line-height:1.95;max-width:720px}
   .below b{color:var(--ink);font-weight:600}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:28px}
-  .card{border:1px solid var(--line);padding:16px 18px;background:var(--surface)}
+  .card{border:1px solid var(--line);padding:18px 18px;background:var(--surface);border-radius:16px}
   .card h3{margin:0 0 6px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
   .card p{margin:0;font-size:13px;line-height:1.8;color:var(--muted)}
 
@@ -154,6 +166,6 @@
   }
   @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
 
-body.is-night .stage{background:linear-gradient(180deg,#0a1120,#1b2638)}
+body.is-night .stage{background:linear-gradient(180deg,#070c16,#141d2b)}
 body.is-night .grain{opacity:.05}
 body.is-night .vignette{background:radial-gradient(120% 90% at 50% 45%, transparent 40%, rgba(0,0,0,.42) 100%)}

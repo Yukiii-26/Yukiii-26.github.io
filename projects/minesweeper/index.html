@@ -179,9 +179,26 @@
     transform: translateY(-1px);
   }
   .back-home:active { transform: none; }
+
+/* ===================== 与主页统一的外观（2026-10-21） ===================== */
+body{background:#0b1220;color:#f4efe8}
+.site-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background:#0b1220 url("../../assets/bg-dusk.jpg") center 42%/cover no-repeat}
+.site-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,12,20,.80),rgba(8,12,20,.90))}
+h1{color:#f4efe8}
+/* 棋盘本身保留原来的复古灰，只把外面那圈做成圆角卡片 */
+.frame{border-radius:20px;box-shadow:0 26px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.10)}
+.levels button{border-radius:12px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16);color:#f4efe8}
+.levels button:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.30)}
+.levels button.on{background:#6ec1f2;border-color:#6ec1f2;color:#06121e}
+.msg{color:#6ec1f2}
+.help{color:#bcb5ab}
+kbd{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);border-radius:8px;color:#f4efe8}
+.back-home{border-radius:12px;background:rgba(9,14,24,.72);border-color:rgba(255,255,255,.16);color:#f4efe8}
+.back-home:hover{background:rgba(20,30,46,.92);border-color:#6ec1f2;color:#fff}
 </style>
 </head>
 <body>
+<div class="site-bg" aria-hidden="true"></div>
 
 <!-- 返回主页。../../ 就是往上两层：minesweeper → projects → 网站根目录 -->
 <a class="back-home" href="../../index.html">← 返回主页</a>

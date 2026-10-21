@@ -21,7 +21,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#faf8f4" />
+<meta name="theme-color" content="#0b1220" />
 
 <!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时的卡片文字 ↓↓↓ -->
 <title>架空世界地图生成器 · Yukishiro</title>
@@ -39,7 +39,7 @@
     var saved = null;
     try { saved = localStorage.getItem('theme'); } catch (e) {}
     var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', saved || (sysDark ? 'dark' : 'light'));
+    document.documentElement.setAttribute('data-theme', 'dark');  /* 与主页统一：固定深色 */
   })();
 </script>
 
@@ -268,10 +268,41 @@
     .panel{position:static}
     main{padding:40px 0 0}
   }
+
+/* ===================== 与主页统一的外观（2026-10-21） =====================
+   深色 + 天蓝强调色 + 圆弧角 + 同一张黄昏背景图。
+   亮色模式在这里被整块钉回深色，所以浏览器里存过 light 也不会突然变白。 */
+:root, :root[data-theme="dark"], :root[data-theme="light"]{
+  color-scheme:dark;
+  --paper:#0b1220;
+  --surface:rgba(18,27,42,.78);
+  --ink:#f4efe8;
+  --muted:#bcb5ab;
+  --line:rgba(255,255,255,.14);
+  --accent:#6ec1f2;
+  --accent-hi:#9ad6ff;
+  --accent-ink:#06121e;
+  --nav-bg:rgba(9,14,24,.72);
+}
+
+.site-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background:#0b1220 url("../../assets/bg-dusk.jpg") center 42%/cover no-repeat}
+.site-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,12,20,.90),rgba(8,12,20,.95))}
+.glow{display:none}
+.theme-toggle{display:none}
+.site-header{border-bottom:1px solid var(--line)}
+.tag-pill{border-radius:999px}
+.btn,.btn-mini,.panel,.map-frame,.readout,details.rules,input[type="text"],select{border-radius:14px}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);color:var(--accent-ink)}
+.seg button{border-radius:12px}
+.seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg button.on:hover{color:var(--accent-ink);border-color:var(--accent)}
+footer{border-top:1px solid var(--line)}
 </style>
 </head>
 
 <body>
+<div class="site-bg" aria-hidden="true"></div>
 <div class="glow" aria-hidden="true"></div>
 
 <header class="site-header">

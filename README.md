@@ -17,7 +17,6 @@
 | `projects/minesweeper/` | 作品一：扫雷小游戏。网址 <https://yukiii-26.github.io/projects/minesweeper/> |
 | `projects/mapgen/` | 作品二：架空世界地图生成器。网址 <https://yukiii-26.github.io/projects/mapgen/> |
 | `projects/valley/` | 作品三：岁月山谷（新作，打磨中）。Three.js + Blender 低多边形，七个时代可自由旋转视角，网址 <https://yukiii-26.github.io/projects/valley/> |
-| `projects/roadnet/` | 作品四：城市路网生成器（新作，打磨中）。块状 / 辐射状 / 条状三种肌理，网址 <https://yukiii-26.github.io/projects/roadnet/> |
 | `projects/template/` | 「项目详情页」模板。复制一份改个名就是新项目，见下面「怎么加一个新作品」 |
 | `egg/` | 彩蛋页。**没有任何导航链接指向它**，只能在主页上敲秘技进去 |
 | `preview/` | 只在本机存放排版效果图，**不需要上传到仓库** |

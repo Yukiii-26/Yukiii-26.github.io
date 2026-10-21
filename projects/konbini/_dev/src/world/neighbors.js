@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { C, toon, basic, attachOutline, glowSprite, glowTexture } from '../core/materials.js';
-import { put, group, box, cyl, plane, floorPlane, rod, canvasTexture, seeded } from '../core/geo.js';
+import { put, group, box, cyl, plane, floorPlane, rod, canvasTexture, seeded, dualPlane } from '../core/geo.js';
 import {
   windowTexture, shutterTexture, alcoveNeonTexture, posterTexture, grateTexture, cloneRepeat,
 } from '../core/textures.js';
@@ -461,7 +461,10 @@ export function buildNeighbors(scene, build) {
   rRail.position.set(8.9, 5.26, -7.7);
   rightDetail.add(rRail);
   const rSignTex = signTexture(['コイン', 'ランドリー'], '#e9e2ce', '#2e6a72');
-  const rSign = plane(0.6, 1.2, basic(0xffffff, { map: rSignTex, toneMapped: false }));
+  // 挂在屋顶栏杆下的招牌，两面都会被看到：背靠背两张，字都不镜像
+  const rSign = dualPlane(0.6, 1.2, basic(0xffffff, {
+    map: rSignTex, toneMapped: false,
+  }));
   rSign.position.set(8.9, 2.0, -6.2);
   rSign.rotation.y = -Math.PI / 2;
   rightDetail.add(rSign);

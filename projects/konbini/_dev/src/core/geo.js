@@ -43,6 +43,21 @@ export function plane(w, h, mat, opts = {}) {
   return m;
 }
 
+/**
+ * 两面都要看得清的牌子：两片单面平面背靠背。
+ * 直接给一个平面设 DoubleSide 的话，背面看到的字是**镜像**的，一眼能看出是错的；
+ * 背靠背两张就没这个问题。返回的是 Group，当成普通物件摆位置/旋转即可。
+ */
+export function dualPlane(w, h, mat, opts = {}) {
+  const g = new THREE.Group();
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(w, h, opts.wSeg, opts.hSeg), mat);
+  const back = front.clone();
+  back.rotation.y = Math.PI;
+  back.position.z = -0.003;   // 错开一点，避免两个面共面闪烁
+  g.add(front, back);
+  return g;
+}
+
 export function floorPlane(w, d, mat, x = 0, z = 0, y = 0.01) {
   const m = plane(w, d, mat);
   m.rotation.x = -Math.PI / 2;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { C, toon, basic, attachOutline, glowSprite, contactShadow, glowTexture } from '../core/materials.js';
 import {
-  put, group, box, cyl, plane, floorPlane, rod, wire, sphere, torusArc, canvasTexture,
+  put, group, box, cyl, plane, floorPlane, rod, wire, sphere, torusArc, canvasTexture, dualPlane,
 } from '../core/geo.js';
 import {
   vendingTexture, parkingSignTexture, streetNameTexture, noticeBoardTexture, binLabelTexture,
@@ -207,7 +207,10 @@ function buildSignal(root, build) {
   pedGreen.position.set(0.04, 2.08, 0.19);
   g.add(pedGreen);
 
-  const streetName = plane(1.08, 0.29, basic(0xffffff, { map: streetNameTexture, toneMapped: false }));
+  // 路名牌是一块薄板、背后没有板子：做成背靠背两张，绕到信号灯背面也能正常读（而不是镜像字）
+  const streetName = dualPlane(1.08, 0.29, basic(0xffffff, {
+    map: streetNameTexture, toneMapped: false,
+  }));
   streetName.position.set(0.02, 2.72, 0.22);
   g.add(streetName);
 
@@ -391,7 +394,8 @@ function umbrellaStand(root, build) {
   umbrella(-0.08, 0.02, 0x2c3a4a, 0.08);
   umbrella(0.05, -0.05, 0xd9eef5, -0.06);
   umbrella(0.1, 0.09, 0x7e4b58, 0.12);
-  const sign = plane(0.34, 0.2, basic(0xffffff, {
+  // 这块小牌子悬在伞把上方，背后没有实体：背靠背两张，两面都读得正
+  const sign = dualPlane(0.34, 0.2, basic(0xffffff, {
     map: canvasTexture(256, 128, (gg, w, h) => {
       gg.fillStyle = '#e8e2d2'; gg.fillRect(0, 0, w, h);
       gg.fillStyle = '#2f6a58'; gg.font = `700 34px ${JP}`;

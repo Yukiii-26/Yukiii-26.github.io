@@ -6,10 +6,13 @@
   【怎么改内容】整份网站就这一个文件，用记事本 / VS Code 打开，搜「改这里」
   就能找到所有需要你替换的文字（共 10 处）。改完保存，双击本文件即可预览。
 
-  【浅色 / 深色】右上角 ☀ / ☾ 按钮切换。第一次打开会自动跟随你系统的深浅色设置，
-  你手动点过一次之后，就记住你的选择（存在浏览器本地，不上传）。
+  【浅色 / 深色】默认深色（和夜景背景最搭），右上角 ☀ / ☾ 按钮切换，
+  点过一次之后记住你的选择（存在浏览器本地，不上传）。
 
-  【想改配色】往下找到 :root 那两块（浅色 / 深色各一块），改颜色代码即可。
+  【背景图】assets/bg-dusk.jpg（电脑）与 assets/bg-dusk-mobile.jpg（手机）。
+  换图用同名文件覆盖即可，不用改这里；想调暗/调亮，搜 .bg::after 与 .section。
+
+  【想改配色】往下找到 :root 那两块（深色 / 亮色各一块），改颜色代码即可。
 
   【注意】不要删除 <style> 和 <script> 这两块，它们是排版、主题切换和动画。
   ============================================================================
@@ -37,8 +40,8 @@
     document.documentElement.classList.add('js');
     var saved = null;
     try { saved = localStorage.getItem('theme'); } catch (e) {}
-    var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', saved || (sysDark ? 'dark' : 'light'));
+    // 背景是夜景图，默认就用深色；点右上角 ☀ 可以切到米白的亮色版
+    document.documentElement.setAttribute('data-theme', saved || 'dark');
   })();
 </script>
 
@@ -593,17 +596,7 @@
     try { localStorage.setItem('theme', next); } catch (e) {}
     if (themeMeta) themeMeta.setAttribute('content', next === 'dark' ? '#0b1220' : '#f6f1e8');
   });
-  // 你没手动选过之前，跟随系统的深浅色变化
-  if (window.matchMedia) {
-    var mq = window.matchMedia('(prefers-color-scheme: dark)');
-    var onSysChange = function (e) {
-      var saved = null;
-      try { saved = localStorage.getItem('theme'); } catch (err) {}
-      if (!saved) document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-    };
-    if (mq.addEventListener) mq.addEventListener('change', onSysChange);
-    else if (mq.addListener) mq.addListener(onSysChange);
-  }
+  // 主题只由用户的点击决定（默认深色），不再跟随系统，避免"看系统心情换脸"
 
   // 滚动到哪一块，文字就轻轻浮上来
   var items = document.querySelectorAll('.reveal');

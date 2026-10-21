@@ -18,7 +18,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#faf8f4" />
+<meta name="theme-color" content="#0b1220" />
 
 <!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时显示的卡片文字 ↓↓↓ -->
 <title>Yukishiro · 个人主页</title>
@@ -43,30 +43,30 @@
 </script>
 
 <style>
-  /* ===================== 浅色配色（默认） ===================== */
+  /* ===================== 配色（取自背景图：夜空深蓝 + 晚霞暖橘） ===================== */
   :root{
-    --paper:#faf8f4;               /* 纸张底色：偏暖的近白 */
-    --surface:#ffffff;             /* 卡片 / 标签的底色 */
-    --ink:#16130f;                 /* 墨色：正文与标题 */
-    --muted:#6f675c;               /* 次要文字 */
-    --line:#e2dbd0;                /* 细分割线 */
-    --accent:#c2410c;              /* 强调色：现在是朱橙 */
-    --nav-bg:rgba(250,248,244,.92);
+    color-scheme:dark;
+    --paper:#0b1220;                  /* 兜底底色：夜空深蓝，图没加载出来也不会白屏 */
+    --surface:rgba(18,27,42,.60);     /* 玻璃卡片 / 标签的底色 */
+    --ink:#f4efe8;                    /* 暖白文字 */
+    --muted:#bcb5ab;                  /* 次要文字，暗底上仍保持足够对比度 */
+    --line:rgba(255,255,255,.14);      /* 细分割线 */
+    --accent:#f7ac80;                 /* 强调色：晚霞橘 */
+    --nav-bg:rgba(9,14,24,.70);
     --max:1080px;
   }
 
-  /* ===================== 深色配色（整体偏暖，和朱橙强调色同一套） ===================== */
-  :root[data-theme="dark"]{
-    color-scheme:dark;
-    --paper:#100e0d;               /* 暖调近黑，去掉原来的蓝味 */
-    --surface:#1a1714;             /* 卡片 / 标签的底色 */
-    --ink:#f0ece8;                 /* 暖白文字 */
-    --muted:#a29c95;               /* 暖灰次要文字 */
-    --line:rgba(255,255,255,.11);
-    --accent:#fb923c;              /* 强调色：亮朱橙（深底上要提亮才看得清） */
-    --nav-bg:rgba(16,14,13,.88);
+  /* ===================== 亮色（同一张背景图，上面压一层米白纱） ===================== */
+  :root[data-theme="light"]{
+    color-scheme:light;
+    --paper:#f6f1e8;
+    --surface:rgba(255,255,255,.76);
+    --ink:#1a1510;
+    --muted:#5f574c;
+    --line:rgba(26,21,16,.14);
+    --accent:#b4471b;
+    --nav-bg:rgba(246,241,232,.80);
   }
-  :root[data-theme="light"]{color-scheme:light}
 
   *,*::before,*::after{box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -82,22 +82,54 @@
   img{max-width:100%}
   .wrap{max-width:var(--max);margin:0 auto;padding:0 26px}
 
-  /* ===================== 深色模式下的背景光晕（浅色时隐藏） ===================== */
-  .glow{
-    position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;
-    transition:opacity .45s ease;
-    background:
-      radial-gradient(56% 40% at 10% -6%, rgba(251,146,60,.22), transparent 70%),
-      radial-gradient(46% 36% at 92% -2%, rgba(245,158,11,.15), transparent 70%),
-      radial-gradient(64% 44% at 50% 104%, rgba(251,146,60,.10), transparent 72%);
+  /* ===================== 背景图（固定铺满，上面压一层暗幕保证可读） =====================
+     用 position:fixed 的独立图层，而不是 body 的 background-attachment:fixed ——
+     后者在 iOS Safari 上会随页面滚动而抖动/失效。 */
+  .bg{
+    position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:var(--paper) url("assets/bg-dusk.jpg") center 42%/cover no-repeat;
   }
-  :root[data-theme="dark"] .glow{opacity:1}
+  .bg::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,
+      rgba(8,12,20,.45) 0%,
+      rgba(8,12,20,.56) 45%,
+      rgba(8,12,20,.64) 100%);
+  }
+  /* 亮色：同一张图，换成一层米白纱，字改深色 */
+  :root[data-theme="light"] .bg{filter:brightness(1.05) saturate(.72)}
+  :root[data-theme="light"] .bg::after{
+    background:linear-gradient(180deg,
+      rgba(246,241,232,.84) 0%,
+      rgba(246,241,232,.90) 50%,
+      rgba(246,241,232,.95) 100%);
+  }
+  /* 手机：换成竖构图（保住画面右侧的人物），并从顶部对齐 */
+  @media (max-width:720px){
+    .bg{background-image:url("assets/bg-dusk-mobile.jpg");background-position:center top}
+    /* 手机上人物更大，暗幕再压重一点，保证白字压在她的头发/外套上也清楚 */
+    .bg::after{
+      background:linear-gradient(180deg,
+        rgba(8,12,20,.60) 0%,
+        rgba(8,12,20,.78) 42%,
+        rgba(8,12,20,.88) 100%);
+    }
+    :root[data-theme="light"] .bg::after{
+      background:linear-gradient(180deg,
+        rgba(246,241,232,.88) 0%,
+        rgba(246,241,232,.93) 45%,
+        rgba(246,241,232,.96) 100%);
+    }
+    /* 手机上关掉大面积的背景模糊，省电、滚动更跟手 */
+    .section{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(9,14,24,.92)}
+    :root[data-theme="light"] .section{background:rgba(246,241,232,.95)}
+  }
 
   /* ===================== 顶部导航（底部一道粗墨线，杂志刊头的感觉） ===================== */
   .site-header{
     position:sticky;top:0;z-index:60;background:var(--nav-bg);
     -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
-    border-bottom:2px solid var(--ink);
+    border-bottom:1px solid var(--line);
     transition:background-color .35s ease,border-color .35s ease;
   }
   .nav{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:var(--max);margin:0 auto;padding:15px 26px}
@@ -133,7 +165,22 @@
   .nav-toggle span::after{top:5px}
 
   /* ===================== 首屏：超大标题 ===================== */
-  .hero{padding:88px 0 78px}
+  /* 首屏左侧压一层渐变，让大标题在晚霞最亮的那块天空上也够清楚；右侧留给人物 */
+  .hero{position:relative;padding:88px 0 78px}
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+    background:linear-gradient(96deg,
+      rgba(8,12,20,.74) 0%,
+      rgba(8,12,20,.44) 38%,
+      rgba(8,12,20,.10) 56%,
+      rgba(8,12,20,0) 68%);
+  }
+  :root[data-theme="light"] .hero::before{
+    background:linear-gradient(96deg,
+      rgba(246,241,232,.88) 0%,
+      rgba(246,241,232,.55) 40%,
+      rgba(246,241,232,0) 66%);
+  }
   .avatar{
     position:relative;width:76px;height:76px;border-radius:3px;overflow:hidden;
     background:var(--ink);color:var(--paper);
@@ -150,16 +197,23 @@
   .btn{
     display:inline-flex;align-items:center;gap:9px;
     padding:13px 24px;border-radius:2px;font-size:14.5px;font-weight:600;
-    border:1px solid var(--ink);cursor:pointer;letter-spacing:.01em;
+    border:1px solid var(--line);cursor:pointer;letter-spacing:.01em;
     transition:background .18s,color .18s,border-color .18s,transform .18s;
   }
-  .btn-primary{background:var(--ink);color:var(--paper)}
-  .btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:translateY(-2px)}
-  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
-  .btn-ghost:hover{border-color:var(--ink);transform:translateY(-2px)}
+  /* 主按钮用晚霞橘，深色字保证对比度 */
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#1a1208}
+  .btn-primary:hover{background:#ffc79b;border-color:#ffc79b;color:#1a1208;transform:translateY(-2px)}
+  .btn-ghost{background:rgba(255,255,255,.06);color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+  :root[data-theme="light"] .btn-ghost{background:rgba(255,255,255,.55)}
 
   /* ===================== 通用板块 ===================== */
-  .section{padding:70px 0;border-top:1px solid var(--line)}
+  /* 内容区：压一层深色面板，首屏之外的字不再直接压在照片上 */
+  .section{
+    padding:70px 0;border-top:1px solid var(--line);
+    background:rgba(9,14,24,.93);
+  }
+  :root[data-theme="light"] .section{background:rgba(246,241,232,.95)}
   /* 小标签 + 一条贯穿的细线，杂志里的栏目标题 */
   .kicker{
     display:flex;align-items:center;gap:14px;
@@ -250,7 +304,8 @@
   .contact .lead{margin-left:auto;margin-right:auto}
   .contact .actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:30px}
 
-  footer{border-top:2px solid var(--ink);padding:26px 0;color:var(--muted);font-size:12.5px;letter-spacing:.02em}
+  footer{border-top:1px solid var(--line);padding:26px 0;color:var(--muted);font-size:12.5px;letter-spacing:.02em;background:rgba(9,14,24,.94)}
+  :root[data-theme="light"] footer{background:rgba(246,241,232,.96)}
   footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
 
   /* 回到顶部 */
@@ -280,7 +335,7 @@
     .nav-links{
       position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;
       padding:6px 26px 14px;font-size:13px;
-      background:var(--paper);border-bottom:2px solid var(--ink);
+      background:var(--paper);border-bottom:1px solid var(--line);
       display:none;
     }
     .nav-links.open{display:flex}
@@ -305,7 +360,7 @@
 </head>
 
 <body>
-<div class="glow" aria-hidden="true"></div>
+<div class="bg" aria-hidden="true"></div>
 
 <!-- ===================== 顶部导航 ===================== -->
 <header class="site-header">
@@ -536,7 +591,7 @@
     var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
     try { localStorage.setItem('theme', next); } catch (e) {}
-    if (themeMeta) themeMeta.setAttribute('content', next === 'dark' ? '#100e0d' : '#faf8f4');
+    if (themeMeta) themeMeta.setAttribute('content', next === 'dark' ? '#0b1220' : '#f6f1e8');
   });
   // 你没手动选过之前，跟随系统的深浅色变化
   if (window.matchMedia) {

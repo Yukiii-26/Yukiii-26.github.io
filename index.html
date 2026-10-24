@@ -423,10 +423,10 @@
     <a class="brand" href="#top">Yuki<b>shiro</b></a>
     <!-- ↑↑↑ 改这里 ② ↑↑↑ -->
     <div class="nav-links" id="navLinks">
-      <a href="#featured">新作</a>
       <a href="#about">关于</a>
       <a href="#skills">技能</a>
       <a href="#work">作品</a>
+      <a href="#featured">特别企划</a>
       <a href="#contact">联系</a>
     </div>
     <div class="nav-actions">
@@ -471,44 +471,6 @@
     </div>
   </section>
 
-  <!-- ===================== 特别企划（新作，不在本站的项目） ===================== -->
-  <!-- 这一块专门放"代码在别的仓库、不挂在本站"的项目（现在是 Unity 游戏 SchoolScape）。
-       改内容：直接改下面的标题 / 说明 / 标签 / 链接。
-       想加第二个新作：把整个 <div class="feature-card"> 复制一份（外面再包一层间距）。
-       ⚠️ 链接是外站，所以 target="_blank" rel="noopener" 别丢。 -->
-  <section class="section featured" id="featured">
-    <div class="wrap reveal">
-      <p class="kicker">New / Unity</p>
-      <h2>特别企划 · 新作</h2>
-      <div class="feature-card">
-        <!-- ↓↓↓ 改这里 ⑪：特别企划（新作）—— 标题、说明、标签、GitHub 链接都在下面这张卡片里 ↓↓↓ -->
-        <div>
-          <span class="feature-badge">开发中 · v0.2a</span>
-          <h2>SchoolScape</h2>
-          <p class="feature-sub">2D 像素风 · 校园逃脱游戏</p>
-          <p class="feature-desc">
-            用 Unity 6.3 LTS 做的像素风校园逃脱游戏，现在还是原型。已经能在走廊和六间教室之间自由走动：
-            WASD / 方向键控制，外墙和隔断都有碰撞，相机会平滑跟随、停在地图边界内。
-            接下来换上真正的像素美术，再加 NPC 对话和存档。
-            不想等完整版的话，可以先玩 <b>网页版序章「空座位」</b> —— 同一段开头，浏览器里就能走完。
-          </p>
-          <div class="meta">
-            <span>Unity 6.3 LTS</span><span>C#</span><span>2D</span><span>像素风</span><span>逃脱解谜</span>
-          </div>
-          <div class="actions">
-            <a class="btn btn-primary" href="projects/schoolscape/index.html">先玩网页序章 →</a>
-            <a class="btn btn-ghost" href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">Unity 项目源码 ↗</a>
-          </div>
-        </div>
-        <div class="feature-art" aria-hidden="true">
-          <b>SCHOOL<br>SCAPE</b>
-          <small>2D · PIXEL · ESCAPE</small>
-        </div>
-        <!-- ↑↑↑ 改这里 ⑪ ↑↑↑ -->
-      </div>
-    </div>
-  </section>
-
   <!-- ===================== 关于我 ===================== -->
   <section class="section" id="about">
     <div class="wrap reveal">
@@ -521,7 +483,7 @@
             我是 Yukishiro，17 岁，高三在读。
           </p>
           <p class="lead">
-            站上现在有三个能直接玩的小项目（最新的是 SchoolScape 的网页序章），另外在做一个 Unity 完整版（见上面的「新作」）。代码大部分都是 AI 帮忙写的。
+            站上现在有三个能直接玩的小项目（最新的是《没有人举手》完整网页版，约 30 分钟、有两个结局），另外在做一个 Unity 完整版（见下面的「特别企划」，目前是 v0.3a 原型）。代码大部分都是 AI 帮忙写的。
           </p>
           <p class="lead">
             明年要高考，所以现在的主线任务其实是复习，搞这些小东西算是偷出来的时间 —— 但偷得
@@ -605,19 +567,19 @@
              传到线上就是 404。文件名统一用小写最省事。
         -->
 
-        <!-- ↓↓↓ 01 号：SchoolScape · 序章「空座位」（2026-10-24 上线，网页版）↓↓↓ -->
+        <!-- ↓↓↓ 01 号：没有人举手 / No One Raised a Hand（2026-10-25 完整版上线，网页版）↓↓↓ -->
         <article class="card">
           <span class="num">01</span>
-          <div class="shot"><img src="assets/thumb-schoolscape.jpg" alt="像素风教室里，后排靠窗的空课桌，王焱站在桌子旁边" width="800" height="500" loading="lazy" decoding="async"></div>
-          <h3>SchoolScape · 序章「空座位」<span class="badge">新作</span></h3>
-          <p>2D 像素风的校园剧情探索。高三 7 班最后一排靠窗的位置空着，没人坐，也没人提。走遍教室、走廊和操场，问出三条证词，解开那张课桌抽屉上的三位密码锁。约 8 分钟，零依赖单文件，手机上也能玩。</p>
-          <div class="meta"><span>HTML</span><span>Canvas</span><span>2D 像素</span><span>剧情解谜</span><span>零依赖单文件</span></div>
-          <a class="go" href="projects/schoolscape/index.html">去玩玩 →</a>
+          <div class="shot"><img src="assets/thumb-schoolscape.jpg" alt="像素风教室里，最后一排靠窗的空课桌；旁边站着两个学生" width="800" height="500" loading="lazy" decoding="async"></div>
+          <h3>没有人举手 No One Raised a Hand<span class="badge">完整版</span></h3>
+          <p>2D 像素校园剧情解谜完整版。高三 7 班最后一排靠窗的位置空着，没人坐，也没人提。问出七份「不是故意的」证词，走进那间不该进的屋子，然后做那个选择。两个结局，约 30 分钟，自动保存，手机上也能玩。</p>
+          <div class="meta"><span>HTML</span><span>Canvas</span><span>2D 像素</span><span>剧情解谜</span><span>双结局</span><span>零依赖单文件</span></div>
+          <a class="go" href="projects/schoolscape/index.html">去玩完整版 →</a>
         </article>
 
-        <!-- 原 01 号「扫雷 Minesweeper」2026-10-24 从首页隐藏（用户要求：第一栏换成 SchoolScape）。
+        <!-- 原 01 号「扫雷 Minesweeper」2026-10-24 从首页隐藏（用户要求：第一栏换成《没有人举手》）。
              页面文件还在 projects/minesweeper/，直接访问网址仍然能打开，只是首页没有入口。
-             想恢复：把下面这段注释放开，再把恢复出来的扫雷卡编号改成 04 即可（SchoolScape 保持 01）。
+             想恢复：把下面这段注释放开，再把恢复出来的扫雷卡编号改成 04 即可（《没有人举手》保持 01）。
 
         <article class="card">
           <span class="num">01</span>
@@ -667,6 +629,43 @@
              改掉编号 04、标题、说明和链接；截图放到 assets/ 里（16:10，800×500 左右最省流量）。 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 特别企划（新作，不在本站的项目） ===================== -->
+  <!-- 这一块放「代码在别的仓库、完整版不挂在本站」的项目（现在是 Unity 版《没有人举手》）。
+       网页完整版在 projects/schoolscape/，作品卡在上面；这里只介绍 Unity 版和它的进度。
+       改内容：直接改下面的标题 / 说明 / 标签 / 链接。
+       ⚠️ 链接是外站，所以 target="_blank" rel="noopener" 别丢。 -->
+  <section class="section featured" id="featured">
+    <div class="wrap reveal">
+      <p class="kicker">Project / Unity</p>
+      <h2>特别企划 · 新作</h2>
+      <div class="feature-card">
+        <!-- ↓↓↓ 改这里 ⑪：特别企划（新作）—— 标题、说明、标签、GitHub 链接都在下面这张卡片里 ↓↓↓ -->
+        <div>
+          <span class="feature-badge">开发中 · v0.3a</span>
+          <h2>没有人举手</h2>
+          <p class="feature-sub">No One Raised a Hand · 2D 像素校园剧情解谜</p>
+          <p class="feature-desc">
+            Unity 6.3 LTS 的完整版<b>还没做完</b>，目前是 v0.3a 原型：走廊和教室里已经能自由走动，
+            美术、NPC 对话和存档都还在做。完整剧情先做成了网页版 —— 七份「不是故意的」证词、
+            一次不该进的潜入、和最后那个选择，浏览器里就能从头玩到尾。
+          </p>
+          <div class="meta">
+            <span>Unity 6.3 LTS</span><span>C#</span><span>2D</span><span>像素风</span><span>剧情解谜</span>
+          </div>
+          <div class="actions">
+            <a class="btn btn-primary" href="projects/schoolscape/index.html">玩完整网页版 →</a>
+            <a class="btn btn-ghost" href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">Unity 项目源码 ↗</a>
+          </div>
+        </div>
+        <div class="feature-art" aria-hidden="true">
+          <b>没有<br>举手</b>
+          <small>NO ONE RAISED A HAND</small>
+        </div>
+        <!-- ↑↑↑ 改这里 ⑪ ↑↑↑ -->
       </div>
     </div>
   </section>

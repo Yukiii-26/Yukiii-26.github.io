@@ -115,11 +115,12 @@ async function main() {
     if (st === 'complete') break;
     await sleep(200);
   }
-  // 2) 等 46 个模型都挂上来（models.js 是同步脚本，一般已经就绪）
+  // 2) 等 46 个模型都挂上来（valley 页才有 window.MODELS；别的页面没有就直接过）
   let models = 0;
   for (let i = 0; i < 150; i++) {
     models = await cdp.eval('(window.MODELS ? Object.keys(window.MODELS).length : 0)').catch(() => 0);
     if (models >= 46) break;
+    if (models === 0 && i >= 3) break;   // 页面没有 window.MODELS，别白等 30 秒
     await sleep(200);
   }
   // 3) 再给真实时间，让 JS 建场景 + 至少画出几帧（软件渲染很慢，这里必须等真实时间）
@@ -135,7 +136,19 @@ async function main() {
     });
   })()`).catch(() => '{}');
 
-  const shot = await cdp.send('Page.captureScreenshot', { format: 'png', fromSurface: true });
+  // --full：整页截图（把视口高度撑到文档高度，再用 captureBeyondViewport）
+  const full = process.argv.includes('--full');
+  if (full) {
+    const h = await cdp.eval('Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, 600)');
+    await cdp.send('Emulation.setDeviceMetricsOverride', {
+      width: W, height: Math.min(h, 20000), deviceScaleFactor: 1, mobile: false
+    });
+    await sleep(800);
+  }
+
+  const shot = await cdp.send('Page.captureScreenshot', {
+    format: 'png', fromSurface: true, captureBeyondViewport: full
+  });
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, Buffer.from(shot.data, 'base64'));
   console.log(JSON.stringify({ out, bytes: fs.statSync(out).size, info: JSON.parse(info || '{}') }));

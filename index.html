@@ -297,6 +297,57 @@
   /* 整张卡片都能点（铺一层透明热区，键盘仍然只停在文字链接上） */
   .card .go::after{content:"";position:absolute;inset:0;z-index:1}
 
+  /* ===================== 特别企划（新作） ===================== */
+  /* 比普通板块更"跳"：顶部一道天蓝光，卡片是渐变描边 + 右上角像素网格装饰 */
+  .featured{padding:64px 0;background:linear-gradient(180deg,rgba(110,193,242,.10),rgba(9,14,24,.93) 58%)}
+  :root[data-theme="light"] .featured{background:linear-gradient(180deg,rgba(29,111,165,.10),rgba(246,241,232,.95) 58%)}
+  .feature-card{
+    position:relative;margin-top:26px;display:grid;gap:34px;overflow:hidden;
+    grid-template-columns:minmax(0,1.4fr) minmax(0,.6fr);
+    padding:34px;border-radius:26px;
+    border:1px solid rgba(110,193,242,.32);
+    background:linear-gradient(135deg,rgba(110,193,242,.11),rgba(255,255,255,.015) 46%,rgba(110,193,242,.06));
+    box-shadow:0 26px 60px -46px rgba(110,193,242,.75);
+  }
+  .feature-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent-ink);background:var(--accent);border-radius:999px;padding:5px 12px;
+  }
+  .feature-badge::before{
+    content:"";width:6px;height:6px;border-radius:50%;background:var(--accent-ink);
+    animation:featurePulse 1.9s ease-in-out infinite;
+  }
+  @keyframes featurePulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .feature-card h2{margin-top:16px;font-size:clamp(30px,5.2vw,54px);font-weight:800;letter-spacing:-.045em;line-height:1}
+  .feature-sub{margin-top:12px;font-size:15px;font-weight:700;color:var(--accent);letter-spacing:.02em}
+  .feature-card p.feature-desc{margin-top:16px;color:var(--muted);max-width:58ch}
+  .feature-card .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px}
+  .feature-card .meta span{
+    font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;
+    padding:3px 10px;background:var(--surface);
+  }
+  .feature-card .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+  /* 右侧装饰：纯 CSS 的像素网格 + 描边大字，不占一个字节的图片 */
+  .feature-art{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;min-height:210px}
+  .feature-art::before{
+    content:"";position:absolute;inset:0;border-radius:18px;
+    background-image:
+      linear-gradient(rgba(110,193,242,.22) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(110,193,242,.22) 1px,transparent 1px);
+    background-size:16px 16px;
+    -webkit-mask-image:radial-gradient(120% 92% at 26% 16%,#000,transparent 74%);
+    mask-image:radial-gradient(120% 92% at 26% 16%,#000,transparent 74%);
+  }
+  .feature-art b{
+    position:relative;font-size:clamp(34px,4.4vw,52px);font-weight:800;line-height:.92;
+    letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1.5px var(--accent);
+  }
+  .feature-art small{
+    position:relative;font-size:11px;font-weight:700;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--muted);
+  }
+
   /* 联系 */
   .contact{text-align:center;padding:80px 0}
   .contact .kicker{justify-content:center}
@@ -326,6 +377,8 @@
 
   @media (max-width:820px){
     .about-grid{grid-template-columns:1fr;gap:32px}
+    .feature-card{grid-template-columns:1fr;padding:26px;gap:24px}
+    .feature-art{min-height:130px}
     .hero{padding:60px 0 52px}
     .section{padding:52px 0}
     .contact{padding:60px 0}
@@ -370,6 +423,7 @@
     <a class="brand" href="#top">Yuki<b>shiro</b></a>
     <!-- ↑↑↑ 改这里 ② ↑↑↑ -->
     <div class="nav-links" id="navLinks">
+      <a href="#featured">新作</a>
       <a href="#about">关于</a>
       <a href="#skills">技能</a>
       <a href="#work">作品</a>
@@ -417,6 +471,43 @@
     </div>
   </section>
 
+  <!-- ===================== 特别企划（新作，不在本站的项目） ===================== -->
+  <!-- 这一块专门放"代码在别的仓库、不挂在本站"的项目（现在是 Unity 游戏 SchoolScape）。
+       改内容：直接改下面的标题 / 说明 / 标签 / 链接。
+       想加第二个新作：把整个 <div class="feature-card"> 复制一份（外面再包一层间距）。
+       ⚠️ 链接是外站，所以 target="_blank" rel="noopener" 别丢。 -->
+  <section class="section featured" id="featured">
+    <div class="wrap reveal">
+      <p class="kicker">New / Unity</p>
+      <h2>特别企划 · 新作</h2>
+      <div class="feature-card">
+        <!-- ↓↓↓ 改这里 ⑪：特别企划（新作）—— 标题、说明、标签、GitHub 链接都在下面这张卡片里 ↓↓↓ -->
+        <div>
+          <span class="feature-badge">开发中 · v0.2a</span>
+          <h2>SchoolScape</h2>
+          <p class="feature-sub">2D 像素风 · 校园逃脱游戏</p>
+          <p class="feature-desc">
+            用 Unity 6.3 LTS 做的像素风校园逃脱游戏，现在还是原型。已经能在走廊和六间教室之间自由走动：
+            WASD / 方向键控制，外墙和隔断都有碰撞，相机会平滑跟随、停在地图边界内。
+            接下来换上真正的像素美术，再加 NPC 对话和存档。
+          </p>
+          <div class="meta">
+            <span>Unity 6.3 LTS</span><span>C#</span><span>2D</span><span>像素风</span><span>逃脱解谜</span>
+          </div>
+          <div class="actions">
+            <a class="btn btn-primary" href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">在 GitHub 上看这个项目 →</a>
+            <a class="btn btn-ghost" href="#work">看看别的作品</a>
+          </div>
+        </div>
+        <div class="feature-art" aria-hidden="true">
+          <b>SCHOOL<br>SCAPE</b>
+          <small>2D · PIXEL · ESCAPE</small>
+        </div>
+        <!-- ↑↑↑ 改这里 ⑪ ↑↑↑ -->
+      </div>
+    </div>
+  </section>
+
   <!-- ===================== 关于我 ===================== -->
   <section class="section" id="about">
     <div class="wrap reveal">
@@ -429,7 +520,7 @@
             我是 Yukishiro，17 岁，高三在读。
           </p>
           <p class="lead">
-            站上现在有四个项目。代码大部分都是 AI 帮忙写的。
+            站上现在有三个小项目，另外在做一个 Unity 游戏（见上面的「新作」）。代码大部分都是 AI 帮忙写的。
           </p>
           <p class="lead">
             明年要高考，所以现在的主线任务其实是复习，搞这些小东西算是偷出来的时间 —— 但偷得
@@ -465,6 +556,8 @@
         <span class="tag-pill">CSS</span>
         <span class="tag-pill">JavaScript</span>
         <span class="tag-pill">Python</span>
+        <span class="tag-pill">Unity</span>
+        <span class="tag-pill">C#</span>
         <span class="tag-pill">Git / GitHub</span>
         <span class="tag-pill">Office</span>
       </div>
@@ -538,6 +631,10 @@
           <a class="go" href="projects/mapgen/index.html">去看看 →</a>
         </article>
 
+        <!-- 04 号「岁月山谷 Valley of Ages」2026-10-24 从首页隐藏（用户要求）：
+             页面文件还在 projects/valley/，直接访问网址仍然能打开，只是不再从首页链过去。
+             想恢复：把下面这段注释放开即可（整张卡片原样保留）。
+
         <article class="card">
           <span class="num">04</span>
           <div class="shot"><img src="assets/thumb-valley.jpg" alt="岁月山谷史前时代：河边帐篷营地与时间轴" width="800" height="500" loading="lazy" decoding="async"></div>
@@ -547,8 +644,10 @@
           <a class="go" href="projects/valley/index.html">去看看 →</a>
         </article>
 
-        <!-- 想做第 5 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
-             改掉编号 05、标题、说明和链接；截图放到 assets/ 里（16:10，800×500 左右最省流量）。 -->
+        -->
+
+        <!-- 想做第 4 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
+             改掉编号 04、标题、说明和链接；截图放到 assets/ 里（16:10，800×500 左右最省流量）。 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
       </div>

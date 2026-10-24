@@ -1,0 +1,2691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<title>SchoolScape · 序章「空座位」</title>
+<meta name="description" content="SchoolScape 序章：一间教室，一个没人坐的空座位。2D 像素剧情探索网页版，约 8 分钟，零依赖单文件。" />
+<meta property="og:title" content="SchoolScape · 序章「空座位」" />
+<meta property="og:description" content="一间教室，一个没人坐的空座位。2D 像素剧情探索网页版。" />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230b1220'/><text x='50' y='72' font-size='58' font-family='Georgia,serif' font-weight='700' fill='%236ec1f2' text-anchor='middle'>S</text></svg>" />
+
+<!--
+  ============================================================================
+  SchoolScape · 序章「空座位」  ·  projects/schoolscape/index.html
+  ============================================================================
+  【这是什么】基于 <SchoolScape> 设定集做的 2D 像素网页序章（单文件、零依赖）。
+  场景用 Canvas 320×180 像素绘制，对话框 / 证词本 / 密码锁是普通 HTML。
+
+  【怎么改】游戏数据全在页面底部 <script> 里，按顺序：
+    MAP / OBJECTS / NPCS   —— 地图、可交互物件、人物位置
+    TALK                   —— 所有台词（改文案只改这里）
+    TESTIMONY / NOTES      —— 证词文案、线索
+    buildEndingLines()     —— 结局
+  改完保存，双击文件即可预览；不需要构建。
+
+  【要不要联网】不要。全文件没有任何外部请求，字体用系统字体。
+
+  【注意】这个序章只公开「高三上开学 + 空座位 + 三条证词」，
+  完整剧情在 Unity 完整版里；别把设定集后半段搬进来。
+  ============================================================================
+-->
+
+<style>
+  :root{
+    color-scheme:dark;
+    --paper:#0b1220;
+    --surface:rgba(18,27,42,.66);
+    --ink:#f4efe8;
+    --muted:#bcb5ab;
+    --line:rgba(255,255,255,.14);
+    --accent:#6ec1f2;
+    --accent-hi:#9ad6ff;
+    --accent-ink:#06121e;
+    --warm:#e2b178;
+    --max:1040px;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;min-height:100vh;display:flex;flex-direction:column;
+    background:var(--paper);color:var(--ink);line-height:1.75;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  p{margin:0}
+  img{max-width:100%}
+  .wrap{width:100%;max-width:var(--max);margin:0 auto;padding:0 22px}
+
+  /* 全站统一背景（同主页）：固定的黄昏照片 + 暗幕 */
+  .site-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background:var(--paper) url("../../assets/bg-dusk.jpg") center 42%/cover no-repeat}
+  .site-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,12,20,.82),rgba(8,12,20,.93))}
+
+  /* 返回主页（同其他作品页） */
+  .back-home{
+    position:fixed;top:14px;left:14px;z-index:50;
+    display:inline-flex;align-items:center;gap:6px;padding:7px 13px;
+    font-size:13px;font-weight:600;letter-spacing:.02em;text-decoration:none;
+    color:var(--ink);background:rgba(9,14,24,.72);border:1px solid rgba(255,255,255,.16);
+    border-radius:12px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+    transition:background .18s,border-color .18s,color .18s,transform .18s;
+  }
+  .back-home:hover{background:rgba(20,30,46,.92);border-color:var(--accent);color:#fff;transform:translateY(-1px)}
+
+  /* ===================== 页头 ===================== */
+  .page-head{padding:46px 0 12px;text-align:center}
+  .page-head .kicker{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:11px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:14px;
+  }
+  .page-head .kicker::before,.page-head .kicker::after{content:"";width:26px;height:1px;background:rgba(110,193,242,.45)}
+  .page-head h1{
+    margin:0;font-family:"Songti SC","SimSun",Georgia,serif;
+    font-size:clamp(30px,4.6vw,44px);font-weight:700;letter-spacing:.06em;line-height:1.12;
+  }
+  .page-head .sub{margin-top:10px;color:var(--muted);font-size:13.5px}
+  .page-head .sub b{color:var(--warm);font-weight:700}
+
+  /* ===================== 舞台 ===================== */
+  /* 960 = 320×3，整数倍缩放，像素边缘不会发虚 */
+  .stage-wrap{width:100%;max-width:1004px;margin:0 auto;padding:6px 22px 0}
+  .stage{
+    position:relative;width:100%;overflow:hidden;border-radius:16px;
+    border:1px solid rgba(110,193,242,.26);
+    background:#12100d;
+    box-shadow:0 30px 70px -40px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.04) inset;
+    isolation:isolate;
+  }
+  .stage:fullscreen{display:flex;align-items:center;justify-content:center;border-radius:0;border:0;background:#0b1220}
+  .stage:fullscreen canvas{width:100%;height:auto;max-height:100vh}
+  .stage canvas{
+    display:block;width:100%;height:auto;aspect-ratio:16/9;
+    image-rendering:pixelated;image-rendering:crisp-edges;
+    background:#12100d;
+    touch-action:none;
+  }
+  /* 屏幕暗角 + 轻微扫描线，让像素画面更"旧"一点（纯 CSS，不占图片） */
+  .stage::after{
+    content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:
+      radial-gradient(120% 90% at 50% 46%,transparent 58%,rgba(4,7,12,.42) 100%),
+      repeating-linear-gradient(0deg,rgba(0,0,0,.10) 0 1px,transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.55;
+  }
+
+  /* 缩略图模式（?shot=1）：界面往中间收一点，方便主页 16:10 裁切时不切掉字 */
+  .stage.shotmode .hud.tl{left:96px;top:24px}
+  .stage.shotmode .hud.tr{right:96px;top:24px}
+  .stage.shotmode .dialog{left:100px;right:100px;bottom:26px}
+
+  /* HUD（盖在画面上，不吃鼠标） */
+  .hud{position:absolute;z-index:3;pointer-events:none;display:flex;gap:6px}
+  .hud.tl{top:9px;left:9px}
+  .hud.tr{top:9px;right:9px;pointer-events:auto}
+  .chip{
+    font-size:10.5px;font-weight:700;letter-spacing:.06em;line-height:1;
+    padding:6px 9px;border-radius:8px;color:var(--ink);
+    background:rgba(8,13,22,.72);border:1px solid rgba(255,255,255,.13);
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  }
+  .chip b{color:var(--accent);font-weight:800}
+  button.chip{cursor:pointer;font-family:inherit}
+  button.chip:hover{border-color:var(--accent);color:var(--accent-hi)}
+
+  /* 操作提示条 */
+  .hintbar{
+    position:absolute;z-index:3;left:50%;bottom:8px;transform:translateX(-50%);
+    max-width:92%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    font-size:12.5px;font-weight:600;letter-spacing:.02em;color:rgba(244,239,232,.88);
+    padding:5px 12px;border-radius:999px;
+    background:rgba(8,13,22,.62);border:1px solid rgba(255,255,255,.10);
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+    transition:opacity .18s;
+  }
+  .hintbar em{font-style:normal;color:var(--warm);font-weight:800}
+  .stage.dialog-open .hintbar{opacity:0}
+
+  /* ===================== 对话框 ===================== */
+  .dialog{
+    position:absolute;z-index:6;left:9px;right:9px;bottom:9px;
+    padding:11px 13px 9px;border-radius:12px;
+    background:rgba(6,10,18,.94);border:1px solid rgba(110,193,242,.34);
+    box-shadow:0 16px 34px -20px rgba(0,0,0,.9);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  }
+  .dialog[hidden]{display:none}
+  .dialog .who{
+    display:flex;align-items:baseline;gap:8px;margin-bottom:4px;
+    font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--accent);
+  }
+  .dialog .who small{font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--muted)}
+  .dialog .text{
+    font-size:clamp(15px,1.7vw,16.5px);line-height:1.72;color:var(--ink);
+    min-height:2.9em;white-space:pre-wrap;
+  }
+  .dialog .text .cursor{color:var(--accent);animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .dialog .next{
+    margin-top:3px;text-align:right;font-size:10.5px;color:var(--muted);letter-spacing:.04em;
+  }
+  .dialog .choices{display:flex;flex-direction:column;gap:5px;margin-top:7px}
+  .dialog .choices[hidden]{display:none}
+  .choices button{
+    text-align:left;font-family:inherit;font-size:clamp(14px,1.6vw,15px);line-height:1.5;
+    color:var(--ink);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);
+    border-radius:9px;padding:9px 12px;min-height:42px;cursor:pointer;
+    transition:background .15s,border-color .15s,transform .15s;
+  }
+  .choices button:hover,.choices button:focus-visible{background:rgba(110,193,242,.16);border-color:var(--accent);outline:none;transform:translateX(2px)}
+  .choices button .k{color:var(--accent);font-weight:800;margin-right:6px}
+
+  /* ===================== 覆盖层（标题 / 证词本 / 密码锁 / 结局） ===================== */
+  .overlay{
+    position:absolute;inset:0;z-index:8;
+    display:flex;align-items:center;justify-content:center;
+    padding:18px;background:rgba(5,9,16,.86);
+    -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  }
+  .overlay[hidden]{display:none}
+  .overlay .panel{width:100%;max-width:560px;max-height:100%;overflow:auto;padding:2px}
+  .overlay::-webkit-scrollbar,.overlay .panel::-webkit-scrollbar{width:8px;height:8px}
+  .overlay::-webkit-scrollbar-thumb,.overlay .panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:8px}
+
+  /* 标题页 */
+  .title-screen{background:linear-gradient(180deg,rgba(5,9,16,.72),rgba(5,9,16,.92))}
+  .title-screen .panel{text-align:center;max-width:520px}
+  .title-badge{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:10px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent-ink);background:var(--accent);border-radius:999px;padding:4px 11px;
+  }
+  .title-screen h2{
+    margin:14px 0 0;font-family:"Songti SC","SimSun",Georgia,serif;
+    font-size:clamp(38px,7.6vw,64px);font-weight:700;letter-spacing:.16em;text-indent:.16em;line-height:1.08;
+  }
+  .title-screen .t-sub{margin-top:10px;color:var(--muted);font-size:13px;letter-spacing:.04em}
+  .title-warn{
+    margin:16px auto 0;max-width:430px;text-align:left;font-size:13px;line-height:1.7;
+    color:#d9cfc2;background:rgba(226,177,120,.08);border-left:2px solid rgba(226,177,120,.55);
+    padding:8px 11px;border-radius:0 8px 8px 0;
+  }
+  .title-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font-family:inherit;font-size:14px;font-weight:700;letter-spacing:.02em;
+    padding:11px 18px;min-height:42px;border-radius:11px;cursor:pointer;
+    border:1px solid var(--line);color:var(--ink);background:rgba(255,255,255,.06);
+    transition:background .18s,border-color .18s,color .18s,transform .18s;
+  }
+  .btn:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.3);transform:translateY(-1px)}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn-primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);color:var(--accent-ink)}
+  .btn-ghost{background:transparent}
+  .title-keys{margin-top:16px;font-size:11px;color:var(--muted);letter-spacing:.02em}
+  .title-keys kbd{
+    display:inline-block;min-width:20px;text-align:center;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+    border-radius:5px;padding:1px 5px;margin:0 2px;font-size:10px;font-family:Consolas,monospace;color:var(--ink);
+  }
+
+  /* 证词本 */
+  .nb h3,.lock h3,.ending h3{margin:0 0 4px;font-size:16px;font-weight:800;letter-spacing:.04em}
+  .nb .nb-sub{color:var(--muted);font-size:12.5px;margin-bottom:12px}
+  .nb-list{display:flex;flex-direction:column;gap:6px}
+  .nb-row{
+    display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;
+    padding:7px 9px;border-radius:9px;background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .nb-row.on{background:rgba(110,193,242,.09);border-color:rgba(110,193,242,.28)}
+  .nb-row .sin{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.08em}
+  .nb-row.on .sin{color:var(--accent)}
+  .nb-row .body{min-width:0}
+  .nb-row .body b{display:block;font-size:12.5px;font-weight:700}
+  .nb-row .body span{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nb-row .st{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+  .nb-row.on .st{color:var(--warm)}
+  .nb-clues{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+  .nb-clues h4{margin:0 0 6px;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .nb-clues ul{margin:0;padding-left:16px;font-size:11.5px;color:#d9cfc2;line-height:1.65}
+  .nb-clues li{margin:2px 0}
+  .nb-clues .none{font-size:11.5px;color:var(--muted);list-style:none;margin-left:-16px}
+  .nb-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;font-size:10.5px;color:var(--muted)}
+
+  /* 密码锁 */
+  .lock-box{
+    display:flex;justify-content:center;gap:8px;margin:12px 0 4px;
+  }
+  .lock-digit{
+    width:46px;height:56px;display:flex;align-items:center;justify-content:center;
+    font-size:28px;font-weight:800;font-family:Consolas,"Courier New",monospace;color:var(--accent);
+    background:rgba(0,0,0,.42);border:1px solid rgba(110,193,242,.34);border-radius:9px;
+    box-shadow:inset 0 2px 10px rgba(0,0,0,.6);
+  }
+  .lock-digit.blank{color:rgba(255,255,255,.18)}
+  .lock-msg{min-height:1.6em;text-align:center;font-size:11.5px;color:var(--muted);margin-bottom:8px}
+  .lock-msg.bad{color:#f0a0a0}
+  .lock-msg.good{color:var(--warm)}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:250px;margin:0 auto}
+  .keypad button{
+    font-family:Consolas,"Courier New",monospace;font-size:15px;font-weight:700;
+    padding:8px 0;border-radius:8px;cursor:pointer;color:var(--ink);
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+    transition:background .12s,border-color .12s;
+  }
+  .keypad button:hover,.keypad button:focus-visible{background:rgba(110,193,242,.18);border-color:var(--accent);outline:none}
+  .keypad button.wide{font-size:11px;letter-spacing:.04em}
+  .lock-tip{margin-top:10px;text-align:center;font-size:10.5px;color:var(--muted)}
+  .shake{animation:shake .32s ease-in-out}
+  @keyframes shake{0%,100%{transform:none}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+
+  /* 结局 */
+  .ending{background:rgba(3,5,9,.94);padding:12px}
+  .ending .panel{max-width:520px;text-align:center;max-height:100%;overflow:auto}
+  .ending .end-tag{font-size:10px;font-weight:800;letter-spacing:.26em;text-transform:uppercase;color:var(--accent)}
+  .ending h2{
+    margin:4px 0 10px;font-family:"Songti SC","SimSun",Georgia,serif;
+    font-size:clamp(26px,4.2vw,34px);letter-spacing:.14em;text-indent:.14em;font-weight:700;
+  }
+  .end-lines{display:flex;flex-direction:column;gap:7px;text-align:left;max-width:430px;margin:0 auto;font-size:13.5px;line-height:1.7;color:#e8e0d5}
+  .end-lines p{opacity:0;transform:translateY(6px);animation:endIn .6s ease forwards}
+  @keyframes endIn{to{opacity:1;transform:none}}
+  .end-lines .say{color:var(--accent-hi);font-weight:600}
+  .end-lines .quiet{color:var(--muted);font-size:12px}
+  .end-after{margin:12px auto 0;padding-top:10px;border-top:1px solid var(--line);text-align:left;max-width:430px}
+  .end-after h4{margin:0 0 5px;font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--warm)}
+  .end-after p{font-size:12.5px;line-height:1.7;color:#d9cfc2}
+  .end-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+  .end-actions .btn{padding:8px 14px;font-size:12.5px;border-radius:10px}
+
+  /* ===================== 触摸控制 ===================== */
+  .touch{display:none;max-width:var(--max);margin:10px auto 0;padding:0 22px;gap:14px;align-items:center;justify-content:space-between}
+  .touch.show{display:flex}
+  .dpad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:4px}
+  .dpad button{
+    border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);
+    color:var(--ink);font-size:15px;font-family:inherit;touch-action:none;user-select:none;
+  }
+  .dpad button:active{background:rgba(110,193,242,.24);border-color:var(--accent)}
+  .dpad .up{grid-area:1/2}.dpad .left{grid-area:2/1}.dpad .right{grid-area:2/3}.dpad .down{grid-area:3/2}
+  .dpad .mid{grid-area:2/2;border:0;background:transparent;pointer-events:none}
+  .t-btns{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  .t-btns button{
+    min-width:64px;min-height:44px;padding:11px 12px;border-radius:12px;font-family:inherit;font-size:12px;font-weight:800;
+    border:1px solid rgba(110,193,242,.4);background:rgba(110,193,242,.16);color:var(--ink);touch-action:none;user-select:none;
+  }
+  .t-btns button:active{background:rgba(110,193,242,.34)}
+
+  /* ===================== 页面下方说明 ===================== */
+  .under{max-width:var(--max);margin:0 auto;padding:16px 22px 0;display:grid;grid-template-columns:1.35fr 1fr;gap:18px}
+  .under .note{
+    font-size:13px;line-height:1.8;color:var(--muted);
+    background:rgba(9,14,24,.5);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;
+  }
+  .under .note b{color:var(--ink)}
+  .under .note .warnline{color:#e4c9a5}
+  .under .ops{font-size:13px;line-height:1.9;color:var(--muted);padding:4px 2px}
+  .under .ops kbd{
+    display:inline-block;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+    border-radius:5px;padding:0 5px;font-family:Consolas,monospace;font-size:10.5px;color:var(--ink);
+  }
+  .under .ops b{color:var(--ink)}
+  footer{margin-top:36px;border-top:1px solid var(--line);background:rgba(9,14,24,.72);padding:18px 0;color:var(--muted);font-size:11.5px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+  footer a{color:var(--muted);border-bottom:1px solid transparent}
+  footer a:hover{color:var(--accent)}
+
+  /* 动画 / 读屏 */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .fade-in{animation:fadeUp .5s ease both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .choices button,.btn,.hintbar,.fade-in,.shake{transition:none;animation:none}
+    .end-lines p{opacity:1;transform:none;animation:none}
+  }
+
+  /* 小屏 */
+  @media (max-width:820px){
+    .under{grid-template-columns:1fr;gap:12px}
+    .page-head{padding:66px 0 14px}
+    .stage-wrap{padding:10px 12px 0}
+    .back-home{top:10px;left:10px;padding:6px 10px;font-size:12px}
+    .hud.tl .chip.week{display:none}
+    .dialog{left:6px;right:6px;bottom:6px;padding:9px 10px 7px}
+  }
+  @media (max-width:520px){
+    .page-head h1{letter-spacing:.1em;text-indent:.1em}
+    .hintbar{font-size:11px;bottom:6px;padding:4px 9px;white-space:normal;line-height:1.45;border-radius:10px}
+    .title-screen .panel{padding:0 4px}
+    .title-warn{font-size:12px}
+    .overlay{padding:10px}
+  }
+  /* 触摸设备显示方向键（即使屏幕宽） */
+  @media (hover:none) and (pointer:coarse){
+    .touch{display:flex}
+  }
+</style>
+</head>
+
+<body>
+<div class="site-bg" aria-hidden="true"></div>
+<a class="back-home" href="../../index.html">← 返回主页</a>
+
+<header class="page-head">
+  <p class="kicker">SchoolScape · Web Demo</p>
+  <h1>SchoolScape</h1>
+  <p class="sub">序章「空座位」· 2D 像素校园剧情探索 · 网页版 <b>约 8 分钟</b></p>
+</header>
+
+<main class="stage-wrap">
+  <div class="stage" id="stage">
+    <canvas id="game" width="320" height="180" tabindex="-1" aria-label="像素风校园场景：高三 7 班教室与走廊。画面下方的文字会同步朗读剧情。"></canvas>
+
+    <!-- HUD -->
+    <div class="hud tl">
+      <span class="chip week" id="chipTime">高三上 · 开学第三周</span>
+      <span class="chip">证词 <b id="chipClue">0</b>/3</span>
+    </div>
+    <div class="hud tr">
+      <button class="chip" id="btnBook" type="button" title="证词本（Tab）">证词本</button>
+      <button class="chip" id="btnFull" type="button" title="全屏（F）" aria-label="全屏">⛶</button>
+    </div>
+
+    <!-- 操作提示 -->
+    <div class="hintbar" id="hintbar" role="status" aria-live="polite"><kbd>WASD</kbd> / 方向键移动 · <em>E</em> 互动 · <em>Tab</em> 证词本</div>
+
+    <!-- 对话框 -->
+    <div class="dialog" id="dialog" hidden>
+      <div class="who"><span id="dlgWho">王焱</span><small id="dlgTag"></small></div>
+      <p class="text" id="dlgText"></p>
+      <div class="choices" id="dlgChoices" hidden></div>
+      <div class="next" id="dlgNext">E / 点击继续 ▾</div>
+    </div>
+
+    <!-- 标题页 -->
+    <div class="overlay title-screen" id="titleScreen" role="group" aria-label="SchoolScape 序章标题页">
+      <div class="panel" tabindex="-1">
+        <span class="title-badge">Web Demo · 序章</span>
+        <h2>空座位</h2>
+        <p class="t-sub">高三 7 班后排，有一个位置没人坐，也没人提。</p>
+        <p class="title-warn">
+          内容提示：本作涉及校园霸凌与学生死亡等题材（不描写细节）。<br>
+          如果这些内容会让你不适，请随时离开 —— 点左上角「返回主页」就可以。
+          如果你正在经历类似的事，请告诉一个你能信任的大人。
+        </p>
+        <div class="title-actions">
+          <button class="btn btn-primary" id="btnStart" type="button">开始 · 走进教室</button>
+          <button class="btn btn-ghost" id="btnHelp" type="button">操作说明</button>
+        </div>
+        <p class="title-keys"><kbd>WASD</kbd> 移动　<kbd>E</kbd> 互动　<kbd>Tab</kbd> 证词本　<kbd>Esc</kbd> 菜单</p>
+      </div>
+    </div>
+
+    <!-- 证词本 -->
+    <div class="overlay nb" id="notebook" role="dialog" aria-modal="true" aria-label="证词本" hidden>
+      <div class="panel" tabindex="-1">
+        <h3>证词本</h3>
+        <p class="nb-sub">证词本里只夹着序章能拿到的三条。剩下的，等完整版再说。</p>
+        <div class="nb-list" id="nbList"></div>
+        <div class="nb-clues">
+          <h4>记下的线索</h4>
+          <ul id="nbClues"></ul>
+        </div>
+        <div class="nb-foot">
+          <span>目标：打开后排那张课桌的抽屉。</span>
+          <button class="btn btn-ghost" id="btnCloseBook" type="button">合上（Tab）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 密码锁 -->
+    <div class="overlay lock" id="lockPanel" role="dialog" aria-modal="true" aria-label="三位转盘锁" hidden>
+      <div class="panel" tabindex="-1" style="max-width:340px">
+        <h3>三位转盘锁</h3>
+        <p class="nb-sub" style="margin-bottom:10px">锁面上有细小的划痕，像被人反复拨过。</p>
+        <div class="lock-box" id="lockDigits">
+          <div class="lock-digit blank">·</div>
+          <div class="lock-digit blank">·</div>
+          <div class="lock-digit blank">·</div>
+        </div>
+        <p class="lock-msg" id="lockMsg" aria-live="polite">输入三位数字</p>
+        <div class="keypad" id="keypad">
+          <button type="button" data-d="1">1</button><button type="button" data-d="2">2</button><button type="button" data-d="3">3</button>
+          <button type="button" data-d="4">4</button><button type="button" data-d="5">5</button><button type="button" data-d="6">6</button>
+          <button type="button" data-d="7">7</button><button type="button" data-d="8">8</button><button type="button" data-d="9">9</button>
+          <button type="button" class="wide" data-act="del">退格</button>
+          <button type="button" data-d="0">0</button>
+          <button type="button" class="wide" data-act="ok">开锁</button>
+        </div>
+        <p class="lock-tip">键盘 0–9 输入 · Backspace 退格 · Enter 开锁 · Esc 放弃</p>
+      </div>
+    </div>
+
+    <!-- 结局 -->
+    <div class="overlay ending" id="ending" role="dialog" aria-modal="true" aria-label="序章结局" hidden>
+      <div class="panel" tabindex="-1">
+        <p class="end-tag">Chapter 0 · End</p>
+        <h2 id="endTitle">序章 · 完</h2>
+        <div class="end-lines" id="endLines" aria-live="polite"></div>
+        <div class="end-after">
+          <h4>如果你正在经历类似的事</h4>
+          <p>
+            可以打 <b>12356</b>（全国心理援助热线）或 <b>12355</b>（青少年服务台）
+            —— 号码以官方公布为准，服务时间以当地为准。<br>
+            如果当下有立即的危险，请拨 <b>120</b> 或 <b>110</b>，或者去最近的医院急诊。<br>
+            你也可以先告诉一个你信任的大人 —— 老师、家人，或者任何一个愿意听你说话的人。
+            说出来不是告状，是让事情不再只由你一个人扛。
+          </p>
+        </div>
+        <div class="end-actions">
+          <button class="btn btn-primary" id="btnAgain" type="button">再走一遍</button>
+          <a class="btn btn-ghost" href="../../index.html">返回主页</a>
+          <a class="btn btn-ghost" href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">Unity 完整版 ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 暂停菜单 -->
+    <div class="overlay pause" id="pauseMenu" role="dialog" aria-modal="true" aria-label="暂停菜单" hidden>
+      <div class="panel" tabindex="-1" style="max-width:360px;text-align:center">
+        <h3>暂停</h3>
+        <p class="nb-sub">画面停在原处。再按一次 Esc 继续。</p>
+        <div class="title-actions">
+          <button class="btn btn-primary" id="btnResume" type="button">继续</button>
+          <button class="btn btn-ghost" id="btnRestart" type="button">重新开始</button>
+          <a class="btn btn-ghost" href="../../index.html">返回主页</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 读屏同步 -->
+    <div class="sr-only" aria-live="polite" id="ariaLive"></div>
+
+    <!-- 关掉 JavaScript 时别只剩一个按不动的标题页 -->
+    <noscript>
+      <div class="overlay" style="background:rgba(5,9,16,.97);z-index:9">
+        <div class="panel" style="text-align:center;max-width:420px">
+          <h3>这个序章需要 JavaScript</h3>
+          <p class="nb-sub">画面和对话是用 JavaScript 画的。请把浏览器的 JavaScript 打开再刷新；也可以先去主页看看别的作品。</p>
+          <div class="title-actions">
+            <a class="btn btn-primary" href="../../index.html">返回主页</a>
+            <a class="btn btn-ghost" href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">Unity 完整版 ↗</a>
+          </div>
+        </div>
+      </div>
+    </noscript>
+  </div>
+
+  <!-- 触摸控制（手机显示） -->
+  <div class="touch" id="touchControls">
+    <div class="dpad">
+      <button type="button" class="up" data-move="up" aria-label="向上">▲</button>
+      <button type="button" class="left" data-move="left" aria-label="向左">◀</button>
+      <div class="mid"></div>
+      <button type="button" class="right" data-move="right" aria-label="向右">▶</button>
+      <button type="button" class="down" data-move="down" aria-label="向下">▼</button>
+    </div>
+    <div class="t-btns">
+      <button type="button" id="touchA">互动</button>
+      <button type="button" id="touchBook">证词本</button>
+      <button type="button" id="touchPause">暂停</button>
+    </div>
+  </div>
+
+  <div class="under">
+    <div class="note">
+      <b>关于这个序章</b><br>
+      这是 SchoolScape（Unity 完整版）的网页先行序章：一间教室、一个空座位、三条证词、一个锁着的抽屉。
+      完整故事里更后面的部分没有放进来 —— 那些留给完整版。<br>
+      <span class="warnline">题材提示：涉及校园霸凌与学生死亡，不描写具体细节；结尾附有现实求助信息。</span>
+    </div>
+    <div class="ops">
+      <b>操作</b><br>
+      <kbd>WASD</kbd> / <kbd>方向键</kbd> 走动　<kbd>E</kbd> / <kbd>空格</kbd> 互动、继续<br>
+      <kbd>Tab</kbd> 证词本　<kbd>Esc</kbd> 暂停 / 关闭　<kbd>F</kbd> 全屏<br>
+      手机上用画面下方的方向键和「互动」。<br>
+      没有存档，但一局只要 8 分钟左右。
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year">2026</span> Yukishiro · SchoolScape 序章（网页版）</span>
+    <span>零依赖单文件 · 无外部请求 · <a href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">完整版 GitHub ↗</a></span>
+  </div>
+</footer>
+
+<script>
+/* ================================================================
+ *  SchoolScape · 序章「空座位」 —— 游戏源码
+ *  结构：工具 → 地图 → 家具/交互物/人物 → 绘制 → 剧情 → UI → 主循环
+ *  零依赖，全部在本文件内。
+ * ================================================================ */
+(function () {
+  'use strict';
+
+  // ============================================================
+  // 0 · 小工具
+  // ============================================================
+  var VW = 320, VH = 180, TS = 16;
+  var MAP_W = 48, MAP_H = 30;
+  var WORLD_W = MAP_W * TS, WORLD_H = MAP_H * TS;
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function hash2(x, y) {
+    var h = (x | 0) * 374761393 + (y | 0) * 668265263;
+    h = (h ^ (h >> 13)) * 1274126177;
+    h = h ^ (h >> 16);
+    return (h >>> 0) / 4294967296;
+  }
+
+  // 3×5 像素字模：只用来画门牌、倒计时这类小字（中文在 320×180 里会糊，所以画面里不放中文）
+  var PIXFONT = {
+    '0': ['111','101','101','101','111'],
+    '1': ['010','110','010','010','111'],
+    '2': ['111','001','111','100','111'],
+    '3': ['111','001','111','001','111'],
+    '4': ['101','101','111','001','001'],
+    '5': ['111','100','111','001','111'],
+    '6': ['111','100','111','101','111'],
+    '7': ['111','001','010','010','010'],
+    '8': ['111','101','111','101','111'],
+    '9': ['111','101','111','001','111'],
+    'F': ['111','100','110','100','100'],
+    'S': ['111','100','111','001','111'],
+    ' ': ['000','000','000','000','000'],
+    '-': ['000','000','111','000','000'],
+    '·': ['000','000','010','000','000']
+  };
+  function pixText(str, x, y, color, scale) {
+    scale = scale || 1;
+    ctx.fillStyle = color;
+    for (var i = 0; i < str.length; i++) {
+      var g = PIXFONT[str.charAt(i)];
+      if (!g) continue;
+      for (var r = 0; r < 5; r++) {
+        for (var c = 0; c < 3; c++) {
+          if (g[r].charAt(c) === '1') {
+            ctx.fillRect(x + i * 4 * scale + c * scale, y + r * scale, scale, scale);
+          }
+        }
+      }
+    }
+  }
+
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  // ============================================================
+  // 1 · 游戏状态
+  // ============================================================
+  var game = {
+    mode: 'title',            // title | play | dialog | lock | book | ending | pause
+    time: 0,
+    started: false,
+    ended: false,
+    player: { x: 184, y: 148, dir: 'up', moving: false, phase: 0, speed: 46 },
+    clues: {
+      pride: false, envy: false, wrath: false,
+      lazy: false, greed: false, gluttony: false, lust: false
+    },
+    notes: {},                // 已记下的线索 id
+    flags: {},                // 剧情 flag
+    complicity: 0,            // 共谋值：只统计，不显示
+    code: '',
+    codeTries: 0,
+    near: null,               // 附近可交互对象
+    hint: '',
+    dialog: null
+  };
+
+  var cam = { x: 0, y: 0 };
+
+  // ============================================================
+  // 2 · 地图
+  // ============================================================
+  var TILE = { VOID: 0, FLOOR: 1, WALL: 2, CORR: 3, GRASS: 4, PATH: 5, DOOR: 6, COURT: 7, STAIR: 8 };
+  var map = new Uint8Array(MAP_W * MAP_H);
+
+  function setTile(x, y, t) {
+    if (x >= 0 && y >= 0 && x < MAP_W && y < MAP_H) map[y * MAP_W + x] = t;
+  }
+  function fillTiles(x, y, w, h, t) {
+    for (var yy = y; yy < y + h; yy++) for (var xx = x; xx < x + w; xx++) setTile(xx, yy, t);
+  }
+  function tileAt(x, y) {
+    if (x < 0 || y < 0 || x >= MAP_W || y >= MAP_H) return TILE.WALL;
+    return map[y * MAP_W + x];
+  }
+  function solidTile(t) { return t === TILE.WALL || t === TILE.VOID; }
+
+  function buildMap() {
+    // 默认全墙，再一块块挖出来
+    fillTiles(0, 0, MAP_W, MAP_H, TILE.WALL);
+
+    // —— 教室左墙外的一窄条草地（别让镜头贴边时看到一堵莫名的外墙）——
+    fillTiles(1, 1, 2, 14, TILE.GRASS);
+    // —— 室外（y 15 以下）——
+    fillTiles(1, 15, 46, 14, TILE.GRASS);
+    fillTiles(22, 15, 2, 13, TILE.PATH);       // 主路：楼梯 → 校门
+    fillTiles(8, 20, 31, 2, TILE.PATH);        // 横向主路
+    fillTiles(18, 19, 10, 5, TILE.PATH);       // 老树小广场
+    fillTiles(30, 16, 13, 8, TILE.COURT);      // 篮球场
+
+    // —— 室内地面 ——
+    fillTiles(4, 2, 16, 8, TILE.FLOOR);        // 7 班教室（x4..19, y2..9）
+    fillTiles(3, 11, 43, 3, TILE.CORR);        // 走廊（x3..45, y11..13）
+    fillTiles(21, 2, 13, 8, TILE.FLOOR);       // 8 班（x21..33）
+    fillTiles(36, 2, 9, 8, TILE.FLOOR);        // 教师办公室（x36..44）
+
+    // —— 7 班墙体 + 门 ——
+    fillTiles(3, 1, 1, 10, TILE.WALL);
+    fillTiles(20, 1, 1, 10, TILE.WALL);
+    fillTiles(3, 1, 18, 1, TILE.WALL);
+    fillTiles(3, 10, 18, 1, TILE.WALL);
+    setTile(11, 10, TILE.DOOR);
+    setTile(12, 10, TILE.DOOR);
+
+    // —— 8 班墙体 + 门（和 7 班共用 x=20 那面墙）——
+    fillTiles(34, 1, 1, 10, TILE.WALL);
+    fillTiles(20, 1, 15, 1, TILE.WALL);
+    fillTiles(20, 10, 15, 1, TILE.WALL);
+    setTile(27, 10, TILE.DOOR);
+    setTile(28, 10, TILE.DOOR);
+
+    // —— 教师办公室墙体（门锁着，不开）——
+    fillTiles(35, 1, 1, 10, TILE.WALL);
+    fillTiles(45, 1, 1, 10, TILE.WALL);
+    fillTiles(35, 1, 11, 1, TILE.WALL);
+    fillTiles(35, 10, 11, 1, TILE.WALL);
+
+    // —— 走廊南墙 + 楼梯口 ——
+    fillTiles(3, 14, 43, 1, TILE.WALL);
+    setTile(22, 14, TILE.STAIR);
+    setTile(23, 14, TILE.STAIR);
+    setTile(22, 15, TILE.STAIR);
+    setTile(23, 15, TILE.STAIR);
+
+    // 光荣榜挂在走廊北墙 x21..23（墙在 y=10，初始就是 WALL，不用改）
+  }
+
+  // ============================================================
+  // 3 · 家具 / 交互物 / 人物
+  // ============================================================
+  var desks = [];
+  function addDesk(tx, ty, type) { desks.push({ tx: tx, ty: ty, type: type || 'desk' }); }
+  function buildFurniture() {
+    desks.length = 0;
+    var cols = [5, 8, 11, 14, 17], rows = [4, 6, 8];
+    for (var r = 0; r < rows.length; r++) {
+      for (var c = 0; c < cols.length; c++) {
+        var empty = (cols[c] === 5 && rows[r] === 8);
+        addDesk(cols[c], rows[r], empty ? 'empty' : 'desk');
+      }
+    }
+    addDesk(11, 2, 'teacher');   // 讲台（两格宽，绘制时特判）
+  }
+
+  // 碰撞矩形（脚底判定用）
+  function deskRect(d) {
+    if (d.type === 'teacher') return { x: d.tx * TS - 2, y: d.ty * TS + 2, w: 36, h: 13 };
+    return { x: d.tx * TS + 2, y: d.ty * TS + 3, w: 12, h: 11 };
+  }
+
+  var SOLIDS = [];   // 除墙以外的碰撞体
+  function buildSolids() {
+    SOLIDS.length = 0;
+    for (var i = 0; i < desks.length; i++) {
+      var r = deskRect(desks[i]);
+      SOLIDS.push(r);
+    }
+    SOLIDS.push({ x: 368, y: 322, w: 16, h: 28 });   // 老树树干
+    SOLIDS.push({ x: 320, y: 350, w: 34, h: 10 });   // 长椅
+    SOLIDS.push({ x: 336, y: 452, w: 16, h: 28 });   // 校门左柱
+    SOLIDS.push({ x: 416, y: 452, w: 16, h: 28 });   // 校门右柱
+  }
+
+  // 可交互的静态物（x / y 是交互判定点，脚底到它的距离 < r 就能按 E）
+  var OBJECTS = [
+    { id: 'window',    label: '教室的窗',       x: 74,  y: 104, r: 26 },
+    { id: 'blackboard',label: '黑板',           x: 150, y: 44,  r: 26 },
+    { id: 'teacherdesk',label:'讲台',           x: 200, y: 48,  r: 26 },
+    { id: 'seat',      label: '后排空座位',     x: 88, y: 142, r: 28 },
+    { id: 'honor',     label: '光荣榜',         x: 104, y: 216, r: 26 },
+    { id: 'directory', label: '楼层索引',       x: 700, y: 188, r: 26 },
+    { id: 'class8',    label: '8 班门口',       x: 448, y: 188, r: 24 },
+    { id: 'office',    label: '教师办公室',     x: 648, y: 188, r: 24 },
+    { id: 'tree',      label: '百年老树',       x: 376, y: 356, r: 30 },
+    { id: 'bench',     label: '长椅',           x: 337, y: 368, r: 24 },
+    { id: 'court',     label: '篮球场',         x: 600, y: 330, r: 30 },
+    { id: 'gate',      label: '校门',           x: 376, y: 458, r: 30 }
+  ];
+
+  var NPCS = [
+    { id: 'chenyu',   name: '陈屿',     x: 104, y: 96,  dir: 'down', pal: 'chen',     tag: '7 班 · 会修东西' },
+    { id: 'suman',    name: '苏小满',   x: 264, y: 200, dir: 'left', pal: 'su',       tag: '7 班 · 消息最灵' },
+    { id: 'director', name: '年级主任', x: 168, y: 200, dir: 'down', pal: 'director', tag: '巡查中' },
+    { id: 'lizhi',    name: '李芷',     x: 496, y: 200, dir: 'left', pal: 'li',       tag: '8 班' },
+    { id: 'heyiming', name: '何一鸣',   x: 280, y: 320, dir: 'down', pal: 'he',       tag: '7 班 · 体育生' }
+  ];
+
+  // ============================================================
+  // 4 · 人物像素图
+  // ============================================================
+  var PAL = {
+    wang:     { skin: '#d8a87e', hair: '#241d1a', cloth: '#a8443f', cloth2: '#8c3733', pants: '#2d3245', shoe: '#1c1f26' },
+    chen:     { skin: '#ddb08a', hair: '#2b2622', cloth: '#3f5a78', cloth2: '#334a63', pants: '#2b3040', shoe: '#1d2026', glasses: true },
+    su:       { skin: '#e0b48e', hair: '#4a2f22', cloth: '#d8b45a', cloth2: '#bb9845', pants: '#3a3f52', shoe: '#1d2026' },
+    li:       { skin: '#e3b994', hair: '#33261f', cloth: '#6d8a6a', cloth2: '#5c7759', pants: '#333a4a', shoe: '#1d2026' },
+    he:       { skin: '#c8926b', hair: '#1f1a17', cloth: '#d07a3c', cloth2: '#b36630', pants: '#2f3547', shoe: '#1d2026' },
+    director: { skin: '#cfa27c', hair: '#48443e', cloth: '#4b4f5a', cloth2: '#3e424c', pants: '#2b2f38', shoe: '#1d2026' }
+  };
+
+  function drawShadow(cx, cy) {
+    ctx.fillStyle = 'rgba(20,16,12,.28)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 1, 6, 2.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // cx / cy = 脚底中心；frame：0/2 站立，1/3 迈步
+  function drawPerson(cx, cy, pal, dir, frame, tall) {
+    var p = PAL[pal] || PAL.wang;
+    var bob = (frame % 2 === 1) ? 1 : 0;
+    var hh = tall ? 2 : 0;   // 何一鸣高一点
+
+    drawShadow(cx, cy);
+
+    // 腿
+    var legY = cy - 5 - hh;
+    ctx.fillStyle = p.pants;
+    if (frame === 1) {
+      ctx.fillRect(cx - 4, legY, 3, 5); ctx.fillRect(cx + 1, legY - 1, 3, 5);
+    } else if (frame === 3) {
+      ctx.fillRect(cx - 4, legY - 1, 3, 5); ctx.fillRect(cx + 1, legY, 3, 5);
+    } else {
+      ctx.fillRect(cx - 4, legY, 3, 5); ctx.fillRect(cx + 1, legY, 3, 5);
+    }
+    // 鞋
+    ctx.fillStyle = p.shoe;
+    ctx.fillRect(cx - 4, cy - 1, 3, 1); ctx.fillRect(cx + 1, cy - 1, 3, 1);
+
+    // 身体
+    var bodyY = legY - 7 - bob;
+    ctx.fillStyle = p.cloth;
+    ctx.fillRect(cx - 5, bodyY, 10, 8);
+    ctx.fillStyle = p.cloth2;
+    ctx.fillRect(cx - 5, bodyY + 5, 10, 3);
+    // 衣领
+    ctx.fillStyle = p.skin;
+    ctx.fillRect(cx - 2, bodyY, 4, 1);
+    // 手臂
+    ctx.fillStyle = p.cloth2;
+    ctx.fillRect(cx - 6, bodyY + 1, 1, 5);
+    ctx.fillRect(cx + 5, bodyY + 1, 1, 5);
+
+    // 头
+    var headY = bodyY - 7;
+    ctx.fillStyle = p.skin;
+    ctx.fillRect(cx - 4, headY, 8, 7);
+    // 头发
+    ctx.fillStyle = p.hair;
+    if (dir === 'up') {
+      ctx.fillRect(cx - 4, headY, 8, 6);
+    } else if (dir === 'left') {
+      ctx.fillRect(cx - 4, headY, 8, 3);
+      ctx.fillRect(cx - 4, headY, 3, 6);
+      ctx.fillRect(cx - 4, headY + 4, 8, 2);
+    } else if (dir === 'right') {
+      ctx.fillRect(cx - 4, headY, 8, 3);
+      ctx.fillRect(cx + 1, headY, 3, 6);
+      ctx.fillRect(cx - 4, headY + 4, 8, 2);
+    } else {
+      ctx.fillRect(cx - 4, headY, 8, 3);
+      ctx.fillRect(cx - 4, headY, 2, 5);
+      ctx.fillRect(cx + 2, headY, 2, 5);
+    }
+    // 眼睛
+    if (dir === 'down') {
+      ctx.fillStyle = '#241d1a';
+      ctx.fillRect(cx - 2, headY + 4, 1, 1); ctx.fillRect(cx + 1, headY + 4, 1, 1);
+    } else if (dir === 'left') {
+      ctx.fillStyle = '#241d1a';
+      ctx.fillRect(cx - 3, headY + 4, 1, 1);
+    } else if (dir === 'right') {
+      ctx.fillStyle = '#241d1a';
+      ctx.fillRect(cx + 2, headY + 4, 1, 1);
+    }
+    if (p.glasses && dir !== 'up') {
+      ctx.fillStyle = 'rgba(35,45,60,.75)';
+      ctx.fillRect(cx - 3, headY + 3, 6, 1);
+    }
+  }
+
+  // ============================================================
+  // 5 · 绘制：地面 / 墙 / 家具 / 光
+  // ============================================================
+  function drawTile(t, px, py, tx, ty) {
+    var r = hash2(tx, ty);
+    if (t === TILE.FLOOR) {
+      ctx.fillStyle = '#c7beaa';
+      ctx.fillRect(px, py, TS, TS);
+      ctx.fillStyle = 'rgba(120,110,92,.16)';
+      ctx.fillRect(px, py + TS - 1, TS, 1);
+      ctx.fillRect(px + TS - 1, py, 1, TS);
+      if (r > 0.74) {
+        ctx.fillStyle = 'rgba(146,136,114,.32)';
+        ctx.fillRect(px + 3 + ((r * 9) | 0) % 8, py + 3 + ((r * 13) | 0) % 8, 2, 1);
+      } else if (r < 0.10) {
+        ctx.fillStyle = 'rgba(104,96,80,.13)';
+        ctx.fillRect(px + 2, py + 9, 11, 3);
+      }
+    } else if (t === TILE.CORR) {
+      ctx.fillStyle = '#b6b2a8';
+      ctx.fillRect(px, py, TS, TS);
+      ctx.fillStyle = 'rgba(80,76,68,.13)';
+      ctx.fillRect(px, py + TS - 1, TS, 1);
+      ctx.fillRect(px, py, TS, 1);
+      if (r > 0.80) {
+        ctx.fillStyle = 'rgba(140,135,124,.22)';
+        ctx.fillRect(px + 4, py + 6, 7, 2);
+      }
+    } else if (t === TILE.WALL) {
+      ctx.fillStyle = '#6b6459';
+      ctx.fillRect(px, py, TS, TS);
+      // 墙头受光
+      ctx.fillStyle = '#8b8272';
+      ctx.fillRect(px, py, TS, 2);
+      // 砖缝（错缝排列）
+      var off = (ty % 2 === 0) ? 0 : 8;
+      ctx.fillStyle = 'rgba(40,36,30,.26)';
+      ctx.fillRect(px, py + 7, TS, 1);
+      ctx.fillRect(px + 7 - off % 8, py + 2, 1, 5);
+      ctx.fillRect(px + 15 - off % 8, py + 8, 1, 5);
+      // 墙脚阴影
+      ctx.fillStyle = 'rgba(18,15,12,.34)';
+      ctx.fillRect(px, py + TS - 2, TS, 2);
+    } else if (t === TILE.GRASS) {
+      ctx.fillStyle = r > 0.5 ? '#5c6b4c' : '#55644a';
+      ctx.fillRect(px, py, TS, TS);
+      if (r > 0.62) {
+        ctx.fillStyle = 'rgba(38,50,32,.32)';
+        ctx.fillRect(px + 2 + ((r * 11) | 0) % 10, py + 3 + ((r * 7) | 0) % 10, 2, 1);
+      }
+      if (r < 0.18) {
+        ctx.fillStyle = '#6f7f5b';
+        ctx.fillRect(px + 5, py + 6, 1, 2);
+        ctx.fillRect(px + 7, py + 8, 1, 2);
+      }
+    } else if (t === TILE.PATH) {
+      ctx.fillStyle = '#a79f8d';
+      ctx.fillRect(px, py, TS, TS);
+      ctx.fillStyle = 'rgba(78,72,62,.16)';
+      ctx.fillRect(px, py + TS - 1, TS, 1);
+      if (r > 0.7) {
+        ctx.fillStyle = 'rgba(132,124,108,.34)';
+        ctx.fillRect(px + 3 + ((r * 9) | 0) % 9, py + 4 + ((r * 5) | 0) % 8, 2, 2);
+      }
+    } else if (t === TILE.COURT) {
+      ctx.fillStyle = '#a09a8c';
+      ctx.fillRect(px, py, TS, TS);
+      ctx.fillStyle = 'rgba(70,66,58,.10)';
+      ctx.fillRect(px, py + TS - 1, TS, 1);
+    } else if (t === TILE.STAIR) {
+      ctx.fillStyle = '#9b9485';
+      ctx.fillRect(px, py, TS, TS);
+      ctx.fillStyle = 'rgba(70,64,56,.28)';
+      for (var s = 0; s < 4; s++) ctx.fillRect(px + 1, py + s * 4, TS - 2, 1);
+      ctx.fillStyle = 'rgba(240,236,226,.18)';
+      ctx.fillRect(px + 1, py + 12, TS - 2, 1);
+    } else if (t === TILE.DOOR) {
+      // 门洞：地面 + 门槛 + 两侧门框
+      ctx.fillStyle = '#b6b2a8';
+      ctx.fillRect(px, py, TS, TS);
+      ctx.fillStyle = 'rgba(70,64,56,.30)';
+      ctx.fillRect(px, py + TS - 2, TS, 2);
+      ctx.fillStyle = '#6a5c48';
+      ctx.fillRect(px, py + 2, 2, TS - 4);
+      if (tx === 12 || tx === 32) ctx.fillRect(px + TS - 2, py + 2, 2, TS - 4);
+      ctx.fillStyle = 'rgba(240,236,226,.16)';
+      ctx.fillRect(px + 2, py + 2, TS - 4, 1);
+    } else {
+      ctx.fillStyle = '#15130f';
+      ctx.fillRect(px, py, TS, TS);
+    }
+  }
+
+  function drawTiles(cx, cy) {
+    var x0 = Math.floor(cx / TS), y0 = Math.floor(cy / TS);
+    var x1 = Math.ceil((cx + VW) / TS), y1 = Math.ceil((cy + VH) / TS);
+    for (var ty = y0; ty <= y1; ty++) {
+      for (var tx = x0; tx <= x1; tx++) {
+        drawTile(tileAt(tx, ty), tx * TS, ty * TS, tx, ty);
+      }
+    }
+    // 墙脚投影：紧挨着墙的地面压一道暗边，画面立刻有前后关系
+    for (var sy = y0; sy <= y1; sy++) {
+      for (var sx = x0; sx <= x1; sx++) {
+        var t = tileAt(sx, sy);
+        if (solidTile(t)) continue;
+        var px = sx * TS, py = sy * TS;
+        if (solidTile(tileAt(sx, sy - 1))) {
+          ctx.fillStyle = 'rgba(22,18,14,.20)';
+          ctx.fillRect(px, py, TS, 3);
+        }
+        if (solidTile(tileAt(sx - 1, sy))) {
+          ctx.fillStyle = 'rgba(22,18,14,.15)';
+          ctx.fillRect(px, py, 2, TS);
+        }
+      }
+    }
+  }
+
+  // 墙面装饰（黑板、窗、光荣榜、门牌、楼层索引、办公室门）
+  function drawWallDecals() {
+    // —— 教室左墙的窗（x=3, 一整条，y=3..8）——
+    var wx = 3 * TS, wtop = 3 * TS, wh = 6 * TS;
+    ctx.fillStyle = '#6b6457';
+    ctx.fillRect(wx + 1, wtop, TS - 2, wh);
+    var sky = ctx.createLinearGradient(0, wtop, 0, wtop + wh);
+    sky.addColorStop(0, '#d9a06a');
+    sky.addColorStop(0.45, '#b9877a');
+    sky.addColorStop(1, '#7d6470');
+    ctx.fillStyle = sky;
+    ctx.fillRect(wx + 3, wtop + 2, TS - 6, wh - 4);
+    // 窗框横档
+    ctx.fillStyle = 'rgba(72,64,54,.82)';
+    for (var m = 1; m < 4; m++) ctx.fillRect(wx + 3, wtop + m * (wh / 4), TS - 6, 1);
+    // 窗台
+    ctx.fillStyle = '#8b8272';
+    ctx.fillRect(wx, wtop + wh, TS, 2);
+    ctx.fillStyle = 'rgba(255,214,160,.14)';
+    ctx.fillRect(wx + 3, wtop + 2, TS - 6, 3);
+
+    // —— 走廊南墙的高窗（x15..17，一整条）——
+    var cwx = 15 * TS, cwy = 14 * TS + 2, cww = 3 * TS;
+    ctx.fillStyle = '#6b6457';
+    ctx.fillRect(cwx, cwy, cww, 9);
+    var sky2 = ctx.createLinearGradient(0, cwy, 0, cwy + 9);
+    sky2.addColorStop(0, '#d7c7a8');
+    sky2.addColorStop(1, '#b99a7c');
+    ctx.fillStyle = sky2;
+    ctx.fillRect(cwx + 2, cwy + 2, cww - 4, 5);
+    ctx.fillStyle = 'rgba(72,64,54,.7)';
+    ctx.fillRect(cwx + TS - 1, cwy + 1, 1, 7);
+    ctx.fillRect(cwx + 2 * TS - 1, cwy + 1, 1, 7);
+
+    // —— 黑板（教室北墙 y=1）——
+    var bx = 76, by = 18, bw = 216, bh = 12;
+    ctx.fillStyle = '#5b4c3a';
+    ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
+    ctx.fillStyle = '#2f4a3d';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = 'rgba(233,240,228,.55)';
+    for (var i = 0; i < 5; i++) {
+      var lx = bx + 10 + i * 15;
+      ctx.fillRect(lx, by + 4, 9, 1);
+      ctx.fillRect(lx, by + 7, 6, 1);
+    }
+    ctx.fillStyle = 'rgba(233,240,228,.35)';
+    ctx.fillRect(bx + 120, by + 3, 1, 7);
+    pixText('268', bx + 178, by + 3, 'rgba(240,244,236,.72)', 1);
+    // 粉笔槽
+    ctx.fillStyle = '#4a3f30';
+    ctx.fillRect(bx, by + bh, bw, 2);
+    ctx.fillStyle = '#e9ece2';
+    ctx.fillRect(bx + 20, by + bh - 1, 5, 1);
+    ctx.fillRect(bx + 140, by + bh - 1, 4, 1);
+
+    // —— 光荣榜（走廊南墙 y=14, x5..7）——
+    var hx = 5 * TS + 2, hy = 14 * TS + 2, hw = 3 * TS - 4, hh = TS - 5;
+    ctx.fillStyle = '#5e574a';
+    ctx.fillRect(hx - 1, hy - 1, hw + 2, hh + 2);
+    ctx.fillStyle = '#33484f';
+    ctx.fillRect(hx, hy, hw, hh);
+    ctx.fillStyle = 'rgba(230,236,229,.10)';
+    ctx.fillRect(hx + 1, hy + 1, hw - 2, 4);
+    for (var col = 0; col < 4; col++) {
+      for (var row = 0; row < 3; row++) {
+        var px = hx + 4 + col * 11, py = hy + 3 + row * 3;
+        ctx.fillStyle = 'rgba(240,238,228,.80)';
+        ctx.fillRect(px, py, 8, 2);
+      }
+    }
+    // 第七名那张被发黄的胶带贴住
+    ctx.fillStyle = '#c2a06c';
+    ctx.fillRect(hx + 4 + 11 * 2, hy + 3 + 3, 8, 2);
+
+    // —— 7 班 / 8 班门牌 ——
+    ctx.fillStyle = '#e8e5da';
+    ctx.fillRect(13 * TS + 2, 10 * TS + 4, 12, 9);
+    pixText('7', 13 * TS + 5, 10 * TS + 5, '#3b3a35', 1);
+    ctx.fillStyle = '#e8e5da';
+    ctx.fillRect(29 * TS + 2, 10 * TS + 4, 12, 9);
+    pixText('8', 29 * TS + 5, 10 * TS + 5, '#3b3a35', 1);
+
+    // —— 楼层索引牌（走廊东端，办公室门西侧）——
+    var dx = 42 * TS + 2, dy = 10 * TS + 3;
+    ctx.fillStyle = '#e8e5da';
+    ctx.fillRect(dx, dy, 42, 12);
+    ctx.fillStyle = '#5e574a';
+    ctx.fillRect(dx, dy, 42, 1);
+    pixText('3F', dx + 2, dy + 2, '#3b3a35', 1);
+    pixText('2F', dx + 15, dy + 2, '#3b3a35', 1);
+    pixText('1F', dx + 28, dy + 2, '#3b3a35', 1);
+    pixText('-', dx + 8, dy + 8, '#7c766a', 1);
+    pixText('-', dx + 21, dy + 8, '#7c766a', 1);
+
+    // —— 教师办公室门（锁着）——
+    var ox = 40 * TS - 2, oy = 10 * TS + 2;
+    ctx.fillStyle = '#5a4c3b';
+    ctx.fillRect(ox, oy, 20, 14);
+    ctx.fillStyle = '#7a664d';
+    ctx.fillRect(ox + 2, oy + 1, 16, 12);
+    ctx.fillStyle = '#3c3328';
+    ctx.fillRect(ox + 8, oy + 6, 4, 2);
+    ctx.fillStyle = 'rgba(255,231,170,.22)';
+    ctx.fillRect(ox + 2, oy + 12, 16, 1);
+
+    // —— 教室门（两格门洞旁的门扇，画成半开）——
+    ctx.fillStyle = '#6a5a44';
+    ctx.fillRect(11 * TS - 3, 10 * TS + 1, 3, 13);
+    ctx.fillRect(12 * TS + TS, 10 * TS + 1, 3, 13);
+
+    // —— 走廊南墙的高窗画在上面（整条），这里不再重复 ——
+  }
+
+  function drawFloorDecals() {
+    // 篮球场线（室外）
+    ctx.save();
+    ctx.strokeStyle = 'rgba(238,234,222,.30)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(480 + 3.5, 256 + 3.5, 13 * TS - 7, 8 * TS - 7);
+    ctx.beginPath();
+    ctx.moveTo(480 + 3.5, 256 + 8 * TS / 2);
+    ctx.lineTo(480 + 13 * TS - 3.5, 256 + 8 * TS / 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(480 + 13 * TS / 2, 256 + 8 * TS / 2, 18, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // 跑道白线（校门到操场的主路两边）
+    ctx.fillStyle = 'rgba(230,226,214,.16)';
+    ctx.fillRect(22 * TS - 3, 15 * TS, 1, 13 * TS);
+    ctx.fillRect(24 * TS + 2, 15 * TS, 1, 13 * TS);
+
+    // 老树落叶
+    for (var i = 0; i < 18; i++) {
+      var r1 = hash2(i * 7 + 1, i * 13 + 5);
+      var r2 = hash2(i * 3 + 9, i * 11 + 2);
+      ctx.fillStyle = 'rgba(150,112,62,.42)';
+      ctx.fillRect(376 + (r1 - 0.5) * 84, 340 + (r2 - 0.5) * 48, 2, 1);
+    }
+
+    // 教室地上的粉笔灰
+    ctx.fillStyle = 'rgba(240,238,228,.10)';
+    ctx.fillRect(96, 40, 34, 2);
+    ctx.fillRect(104, 46, 18, 1);
+  }
+
+  // —— 家具实体 ——
+  function drawDesk(d) {
+    var x = d.tx * TS, y = d.ty * TS;
+    if (d.type === 'teacher') {
+      ctx.fillStyle = '#8a6b4c';
+      ctx.fillRect(x - 2, y + 3, 36, 13);
+      ctx.fillStyle = '#a5825c';
+      ctx.fillRect(x - 2, y + 3, 36, 4);
+      ctx.fillStyle = '#6b5238';
+      ctx.fillRect(x - 1, y + 14, 3, 2);
+      ctx.fillRect(x + 31, y + 14, 3, 2);
+      // 讲台上的手册
+      ctx.fillStyle = '#e7e1d2';
+      ctx.fillRect(x + 6, y + 4, 9, 3);
+      ctx.fillStyle = '#c0504a';
+      ctx.fillRect(x + 6, y + 4, 2, 3);
+      return;
+    }
+    // 学生课桌
+    ctx.fillStyle = '#8d6c4c';
+    ctx.fillRect(x + 2, y + 3, 12, 10);
+    ctx.fillStyle = '#b08a60';
+    ctx.fillRect(x + 1, y + 2, 14, 4);
+    ctx.fillStyle = 'rgba(70,52,36,.55)';
+    ctx.fillRect(x + 3, y + 11, 10, 1);
+    ctx.fillStyle = '#6b5238';
+    ctx.fillRect(x + 2, y + 12, 2, 2);
+    ctx.fillRect(x + 12, y + 12, 2, 2);
+    // 椅子背
+    ctx.fillStyle = '#7d5f42';
+    ctx.fillRect(x + 4, y + 13, 8, 2);
+
+    if (d.type === 'empty') {
+      // 一张没人坐的课桌：灰、一个旧本子、抽屉上一把小锁
+      ctx.fillStyle = 'rgba(228,224,214,.24)';
+      ctx.fillRect(x + 1, y + 2, 14, 4);
+      ctx.fillRect(x + 2, y + 3, 12, 10);
+      ctx.fillStyle = '#e9e3d4';
+      ctx.fillRect(x + 5, y + 5, 6, 3);
+      ctx.fillStyle = '#c0504a';
+      ctx.fillRect(x + 5, y + 5, 1, 3);
+      // 小锁
+      ctx.fillStyle = '#5d6169';
+      ctx.fillRect(x + 12, y + 7, 4, 3);
+      ctx.fillStyle = '#8d939c';
+      ctx.fillRect(x + 13, y + 6, 2, 1);
+      if (game.flags.lockOpen) {
+        ctx.fillStyle = 'rgba(0,0,0,0)';
+      }
+    }
+  }
+
+  function drawTree() {
+    // 树干
+    ctx.fillStyle = '#6b4f38';
+    ctx.fillRect(370, 320, 12, 30);
+    ctx.fillStyle = '#7d5d43';
+    ctx.fillRect(371, 320, 5, 30);
+    ctx.fillStyle = 'rgba(45,32,22,.35)';
+    ctx.fillRect(378, 322, 4, 26);
+    // 树根
+    ctx.fillStyle = '#5d4431';
+    ctx.fillRect(366, 346, 20, 4);
+    // 树冠（三层）
+    ctx.fillStyle = '#3f5638';
+    ctx.beginPath(); ctx.ellipse(376, 306, 36, 24, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#4f6b44';
+    ctx.beginPath(); ctx.ellipse(370, 300, 30, 20, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#5d7a4c';
+    ctx.beginPath(); ctx.ellipse(380, 297, 24, 16, 0, 0, Math.PI * 2); ctx.fill();
+    // 叶隙光斑
+    for (var i = 0; i < 20; i++) {
+      var r1 = hash2(i * 5 + 3, i * 7 + 1);
+      var r2 = hash2(i * 11 + 2, i * 3 + 8);
+      ctx.fillStyle = r1 > 0.5 ? 'rgba(126,150,98,.45)' : 'rgba(58,80,50,.45)';
+      ctx.fillRect(376 + (r1 - 0.5) * 62, 296 + (r2 - 0.5) * 40, 2, 2);
+    }
+    // 树干刻字（两行，上行被磨掉）
+    ctx.fillStyle = 'rgba(230,225,210,.55)';
+    ctx.fillRect(373, 332, 5, 1);
+    ctx.fillRect(373, 336, 7, 1);
+  }
+
+  function drawBench() {
+    ctx.fillStyle = '#6b5238';
+    ctx.fillRect(320, 354, 34, 3);
+    ctx.fillStyle = '#8d6c4c';
+    ctx.fillRect(320, 350, 34, 3);
+    ctx.fillStyle = '#5c4630';
+    ctx.fillRect(322, 357, 3, 5);
+    ctx.fillRect(349, 357, 3, 5);
+  }
+
+  function drawGate() {
+    // 两侧柱
+    [336, 416].forEach(function (gx) {
+      ctx.fillStyle = '#9a9488';
+      ctx.fillRect(gx, 452, 16, 28);
+      ctx.fillStyle = '#b3ada0';
+      ctx.fillRect(gx, 452, 16, 4);
+      ctx.fillStyle = 'rgba(60,56,48,.25)';
+      ctx.fillRect(gx + 13, 456, 3, 24);
+      ctx.fillStyle = '#7d776b';
+      ctx.fillRect(gx - 2, 476, 20, 4);
+    });
+    // 校门横梁（虚的无障碍感）与"7"号牌
+    ctx.fillStyle = 'rgba(90,84,74,.35)';
+    ctx.fillRect(336, 458, 96, 2);
+    ctx.fillStyle = '#e8e5da';
+    ctx.fillRect(374, 450, 20, 10);
+    pixText('7', 381, 451, '#3b3a35', 1);
+  }
+
+  function drawDustMotes(t) {
+    // 教室里飘的粉笔灰：只在教室内画
+    if (game.player.x > 320) return;
+    for (var i = 0; i < 14; i++) {
+      var r1 = hash2(i * 17 + 3, 7);
+      var r2 = hash2(i * 13 + 5, 11);
+      var x = 70 + r1 * 250 + Math.sin(t * 0.3 + i) * 6;
+      var y = 36 + r2 * 110 + Math.cos(t * 0.22 + i * 2) * 4;
+      ctx.fillStyle = 'rgba(255,246,222,' + (0.08 + r1 * 0.12).toFixed(2) + ')';
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  function drawEntities() {
+    var list = [];
+    for (var i = 0; i < desks.length; i++) {
+      var d = desks[i];
+      list.push({ y: d.ty * TS + 14, fn: (function (dd) { return function () { drawDesk(dd); }; })(d) });
+    }
+    list.push({ y: 352, fn: drawTree });
+    list.push({ y: 364, fn: drawBench });
+    list.push({ y: 480, fn: drawGate });
+
+    for (var n = 0; n < NPCS.length; n++) {
+      var npc = NPCS[n];
+      if (npc.hidden) continue;
+      var frame = (game.mode === 'play' && Math.floor(game.time * 1.4 + n) % 2 === 0) ? 0 : 2;
+      list.push({
+        y: npc.y, fn: (function (o, f) {
+          return function () {
+            drawPerson(o.x, o.y, o.pal, o.dir, f, o.id === 'heyiming');
+            // 头顶的问号/省略号提示可对话
+            if (!o.talked) {
+              var t = Math.sin(game.time * 3 + o.x) * 1;
+              ctx.fillStyle = 'rgba(248,238,206,.9)';
+              ctx.fillRect(o.x - 1, o.y - 27 + t, 2, 2);
+              ctx.fillRect(o.x - 3, o.y - 25 + t, 1, 1);
+              ctx.fillRect(o.x + 2, o.y - 25 + t, 1, 1);
+            }
+          };
+        })(npc, frame)
+      });
+    }
+
+    var pf = game.player.moving ? (1 + Math.floor(game.player.phase) % 2) : 0;
+    list.push({
+      y: game.player.y, fn: function () {
+        drawPerson(game.player.x, game.player.y, 'wang', game.player.dir, pf, false);
+      }
+    });
+
+    list.sort(function (a, b) { return a.y - b.y; });
+    for (var k = 0; k < list.length; k++) list[k].fn();
+  }
+
+  function drawLight() {
+    // 教室内暖光（窗那边亮一点）
+    if (game.player.x < 340 && game.player.y < 170) {
+      var g = ctx.createLinearGradient(48, 0, 260, 0);
+      g.addColorStop(0, 'rgba(255,190,120,.10)');
+      g.addColorStop(0.7, 'rgba(255,190,120,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(48, 16, 210, 150);
+    }
+    // 走廊到室外的过渡：靠南边稍微亮一点
+    var g2 = ctx.createLinearGradient(0, 200, 0, 480);
+    g2.addColorStop(0, 'rgba(20,24,40,0)');
+    g2.addColorStop(1, 'rgba(20,24,40,.10)');
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 200, WORLD_W, 280);
+  }
+
+  function render() {
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#15130f';
+    ctx.fillRect(0, 0, VW, VH);
+
+    var cx = Math.round(cam.x), cy = Math.round(cam.y);
+    ctx.save();
+    ctx.translate(-cx, -cy);
+    drawTiles(cx, cy);
+    drawWallDecals();
+    drawFloorDecals();
+    drawEntities();
+    drawDustMotes(game.time);
+    drawLight();
+    ctx.restore();
+  }
+
+  // ============================================================
+  // 6 · 剧情数据（改文案只改这一段）
+  // ============================================================
+  var TESTIMONY = {
+    pride:    { name: '傲慢', from: '年级主任', text: '「他自己心理素质不行，怪谁？」' },
+    envy:     { name: '嫉妒', from: '李芷',     text: '「我只是想让老师公平点。」' },
+    wrath:    { name: '暴怒', from: '何一鸣',   text: '「他先不合群的。」' }
+  };
+
+  var NOTES = {
+    desk:      '后排那张课桌的抽屉锁着，是老式的三位转盘锁。',
+    level:     '楼层索引：三楼 高一 · 二楼 高二 · 一楼 高三。',
+    floors:    '陈屿说：密码跟他在学校待过的年份有关。他高一在三楼，高二在二楼，现在在一楼。',
+    lockHint:  '陈屿说：三个数，跟他在学校待过的年份有关。',
+    honor:     '光荣榜上第七名的位置，被一张发黄的胶带贴住了。',
+    rumor:     '走廊里的流言从别的班传出来，苏小满也跟着传了一句。',
+    report:    '李芷写了那封匿名举报信：老师总在办公室单独给他讲题。',
+    coat:      '何一鸣说，那件校服是严亮剪的。他就站在旁边，没敢拦。',
+    note:      '课桌里有一本笔记本，最后一页写着：明天，我想跟老师说，我不想去补习班。',
+    tree:      '老树上刻着两行名字。上面一行被磨掉了，只剩一个 S；下面一行是「王焱」。',
+    camera:    '校门口的监控探头没亮。门卫说，六月的时候它刚好坏了。',
+    witness:   '陈屿说，六月那天走廊里不止他一个人看见沈知遥站在走廊尽头，但大家都低着头。'
+  };
+
+  // 台词节点：
+  //   { t: '一句话', who: '可选，覆盖说话人' }
+  //   { t: '选之前的提示（可选）', choice: [ { label, effect:{complicity, testimony, note, flag}, lines:[节点...] } ] }
+  //   { do: function () { ... } }   —— 立即执行的剧情动作
+  var TALK = {
+    // —— 陈屿：修东西、冷静、给锁的提示 ——
+    chenyu: {
+      who: '陈屿', tag: '7 班 · 会修东西',
+      nodes: [
+        { t: '你今天第七次看那个位置了。' },
+        { who: '王焱', t: '……你也在数？' },
+        { t: '不用数。我也在看。' },
+        { who: '王焱', t: '他那张课桌的抽屉，一直锁着。' },
+        { t: '老式的三位转盘锁，学校统一配的。密码一般跟主人有点关系。' },
+        { who: '王焱', t: '跟人有关的数字……' },
+        { t: '他不太爱说话。但三年了，总能找出三个数。' },
+        {
+          t: '（陈屿把手里的螺丝刀放下。）',
+          choice: [
+            {
+              label: '「他高一在哪一层？」',
+              effect: { complicity: -1, note: 'floors' },
+              lines: [
+                { t: '三楼。高二分班搬到二楼，现在我们在一楼。' },
+                { t: '三年，三层楼。他一层一层往下走。' }
+              ]
+            },
+            {
+              label: '「先不想这个了。」',
+              effect: { complicity: 0 },
+              lines: [
+                { t: '嗯。反正锁也不会跑。' }
+              ]
+            }
+          ]
+        },
+        { t: '……六月那天，我其实看见他一个人站在走廊尽头。' },
+        { t: '我以为他只是想一个人待会儿。' },
+        { t: '我以为没事的。' },
+        {
+          t: '（他没有看你。）',
+          choice: [
+            {
+              label: '「你不用为这句话道歉。」',
+              effect: { complicity: 1 },
+              lines: [
+                { t: '……嗯。' },
+                { t: '（他低下头，把螺丝刀在手里转了两圈。）' }
+              ]
+            },
+            {
+              label: '「那天还有谁看见了？」',
+              effect: { complicity: -1, note: 'witness' },
+              lines: [
+                { t: '不知道。走廊里不止我一个。' },
+                { t: '可大家都低着头。就好像低头，就不算看见。' }
+              ]
+            },
+            {
+              label: '「……」',
+              effect: { complicity: 0 },
+              lines: [
+                { t: '（他也没再说话。）' }
+              ]
+            }
+          ]
+        },
+        { t: '锁我打不开。你要是打开了，叫我一声。' }
+      ]
+    },
+
+    // —— 苏小满：情报源、流言那条线 ——
+    suman: {
+      who: '苏小满', tag: '7 班 · 消息最灵',
+      nodes: [
+        { t: '哎，你也来问那件事？' },
+        { who: '王焱', t: '哪件事？' },
+        { t: '就……那个啊。你别听别的班瞎说，都是乱传的。反正不是那样的。' },
+        { who: '王焱', t: '那是哪样？' },
+        { t: '我不知道。我什么都不知道。' },
+        { t: '可是大家都在传，我就也跟着传了一句。' },
+        {
+          t: '（她把手里的笔帽按得咔哒响。）',
+          choice: [
+            {
+              label: '「你传了什么？」',
+              effect: { complicity: -1, note: 'rumor' },
+              lines: [
+                { t: '就一句。「老师老给他单独讲题。」我发誓，我是当笑话说的。' },
+                { t: '后来就变成别的了。传话的人，从来不用负责。' }
+              ]
+            },
+            {
+              label: '「别说了。」',
+              effect: { complicity: 1 },
+              lines: [
+                { t: '……好。反正也不该说。' }
+              ]
+            }
+          ]
+        },
+        { t: '他高一在三楼的时候，我们还不认识。高二分班到二楼，才坐前后桌。' },
+        { t: '现在我们在一楼。三年，三层楼。' },
+        { t: '我没想到会变成这样。' },
+        {
+          t: '（她抬起头看你。）',
+          choice: [
+            {
+              label: '「我知道。」',
+              effect: { complicity: 1 },
+              lines: [
+                { t: '（她愣了一下，好像没料到会这么容易。）' }
+              ]
+            },
+            {
+              label: '「可话是从你嘴里传出去的。」',
+              effect: { complicity: -1 },
+              lines: [
+                { t: '……我知道。' },
+                { t: '我晚上老是想起这个。' }
+              ]
+            }
+          ]
+        },
+        { t: '你要是去问别人，别说是我讲的。' }
+      ]
+    },
+
+    // —— 李芷：嫉妒 ——
+    lizhi: {
+      who: '李芷', tag: '8 班',
+      nodes: [
+        { t: '你找我？' },
+        { who: '王焱', t: '那封举报信。' },
+        { t: '你怎么知道是我写的。' },
+        { who: '王焱', t: '信里说「老师总在办公室单独给他讲题」。只有 8 班能看见那间办公室。' },
+        { t: '（她沉默了几秒。）' },
+        { t: '我只是想让老师公平一点。我们问问题要排队，他不用。' },
+        { who: '王焱', t: '所以你就写了。' },
+        { t: '我没署名。我只是想让老师看见我。' },
+        { t: '后来老师确实看见我了。她把我叫去，问我最近是不是心事太重。' },
+        { t: '我不知道那封信会变成现在这样。' },
+        { t: '我不是故意的。' },
+        {
+          t: '（她把校服袖子往下拉了拉。）',
+          choice: [
+            {
+              label: '「他也只是想被看见。」',
+              effect: { complicity: -1, testimony: 'envy', note: 'report' },
+              lines: [
+                { t: '我也一样。所以我懂。' },
+                { t: '所以我才更不该那么写。' }
+              ]
+            },
+            {
+              label: '「公平不是这样来的。」',
+              effect: { complicity: 0, testimony: 'envy', note: 'report' },
+              lines: [
+                { t: '我知道。可那时候，我只想赢一次。' }
+              ]
+            },
+            {
+              label: '「我明白。」',
+              effect: { complicity: 1, testimony: 'envy', note: 'report' },
+              lines: [
+                { t: '……谢谢。' },
+                { t: '你是第一个没有骂我的人。' }
+              ]
+            }
+          ]
+        },
+        { t: '那封信的复印件我留着。你要看的话，明天我给你。' }
+      ]
+    },
+
+    // —— 何一鸣：暴怒 ——
+    heyiming: {
+      who: '何一鸣', tag: '7 班 · 体育生',
+      nodes: [
+        { t: '你是来问校服的事吧。' },
+        { t: '是严亮剪的。我就在旁边。' },
+        { who: '王焱', t: '你为什么不拦？' },
+        { t: '他在起哄，说沈知遥不合群、说他装。我手都抬起来了，又放下了。' },
+        { t: '沈知遥就站在那儿，看着我们，一句话都没说。' },
+        { who: '王焱', t: '他没还手？' },
+        { t: '没有。他跟严亮说：「你剪吧，反正我也不想穿。」' },
+        { t: '我后来想去道歉。真的。可那之后他就没再来上过体育课。' },
+        { t: '我不是故意的。' },
+        {
+          t: '（他蹲下来，把篮球在手里转了一圈。）',
+          choice: [
+            {
+              label: '「你现在说这个，是想让谁好受一点？」',
+              effect: { complicity: -1, testimony: 'wrath', note: 'coat' },
+              lines: [
+                { t: '……我不知道。' },
+                { t: '可能是我自己。' }
+              ]
+            },
+            {
+              label: '「跟我去把这件事说清楚。」',
+              effect: { complicity: -1, testimony: 'wrath', note: 'coat' },
+              lines: [
+                { t: '（他沉默了很久，然后点头。）' },
+                { t: '行。明天。' }
+              ]
+            },
+            {
+              label: '「你也是被他们起哄的。」',
+              effect: { complicity: 1, testimony: 'wrath', note: 'coat' },
+              lines: [
+                { t: '……对，是他们起哄。' },
+                { t: '（他说完，自己也不太信。）' }
+              ]
+            }
+          ]
+        },
+        { t: '严亮那句话，我一直记着：「他先不合群的。」' },
+        { t: '那件校服我收着。在体育馆的储物柜里。要的话自己去拿。' }
+      ]
+    },
+
+    // —— 年级主任：傲慢 ——
+    director: {
+      who: '年级主任', tag: '巡查中',
+      nodes: [
+        { t: '光荣榜不能乱看。' },
+        { who: '王焱', t: '高二下期末，第七名的位置被贴纸盖住了。' },
+        { t: '哦，那个啊。学生状态有起伏，很正常。' },
+        { who: '王焱', t: '他考了第几？' },
+        { t: '第七。他最好的名次。贴住，是怕别的孩子有压力。' },
+        { who: '王焱', t: '那他现在呢？' },
+        { t: '他自己心理素质不行，怪谁？' },
+        { t: '一个年级几百号人，我管不过来。我不是故意的。' },
+        {
+          t: '（他把手背在身后。）',
+          choice: [
+            {
+              label: '「他那时候需要的，是有人问一句。」',
+              effect: { complicity: -1, testimony: 'pride', note: 'honor' },
+              lines: [
+                { t: '问什么？学校不是没给机会。' },
+                { t: '（他看了看表，走了。）' }
+              ]
+            },
+            {
+              label: '「……是，怪他自己。」',
+              effect: { complicity: 2, testimony: 'pride', note: 'honor' },
+              lines: [
+                { t: '你能这么想就对了。' },
+                { who: '王焱', t: '（你想起陈屿低着头，把螺丝刀在手里转了两圈。）' },
+                { t: '高三了，别想太多。' }
+              ]
+            },
+            {
+              label: '「第七名，是什么时候的事？」',
+              effect: { complicity: -1, testimony: 'pride', note: 'honor' },
+              lines: [
+                { t: '今年六月。唉，不说了。' }
+              ]
+            }
+          ]
+        },
+        { t: '光荣榜明天就换新的了。你也别老站在这儿。' }
+      ]
+    },
+
+    // —— 物件：检视文本 ——
+    obj_window: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '窗外的天正在暗下来。六月的叶子会一直长到三楼走廊。' },
+        { t: '从这里看不见操场那头。' }
+      ]
+    },
+    obj_blackboard: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '值日表停在 6 月 23 日。' },
+        { t: '那一格的粉笔字被擦掉了一半，看不太清。' },
+        { t: '粉笔槽里有一小截断掉的粉笔。笔头是新的。' }
+      ]
+    },
+    obj_teacherdesk: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '讲台上摊着一本班主任手册。' },
+        { t: '沈知遥的名字被红笔圈过一次，旁边写着两个字：重点。' },
+        { t: '再往后翻，是空的。' }
+      ]
+    },
+    obj_honor: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '高二下期末年级前五十。' },
+        { t: '第七名那张纸被人用胶带贴住了。胶带已经发黄。' }
+      ]
+    },
+    obj_directory: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '楼层索引：三楼 高一 · 二楼 高二 · 一楼 高三。' },
+        { t: '牌子上有一层灰。擦掉的地方，刚好是「三楼」那一行。' }
+      ]
+    },
+    obj_class8: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '8 班的门虚掩着。里面有人在念英语单词，声音很轻。' },
+        { t: '靠窗第二排的人低着头，在写题。' }
+      ]
+    },
+    obj_office: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '教师办公室的门锁着。门缝里透出打印机的光。' },
+        { t: '门把手上挂着一串钥匙，钥匙圈上缠着一根红绳。' }
+      ]
+    },
+    obj_tree: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '树皮上刻着两行名字。' },
+        { t: '上面一行被磨掉了，只剩下一个「S」。' },
+        { t: '下面一行是「王焱」。日期是前年秋天。' },
+        { t: '那是你们唯一说过话的地方。' }
+      ]
+    },
+    obj_bench: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '长椅上有人用圆珠笔画了一个日期，又划掉了。' },
+        { t: '划痕很深，像是用了很大的力气。' }
+      ]
+    },
+    obj_court: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '篮筐下面的水泥地有一块补过的痕迹。' },
+        { t: '补得不太平，颜色比周围深一点。' }
+      ]
+    },
+    obj_gate: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '校门口的监控探头对着这条路。红灯没亮。' },
+        { t: '门卫说：六月的时候，这里的监控刚好坏了。' }
+      ]
+    },
+
+    // —— 后排空座位：主线 ——
+    seatFirst: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '这张课桌上面落了一层薄灰。' },
+        { t: '值日生每天擦桌子，可这一张，没人碰。' },
+        { t: '抽屉是锁着的。老式的三位转盘锁，锁面被人反复拨过。' },
+        { t: '（三个数字。跟他有关的三个数字。）' }
+      ]
+    },
+    note: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '锁咔哒一声，开了。' },
+        { t: '抽屉里只有一本笔记本，封皮磨得发白。' },
+        { t: '你翻开最后一页。' },
+        { t: '「明天，我想跟老师说：我不想去补习班。」' },
+        { t: '下一行被划掉了。划得很重，纸都破了。' },
+        { t: '再往后，是空白。' },
+        { t: '你把笔记本合上，手指在校服裤子上蹭了一下。' }
+      ]
+    },
+    seatAfter: {
+      who: '王焱', tag: '检视',
+      nodes: [
+        { t: '抽屉里只剩那本笔记本。' },
+        { t: '你把它放回原处，关上抽屉。锁没有扣。' }
+      ]
+    },
+
+    // —— 开场独白 ——
+    intro: {
+      who: '王焱', tag: '7 班',
+      nodes: [
+        { t: '最后一节课刚下，教室里还剩几个人。' },
+        { t: '最后一排靠窗的位置空着。' },
+        { t: '没人坐，也没人提。' },
+        { t: '（你在这里站了快一节课。）' }
+      ]
+    },
+
+    // —— 缩略图模式用（?shot=1）——
+    shot: {
+      who: '王焱', tag: '7 班',
+      nodes: [
+        { t: '这个位置，没人坐，也没人提。' },
+        { t: '（抽屉锁着。你得先弄清楚，那三个数字是什么。）' }
+      ]
+    }
+  };
+
+  // 对话结束后的重复短句（同一 NPC 再说话）
+  var TALK_AGAIN = {
+    chenyu: '锁开了叫我。',
+    suman: '别问我了，我嘴笨。',
+    lizhi: '那封信的复印件，我明天带来。',
+    heyiming: '……放学我去找严亮。',
+    director: '高三了，少管闲事。'
+  };
+
+  // 物件 → 对话 key
+  var OBJECT_TALK = {
+    window: 'obj_window',
+    blackboard: 'obj_blackboard',
+    teacherdesk: 'obj_teacherdesk',
+    honor: 'obj_honor',
+    directory: 'obj_directory',
+    class8: 'obj_class8',
+    office: 'obj_office',
+    tree: 'obj_tree',
+    bench: 'obj_bench',
+    court: 'obj_court',
+    gate: 'obj_gate'
+  };
+
+  // ============================================================
+  // 7 · DOM / 界面
+  // ============================================================
+  function $(id) { return document.getElementById(id); }
+  function focusCanvas() {
+    try { canvas.focus({ preventScroll: true }); } catch (e) {}
+  }
+  var stage = $('stage');
+  var dlgBox = $('dialog'), dlgWho = $('dlgWho'), dlgTag = $('dlgTag'), dlgText = $('dlgText');
+  var dlgChoices = $('dlgChoices'), dlgNext = $('dlgNext');
+  var hintbar = $('hintbar');
+  var titleScreen = $('titleScreen'), notebook = $('notebook'), nbList = $('nbList'), nbClues = $('nbClues');
+  var lockPanel = $('lockPanel'), lockDigits = $('lockDigits'), lockMsg = $('lockMsg');
+  var endingEl = $('ending'), endLines = $('endLines'), pauseMenu = $('pauseMenu');
+  var chipClue = $('chipClue'), chipTime = $('chipTime');
+  var ariaLive = $('ariaLive'), touchControls = $('touchControls');
+
+  var REDUCED = false;
+  try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function updateHud() {
+    var n = 0;
+    for (var k in game.clues) if (game.clues[k]) n++;
+    chipClue.textContent = String(n);
+    chipTime.textContent = game.flags.noteRead ? '高三上 · 放学后' : '高三上 · 开学第三周';
+  }
+
+  function showToast(text, ms) {
+    game.toastText = text;
+    game.toastUntil = game.time + (ms || 2400) / 1000;
+    hintbar.innerHTML = text;
+  }
+
+  // ============================================================
+  // 8 · 对话系统
+  // ============================================================
+  function startNodes(key, who, tag, nodes, onDone) {
+    game.dialog = {
+      key: key, who: who || '', tag: tag || '',
+      nodes: nodes.slice(), i: -1,
+      onDone: onDone || null,
+      typing: false, text: '', shown: 0,
+      choice: null, curWho: who || '', curTag: tag || ''
+    };
+    game.mode = 'dialog';
+    game.near = null;
+    dlgBox.hidden = false;
+    stage.classList.add('dialog-open');
+    dlgChoices.hidden = true;
+    dlgChoices.innerHTML = '';
+    advanceDialog();
+    updateHint();
+  }
+
+  function startDialogue(key, onDone) {
+    var d = TALK[key];
+    if (!d) return false;
+    startNodes(key, d.who, d.tag, d.nodes, onDone);
+    return true;
+  }
+
+  function startSimple(key, who, tag, text) {
+    startNodes(key, who, tag, [{ t: text }], null);
+  }
+
+  function advanceDialog() {
+    var d = game.dialog;
+    if (!d) return;
+    if (d.choice) return;                       // 等玩家选
+    if (d.typing) {                             // 先补完打字机
+      d.shown = d.text.length;
+      d.typing = false;
+      renderDialogText();
+      dlgNext.textContent = 'E / 点击继续 ▾';
+      return;
+    }
+    stepDialog();
+  }
+
+  function stepDialog() {
+    var d = game.dialog;
+    if (!d) return;
+    d.i++;
+    while (d.i < d.nodes.length) {
+      var n = d.nodes[d.i];
+      if (!n) { d.i++; continue; }
+      if (typeof n.do === 'function') { n.do(); d.i++; continue; }
+      if (n.choice) { showChoice(n); return; }
+      if (n.t != null) { showLine(n); return; }
+      d.i++;
+    }
+    endDialogue(false);
+  }
+
+  function showLine(n) {
+    var d = game.dialog;
+    d.curWho = n.who || d.who;
+    d.curTag = (n.tag != null) ? n.tag : d.tag;
+    d.text = n.t;
+    d.shown = 0;
+    d.choice = null;
+    dlgWho.textContent = d.curWho || '——';
+    dlgTag.textContent = d.curTag || '';
+    dlgChoices.hidden = true;
+    dlgChoices.innerHTML = '';
+    dlgNext.textContent = 'E / 点击继续 ▾';
+    ariaLive.textContent = (d.curWho ? d.curWho + '：' : '') + d.text;
+    if (REDUCED) {
+      d.shown = d.text.length;
+      d.typing = false;
+      renderDialogText();
+    } else {
+      d.typing = true;
+      renderDialogText();
+    }
+  }
+
+  function renderDialogText() {
+    var d = game.dialog;
+    if (!d) return;
+    var n = Math.floor(d.shown);
+    dlgText.textContent = d.text.slice(0, n) + (d.typing ? '▌' : '');
+  }
+
+  function showChoice(n) {
+    var d = game.dialog;
+    d.choice = n.choice;
+    d.typing = false;
+    d.text = n.t || '（你要怎么回答？）';
+    d.shown = d.text.length;
+    dlgWho.textContent = d.curWho || '——';
+    dlgTag.textContent = d.curTag || '';
+    dlgNext.textContent = '选一个回答 ▾';
+    dlgChoices.hidden = false;
+    dlgChoices.innerHTML = '';
+    var labels = [];
+    for (var i = 0; i < n.choice.length; i++) {
+      var opt = n.choice[i];
+      labels.push((i + 1) + '. ' + opt.label);
+      var b = el('button', '', '');
+      b.type = 'button';
+      b.appendChild(el('span', 'k', String(i + 1)));
+      b.appendChild(document.createTextNode(opt.label));
+      b.setAttribute('data-idx', String(i));
+      b.addEventListener('click', function (ev) {
+        var idx = parseInt(ev.currentTarget.getAttribute('data-idx'), 10);
+        chooseChoice(idx);
+      });
+      dlgChoices.appendChild(b);
+    }
+    renderDialogText();
+    ariaLive.textContent = (d.curWho ? d.curWho + '：' : '') + d.text + '　可选：' + labels.join('；');
+    var first = dlgChoices.querySelector('button');
+    if (first) { try { first.focus({ preventScroll: true }); } catch (e2) { first.focus(); } }
+  }
+
+  function applyEffect(eff) {
+    if (!eff) return;
+    if (eff.complicity) game.complicity += eff.complicity;
+    if (eff.testimony && TESTIMONY[eff.testimony]) {
+      game.clues[eff.testimony] = true;
+      showToast('证词到手：<b>' + TESTIMONY[eff.testimony].name + '</b>', 2600);
+    }
+    if (eff.note) addNote(eff.note);
+    if (eff.flag) game.flags[eff.flag] = true;
+    updateHud();
+  }
+
+  function chooseChoice(idx) {
+    var d = game.dialog;
+    if (!d || !d.choice) return;
+    var opt = d.choice[idx];
+    if (!opt) return;
+    applyEffect(opt.effect);
+    var lines = opt.lines || [];
+    d.choice = null;
+    dlgChoices.hidden = true;
+    dlgChoices.innerHTML = '';
+    if (lines.length) d.nodes.splice.apply(d.nodes, [d.i + 1, 0].concat(lines));
+    stepDialog();
+  }
+
+  function skipDialog() {
+    var d = game.dialog;
+    if (!d) return;
+    game.dialog = null;
+    dlgBox.hidden = true;
+    stage.classList.remove('dialog-open');
+    game.mode = 'play';
+    updateHint();
+  }
+
+  function endDialogue(skipped) {
+    var d = game.dialog;
+    if (!d) return;
+    game.dialog = null;
+    dlgBox.hidden = true;
+    stage.classList.remove('dialog-open');
+    game.mode = 'play';
+    if (!skipped) {
+      // 说话的人下次只有一句短台词
+      for (var i = 0; i < NPCS.length; i++) {
+        if (NPCS[i].id === d.key) NPCS[i].talked = true;
+      }
+      if (d.onDone) d.onDone();
+    }
+    updateHint();
+    maybeEnd();
+  }
+
+  function addNote(id) {
+    if (!id || !NOTES[id] || game.notes[id]) return;
+    game.notes[id] = true;
+  }
+
+  // ============================================================
+  // 9 · 证词本
+  // ============================================================
+  var TESTIMONY_ORDER = ['pride', 'envy', 'wrath'];
+
+  function buildNotebook() {
+    nbList.innerHTML = '';
+    for (var i = 0; i < TESTIMONY_ORDER.length; i++) {
+      var k = TESTIMONY_ORDER[i], t = TESTIMONY[k], got = !!game.clues[k];
+      var row = el('div', 'nb-row' + (got ? ' on' : ''));
+      row.appendChild(el('span', 'sin', t.name));
+      var body = el('div', 'body');
+      body.appendChild(el('b', '', got ? t.from : '· · ·'));
+      body.appendChild(el('span', '', got ? t.text : '还没问到。'));
+      row.appendChild(body);
+      row.appendChild(el('span', 'st', got ? '已取得' : '未取得'));
+      nbList.appendChild(row);
+    }
+    nbClues.innerHTML = '';
+    var any = false;
+    for (var nk in NOTES) {
+      if (game.notes[nk]) {
+        any = true;
+        nbClues.appendChild(el('li', '', NOTES[nk]));
+      }
+    }
+    if (!any) {
+      var li = el('li', 'none', '还没记下什么。多看看、多问问。');
+      nbClues.appendChild(li);
+    }
+  }
+
+  function openBook() {
+    if (game.mode !== 'play' || !game.started) return;
+    game.mode = 'book';
+    buildNotebook();
+    notebook.hidden = false;
+    updateHint();
+    var btn = $('btnCloseBook');
+    if (btn) { try { btn.focus({ preventScroll: true }); } catch (e3) { btn.focus(); } }
+  }
+
+  function closeBook() {
+    notebook.hidden = true;
+    game.mode = 'play';
+    updateHint();
+    focusCanvas();
+  }
+
+  // ============================================================
+  // 10 · 密码锁
+  // ============================================================
+  function updateLockDigits() {
+    var ds = lockDigits.children;
+    for (var i = 0; i < ds.length; i++) {
+      var ch = game.code.charAt(i);
+      ds[i].textContent = ch || '·';
+      ds[i].className = 'lock-digit' + (ch ? '' : ' blank');
+    }
+  }
+
+  function openLock() {
+    if (game.flags.lockOpen) return;
+    game.mode = 'lock';
+    game.code = '';
+    lockPanel.hidden = false;
+    lockMsg.className = 'lock-msg';
+    lockMsg.textContent = '输入三位数字';
+    updateLockDigits();
+    updateHint();
+    var lp = lockPanel.querySelector('.panel');
+    if (lp) { try { lp.focus({ preventScroll: true }); } catch (e) {} }
+  }
+
+  function closeLock() {
+    lockPanel.hidden = true;
+    game.mode = 'play';
+    updateHint();
+    focusCanvas();
+  }
+
+  function lockKey(ch) {
+    if (game.mode !== 'lock') return;
+    if (game.code.length >= 3) return;
+    game.code += ch;
+    updateLockDigits();
+    lockMsg.className = 'lock-msg';
+    lockMsg.textContent = '输入三位数字';
+  }
+
+  function lockDel() {
+    if (game.mode !== 'lock') return;
+    game.code = game.code.slice(0, -1);
+    updateLockDigits();
+  }
+
+  function shakeLock() {
+    var p = lockPanel.querySelector('.panel');
+    if (!p) return;
+    p.classList.remove('shake');
+    void p.offsetWidth;
+    p.classList.add('shake');
+    setTimeout(function () { p.classList.remove('shake'); }, 400);
+  }
+
+  function submitCode(code) {
+    if (game.flags.lockOpen) return true;
+    var c = (code == null ? game.code : String(code));
+    if (c === '321') {
+      game.flags.lockOpen = true;
+      game.code = '';
+      lockPanel.hidden = true;
+      game.mode = 'play';
+      showToast('咔哒。锁开了。', 1800);
+      updateHud();
+      setTimeout(function () {
+        if (game.mode !== 'ending') {
+          startDialogue('note', function () {
+            game.flags.noteRead = true;
+            addNote('note');
+            updateHud();
+            updateHint();
+            maybeEnd();
+          });
+        }
+      }, 420);
+      return true;
+    }
+    if (c.length < 3) {
+      lockMsg.className = 'lock-msg bad';
+      lockMsg.textContent = '三位，别只拨两个。';
+      return false;
+    }
+    game.codeTries++;
+    game.code = '';
+    updateLockDigits();
+    var msgs = ['锁没有动。', '还是没动。也许顺序不对。', '你想起陈屿的话：三个数，跟他在学校待过的年份有关。'];
+    lockMsg.className = 'lock-msg bad';
+    lockMsg.textContent = msgs[Math.min(game.codeTries - 1, msgs.length - 1)];
+    if (game.codeTries >= 3) addNote('lockHint');
+    shakeLock();
+    return false;
+  }
+
+  // ============================================================
+  // 11 · 交互 / 剧情推进
+  // ============================================================
+  function computeNear() {
+    if (game.mode !== 'play') return null;
+    var best = null, bestD = 1e9;
+    var px = game.player.x, py = game.player.y;
+    for (var i = 0; i < NPCS.length; i++) {
+      var npc = NPCS[i];
+      if (npc.hidden) continue;
+      var d = Math.hypot(npc.x - px, npc.y - py);
+      if (d <= 32 && d < bestD) {
+        bestD = d;
+        best = { kind: 'npc', id: npc.id, name: npc.name, npc: npc };
+      }
+    }
+    for (var j = 0; j < OBJECTS.length; j++) {
+      var o = OBJECTS[j];
+      var d2 = Math.hypot(o.x - px, o.y - py);
+      if (d2 <= o.r && d2 < bestD) {
+        bestD = d2;
+        best = { kind: 'obj', id: o.id, label: o.label, obj: o };
+      }
+    }
+    return best;
+  }
+
+  function talkTo(npc) {
+    if (npc.talked && TALK_AGAIN[npc.id]) {
+      var tag = '';
+      for (var i = 0; i < NPCS.length; i++) if (NPCS[i].id === npc.id) tag = NPCS[i].tag;
+      startSimple(npc.id + '_again', npc.name, tag, TALK_AGAIN[npc.id]);
+      return;
+    }
+    startDialogue(npc.id, function () {
+      for (var k = 0; k < NPCS.length; k++) if (NPCS[k].id === npc.id) NPCS[k].talked = true;
+    });
+  }
+
+  function useSeat() {
+    if (game.flags.lockOpen && !game.flags.noteRead) {
+      startDialogue('note', function () {
+        game.flags.noteRead = true;
+        addNote('note');
+        updateHud();
+        updateHint();
+        maybeEnd();
+      });
+      return;
+    }
+    if (game.flags.lockOpen) { startDialogue('seatAfter'); return; }
+    if (game.flags.knownLock) { openLock(); return; }
+    startDialogue('seatFirst', function () {
+      game.flags.knownLock = true;
+      addNote('desk');
+      openLock();
+    });
+  }
+
+  function useObject(obj) {
+    if (obj.id === 'seat') { useSeat(); return; }
+    if (obj.id === 'honor') addNote('honor');
+    if (obj.id === 'directory') addNote('level');
+    if (obj.id === 'tree') addNote('tree');
+    if (obj.id === 'gate') addNote('camera');
+    var key = OBJECT_TALK[obj.id];
+    if (key) startDialogue(key);
+    updateHud();
+  }
+
+  function interact() {
+    if (game.mode !== 'play') return;
+    var near = computeNear();
+    if (!near) return;
+    if (near.kind === 'npc') talkTo(near.npc);
+    else useObject(near.obj);
+  }
+
+  function maybeEnd() {
+    if (game.ended || game.mode === 'ending') return;
+    if (game.clues.pride && game.clues.envy && game.clues.wrath && game.flags.noteRead) {
+      game.ended = true;
+      setTimeout(startEnding, 700);
+    }
+  }
+
+  // ============================================================
+  // 12 · 结局
+  // ============================================================
+  function buildEndingLines() {
+    var extra;
+    if (game.complicity >= 4) {
+      extra = { text: '你说完那句话，忽然想起年级主任也说过差不多的话。', cls: 'quiet' };
+    } else if (game.complicity <= 1) {
+      extra = { text: '你还没有学会，怎么把一句话咽回去。', cls: 'quiet' };
+    } else {
+      extra = { text: '你决定明天再问一次。', cls: 'quiet' };
+    }
+    return [
+      { text: '放学铃响了两遍，你才从那张桌子旁边走开。' },
+      { text: '走廊上，林老师叫住了你。' },
+      { text: '「王焱，你最近状态不对，是不是家里有事？」', cls: 'sayline' },
+      { text: '你听见自己说——' },
+      { text: '「……没事。」', cls: 'sayline' },
+      { text: '她点点头，像是松了一口气。' },
+      extra,
+      { text: '（序章到此结束。完整的故事在 Unity 完整版里。）', cls: 'quiet' }
+    ];
+  }
+
+  function startEnding() {
+    if (game.mode === 'ending') return;
+    game.mode = 'ending';
+    game.dialog = null;
+    dlgBox.hidden = true;
+    stage.classList.remove('dialog-open');
+    endingEl.hidden = false;
+    updateHud();
+    endLines.innerHTML = '';
+    var lines = buildEndingLines();
+    for (var i = 0; i < lines.length; i++) {
+      var item = lines[i];
+      var p = document.createElement('p');
+      if (item.cls) p.className = item.cls;
+      if (item.cls === 'sayline') {
+        var s = document.createElement('span');
+        s.className = 'say';
+        s.textContent = item.text;
+        p.appendChild(s);
+      } else {
+        p.textContent = item.text;
+      }
+      p.style.animationDelay = (REDUCED ? 0 : i * 0.5) + 's';
+      endLines.appendChild(p);
+    }
+    var first = $('btnAgain');
+    if (first) { try { first.focus({ preventScroll: true }); } catch (e4) { first.focus(); } }
+  }
+
+  // ============================================================
+  // 13 · 提示条 / 暂停 / 全屏
+  // ============================================================
+  function updateHint() {
+    if (game.toastUntil > game.time) { hintbar.innerHTML = game.toastText; return; }
+    if (game.mode === 'dialog' || game.mode === 'lock' || game.mode === 'book' || game.mode === 'ending') return;
+    if (game.mode === 'title') {
+      hintbar.innerHTML = '按 <em>Enter</em> 开始';
+      return;
+    }
+    if (game.near) {
+      if (game.near.kind === 'npc') {
+        hintbar.innerHTML = '按 <em>E</em> 和 ' + game.near.name + ' 说话';
+      } else if (game.near.id === 'seat' && game.flags.knownLock) {
+        hintbar.innerHTML = '按 <em>E</em> 拨动抽屉上的密码锁';
+      } else {
+        hintbar.innerHTML = '按 <em>E</em> 查看「' + game.near.label + '」';
+      }
+      return;
+    }
+    hintbar.innerHTML = '<kbd>WASD</kbd> / 方向键移动 · <em>E</em> 互动 · <em>Tab</em> 证词本';
+  }
+
+  function openPause() {
+    if (game.mode !== 'play') return;
+    game.mode = 'pause';
+    pauseMenu.hidden = false;
+    updateHint();
+    var rb = $('btnResume');
+    if (rb) { try { rb.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  function closePause() {
+    pauseMenu.hidden = true;
+    game.mode = 'play';
+    updateHint();
+    focusCanvas();
+  }
+  function toggleFull() {
+    try {
+      if (!document.fullscreenElement) {
+        if (stage.requestFullscreen) stage.requestFullscreen();
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    } catch (e) {}
+  }
+
+  // ============================================================
+  // 14 · 开始游戏 / 移动 / 输入
+  // ============================================================
+  function startGame(silent) {
+    if (game.started) return;
+    game.started = true;
+    game.mode = 'play';
+    titleScreen.hidden = true;
+    var huds = document.querySelectorAll('.hud');
+    for (var hi = 0; hi < huds.length; hi++) huds[hi].inert = false;
+    focusCanvas();
+    game.player.x = 184;
+    game.player.y = 148;
+    game.player.dir = 'up';
+    cam.x = clamp(game.player.x - VW / 2, 0, WORLD_W - VW);
+    cam.y = clamp(game.player.y - VH / 2, 0, WORLD_H - VH);
+    updateHud();
+    updateHint();
+    if (!silent) startDialogue('intro');
+  }
+
+  var keys = { left: false, right: false, up: false, down: false };
+
+  function footRect(x, y) { return { x: x - 4, y: y - 3, w: 8, h: 4 }; }
+  function rectOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+  function blocked(r) {
+    var pts = [
+      [r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h],
+      [r.x + r.w / 2, r.y + r.h]
+    ];
+    for (var i = 0; i < pts.length; i++) {
+      var tx = Math.floor(pts[i][0] / TS), ty = Math.floor(pts[i][1] / TS);
+      if (solidTile(tileAt(tx, ty))) return true;
+    }
+    for (var s = 0; s < SOLIDS.length; s++) {
+      if (rectOverlap(r, SOLIDS[s])) return true;
+    }
+    return false;
+  }
+  function tryMove(x, y) {
+    var p = game.player;
+    if (!blocked(footRect(x, y))) { p.x = x; p.y = y; }
+  }
+  function updatePlayer(dt) {
+    var p = game.player, mx = 0, my = 0;
+    if (keys.left) mx -= 1;
+    if (keys.right) mx += 1;
+    if (keys.up) my -= 1;
+    if (keys.down) my += 1;
+    p.moving = !!(mx || my);
+    if (!p.moving) return;
+    var len = Math.hypot(mx, my) || 1;
+    mx /= len; my /= len;
+    if (Math.abs(mx) > Math.abs(my)) p.dir = mx < 0 ? 'left' : 'right';
+    else p.dir = my < 0 ? 'up' : 'down';
+    var dist = p.speed * dt;
+    tryMove(p.x + mx * dist, p.y);
+    tryMove(p.x, p.y + my * dist);
+    p.phase += dt * 7;
+  }
+
+  function handleKeyDown(e) {
+    var k = e.key;
+    // 别抢输入框
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    // 焦点在控件上时，把 Enter / 空格 让给控件自己
+    // （否则标题页 Tab 到「返回主页」「操作说明」按 Enter 会被吞掉变成开始游戏）
+    if (t && t.closest && t.closest('a,button,[role="button"],summary,label,select') &&
+        (k === 'Enter' || k === ' ')) return;
+
+    if (game.mode === 'title') {
+      if (k === 'Enter' || k === ' ' || k === 'e' || k === 'E') { e.preventDefault(); startGame(false); }
+      return;
+    }
+    if (game.mode === 'dialog') {
+      var d = game.dialog;
+      if (d && d.choice) {
+        if (/^[1-9]$/.test(k)) { e.preventDefault(); chooseChoice(parseInt(k, 10) - 1); return; }
+        if (k === 'Escape') { e.preventDefault(); skipDialog(); }
+        return;   // 其他按键留给按钮（Tab / Enter / 空格）
+      }
+      if (k === 'e' || k === 'E' || k === ' ' || k === 'Enter') { e.preventDefault(); advanceDialog(); return; }
+      if (k === 'Escape') { e.preventDefault(); skipDialog(); return; }
+      return;
+    }
+    if (game.mode === 'lock') {
+      if (/^[0-9]$/.test(k)) { e.preventDefault(); lockKey(k); return; }
+      if (k === 'Backspace') { e.preventDefault(); lockDel(); return; }
+      if (k === 'Enter') { e.preventDefault(); submitCode(null); return; }
+      if (k === 'Escape') { e.preventDefault(); closeLock(); return; }
+      return;
+    }
+    if (game.mode === 'book') {
+      if (k === 'Tab' || k === 'Escape' || k === 'e' || k === 'E') { e.preventDefault(); closeBook(); }
+      return;
+    }
+    if (game.mode === 'pause') {
+      if (k === 'Escape' || k === 'e' || k === 'E') { e.preventDefault(); closePause(); }
+      return;
+    }
+    if (game.mode === 'ending') return;
+
+    // play
+    if (k === 'ArrowLeft' || k === 'a' || k === 'A') { keys.left = true; e.preventDefault(); }
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D') { keys.right = true; e.preventDefault(); }
+    else if (k === 'ArrowUp' || k === 'w' || k === 'W') { keys.up = true; e.preventDefault(); }
+    else if (k === 'ArrowDown' || k === 's' || k === 'S') { keys.down = true; e.preventDefault(); }
+    else if (k === 'e' || k === 'E' || k === ' ' || k === 'Enter') { e.preventDefault(); interact(); }
+    else if (k === 'Tab') { e.preventDefault(); openBook(); }
+    else if (k === 'Escape') { e.preventDefault(); openPause(); }
+    else if (k === 'f' || k === 'F') { e.preventDefault(); toggleFull(); }
+  }
+
+  function clearKeys() { keys.left = keys.right = keys.up = keys.down = false; }
+
+  function handleKeyUp(e) {
+    var k = e.key;
+    if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.left = false;
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.right = false;
+    else if (k === 'ArrowUp' || k === 'w' || k === 'W') keys.up = false;
+    else if (k === 'ArrowDown' || k === 's' || k === 'S') keys.down = false;
+  }
+
+  // 触摸方向键
+  function bindTouchMove(btn) {
+    var dir = btn.getAttribute('data-move');
+    function on(e) { e.preventDefault(); keys[dir] = true; }
+    function off(e) { e.preventDefault(); keys[dir] = false; }
+    btn.addEventListener('pointerdown', on);
+    btn.addEventListener('pointerup', off);
+    btn.addEventListener('pointercancel', off);
+    btn.addEventListener('pointerleave', off);
+    btn.addEventListener('lostpointercapture', off);
+  }
+
+  // ============================================================
+  // 15 · 主循环
+  // ============================================================
+  function update(dt) {
+    // 打字机
+    var d = game.dialog;
+    if (d && d.typing) {
+      d.shown += dt * 70;
+      if (d.shown >= d.text.length) {
+        d.shown = d.text.length;
+        d.typing = false;
+        dlgNext.textContent = 'E / 点击继续 ▾';
+      }
+      renderDialogText();
+    }
+
+    // 移动
+    if (game.mode === 'play') updatePlayer(dt);
+
+    // 相机平滑跟随（?shot=1 缩略图模式用固定机位）
+    if (game.fixedCam) {
+      cam.x = game.fixedCam.x;
+      cam.y = game.fixedCam.y;
+    } else {
+      var tx = clamp(game.player.x - VW / 2, 0, WORLD_W - VW);
+      var ty = clamp(game.player.y - VH / 2, 0, WORLD_H - VH);
+      cam.x = lerp(cam.x, tx, Math.min(1, dt * 7));
+      cam.y = lerp(cam.y, ty, Math.min(1, dt * 7));
+    }
+
+    // 附近可交互物
+    var near = computeNear();
+    var oldId = game.near ? game.near.id : null;
+    var newId = near ? near.id : null;
+    game.near = near;
+    if (oldId !== newId) updateHint();
+
+    // 临时提示到期
+    if (game.toastUntil && game.time > game.toastUntil) {
+      game.toastUntil = 0;
+      updateHint();
+    }
+  }
+
+  var lastTs = 0;
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    var dt = Math.min((ts - lastTs) / 1000, 0.05);
+    lastTs = ts;
+    game.time += dt;
+    update(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  // ============================================================
+  // 16 · 事件绑定
+  // ============================================================
+  function bindEvents() {
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', clearKeys);
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) clearKeys();
+    });
+
+    $('btnStart').addEventListener('click', function () { startGame(false); });
+    $('btnHelp').addEventListener('click', function () {
+      var under = document.querySelector('.under');
+      if (under) under.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
+    });
+    $('btnBook').addEventListener('click', openBook);
+    $('btnFull').addEventListener('click', toggleFull);
+    $('btnCloseBook').addEventListener('click', closeBook);
+    $('btnResume').addEventListener('click', closePause);
+    $('btnRestart').addEventListener('click', function () { location.reload(); });
+    $('btnAgain').addEventListener('click', function () { location.reload(); });
+
+    // 密码锁键盘（屏幕按钮）
+    $('keypad').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      var act = b.getAttribute('data-act');
+      if (act === 'del') { lockDel(); return; }
+      if (act === 'ok') { submitCode(null); return; }
+      var d = b.getAttribute('data-d');
+      if (d != null) lockKey(d);
+    });
+
+    // 点击画面：对话时继续，走动时互动
+    canvas.addEventListener('click', function () {
+      if (game.mode === 'dialog') advanceDialog();
+      else if (game.mode === 'play') interact();
+    });
+
+    // 触摸按钮
+    var moves = document.querySelectorAll('[data-move]');
+    for (var i = 0; i < moves.length; i++) bindTouchMove(moves[i]);
+    var ta = $('touchA');
+    if (ta) {
+      ta.addEventListener('click', function () {
+        if (game.mode === 'title') startGame(false);
+        else if (game.mode === 'dialog') advanceDialog();
+        else if (game.mode === 'play') interact();
+      });
+    }
+    var tb = $('touchBook');
+    if (tb) tb.addEventListener('click', function () { if (game.mode === 'play') openBook(); });
+    var tp = $('touchPause');
+    if (tp) tp.addEventListener('click', function () {
+      if (game.mode === 'play') openPause();
+      else if (game.mode === 'pause') closePause();
+    });
+
+    // 触摸设备显示虚拟按键
+    try {
+      if (window.matchMedia('(hover:none) and (pointer:coarse)').matches) {
+        touchControls.classList.add('show');
+      }
+    } catch (e5) {}
+  }
+
+  // ============================================================
+  // 17 · 调试接口（验收脚本会用到；普通玩家不会看到）
+  // ============================================================
+  function publicState() {
+    var clues = {}, notes = [], flags = {};
+    for (var k in game.clues) if (game.clues[k]) clues[k] = true;
+    for (var n in game.notes) if (game.notes[n]) notes.push(n);
+    for (var f in game.flags) if (game.flags[f]) flags[f] = true;
+    var d = game.dialog;
+    var choices = null;
+    if (d && d.choice) choices = d.choice.map(function (o) { return o.label; });
+    return {
+      mode: game.mode,
+      started: game.started,
+      ended: game.ended,
+      player: { x: Math.round(game.player.x), y: Math.round(game.player.y), dir: game.player.dir },
+      camera: { x: Math.round(cam.x), y: Math.round(cam.y) },
+      clues: clues,
+      notes: notes,
+      flags: flags,
+      code: game.code,
+      near: computeNear() ? computeNear().id : null,
+      dialog: d ? { key: d.key, index: d.i, who: d.curWho, text: d.text, choices: choices } : null,
+      lockOpen: !!game.flags.lockOpen,
+      noteRead: !!game.flags.noteRead
+    };
+  }
+
+  window.SCHOOLSCAPE = {
+    version: '1.0.0',
+    getState: publicState,
+    ui: {
+      start: function () { startGame(false); },
+      advance: advanceDialog,
+      choose: chooseChoice,
+      submitCode: submitCode,
+      interact: interact,
+      openBook: openBook,
+      closeBook: closeBook,
+      closeLock: closeLock,
+      teleport: function (x, y) {
+        game.player.x = x; game.player.y = y;
+        cam.x = clamp(x - VW / 2, 0, WORLD_W - VW);
+        cam.y = clamp(y - VH / 2, 0, WORLD_H - VH);
+      },
+      restart: function () { location.reload(); }
+    }
+  };
+
+  // ============================================================
+  // 18 · 启动
+  // ============================================================
+  function boot() {
+    document.getElementById('year').textContent = String(new Date().getFullYear());
+    buildMap();
+    buildFurniture();
+    buildSolids();
+    // 标题页阶段，HUD 上的按钮先不可聚焦（遮罩下面点了也没用）
+    var huds0 = document.querySelectorAll('.hud');
+    for (var hi0 = 0; hi0 < huds0.length; hi0++) huds0[hi0].inert = true;
+    bindEvents();
+    game.player.x = 184;
+    game.player.y = 148;
+    cam.x = clamp(game.player.x - VW / 2, 0, WORLD_W - VW);
+    cam.y = clamp(game.player.y - VH / 2, 0, WORLD_H - VH);
+    updateHud();
+    updateHint();
+    updateLockDigits();
+    render();
+    requestAnimationFrame(frame);
+
+    var params = new URLSearchParams(location.search || '');
+    if (params.has('shot')) {
+      // 缩略图模式：摆好机位 + 一句台词，供主页截图用
+      startGame(true);
+      stage.classList.add('shotmode');
+      game.fixedCam = { x: 0, y: 55 };
+      game.player.x = 112; game.player.y = 120; game.player.dir = 'left';
+      cam.x = game.fixedCam.x; cam.y = game.fixedCam.y;
+      startDialogue('shot');
+    } else if (params.has('skip')) {
+      startGame(false);
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

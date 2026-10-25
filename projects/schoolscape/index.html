@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0b1220" />
 <title>没有人举手 · No One Raised a Hand</title>
-<meta name="description" content="《没有人举手》完整版网页游戏：七份证词、一间档案室、一个没人举手的教室。2D 像素校园剧情解谜，约 30 分钟，零依赖单文件。" />
+<meta name="description" content="《没有人举手》网页体验版：第一章「后排的空位」。2D 像素校园剧情解谜，约 5 分钟，零依赖单文件；完整版为 Windows 桌面版。" />
 <meta property="og:title" content="没有人举手 · No One Raised a Hand" />
-<meta property="og:description" content="七份证词，一间档案室，一个没人举手的教室。2D 像素校园剧情解谜完整版。" />
+<meta property="og:description" content="网页体验版：第一章「后排的空位」。完整故事（七份证词、档案室、两个结局）在 Windows 桌面版。" />
 <meta property="og:type" content="website" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230b1220'/><text x='50' y='72' font-size='58' font-family='Georgia,serif' font-weight='700' fill='%236ec1f2' text-anchor='middle'>N</text></svg>" />
 
 <!--
   ============================================================================
   没有人举手 / No One Raised a Hand（项目代号 SchoolScape）
-  projects/schoolscape/index.html　版本 v2.1.3（2026-10-25）
+  projects/schoolscape/index.html　版本 v2.2.0（2026-10-25 · 网页体验版）
   单文件、零依赖、无外部请求；场景 Canvas 桌面 400×225 / 手机 320×180，界面是普通 HTML。
   内容边界：含学生死亡与校园霸凌题材，不描写具体方式与细节；
   开场有内容提示，结尾附现实求助信息。
@@ -479,7 +479,7 @@
   <p class="kicker">No One Raised a Hand · Web</p>
   <h1>没有人举手</h1>
   <p class="en">No One Raised a Hand</p>
-  <p class="sub">2D 像素校园剧情解谜 · 完整版网页游戏 <b>约 30 分钟</b> · 自动保存</p>
+  <p class="sub">2D 像素校园剧情解谜 · <b>体验版 · 第一章</b> · 完整版在 Windows 桌面版</p>
 </header>
 
 <main class="stage-wrap">
@@ -489,7 +489,7 @@
     <!-- HUD -->
     <div class="hud tl">
       <span class="chip week" id="chipChapter">第一章 · 后排的空位</span>
-      <span class="chip">证词 <b id="chipClue">0</b>/7</span>
+      <span class="chip" id="chipClueWrap">证词 <b id="chipClue">0</b>/7</span>
     </div>
     <div class="hud tr">
       <button class="chip" id="btnBook" type="button" title="证词本（Tab）">证词本</button>
@@ -526,10 +526,10 @@
     <!-- 标题页 -->
     <div class="overlay title-screen" id="titleScreen" role="group" aria-label="没有人举手 标题页">
       <div class="panel" tabindex="-1">
-        <span class="title-badge">完整版 · Web</span>
+        <span class="title-badge">体验版 · 第一章</span>
         <h2>没有人举手</h2>
         <p class="t-en">No One Raised a Hand</p>
-        <p class="t-sub">七份证词，一间档案室，一个没人举手的教室。</p>
+        <p class="t-sub">第一章体验：一间教室，一张空课桌，一本笔记本。</p>
         <p class="title-warn">
           内容提示：本作涉及学生死亡、校园霸凌与教师失职等题材，不描写具体方式与细节。<br>
           如果这些内容会让你不适，请随时离开 —— 点左上角「返回主页」就可以。<br>
@@ -626,6 +626,26 @@
       </div>
     </div>
 
+    <!-- 体验版结束（网页版只开放第一章；后面的章节内容都在文件里，只是走不到） -->
+    <div class="overlay pause" id="demoEnd" role="dialog" aria-modal="true" aria-label="体验版结束" hidden>
+      <div class="panel" tabindex="-1" style="max-width:420px;text-align:left">
+        <p style="font-size:11.5px;font-weight:700;letter-spacing:.22em;color:var(--accent);margin-bottom:6px">DEMO</p>
+        <h3 style="font-size:22px">体验版就到这里</h3>
+        <p class="nb-sub" style="margin-top:10px">
+          网页版只放了<b>第一章「后排的空位」</b>：教室、后排那张空课桌、锁着的抽屉和那本笔记本。
+        </p>
+        <p class="nb-sub" style="margin-top:8px">
+          后面的六份证词、档案室、天台上的那个选择 —— 都在<b>完整版</b>里。
+          同一个故事已经移植成 Windows 桌面版，下载解压就能一路玩到两个结局。
+        </p>
+        <div class="title-actions" style="justify-content:flex-start">
+          <a class="btn btn-primary" id="btnDemoDownload" href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版（完整）↗</a>
+          <button class="btn btn-ghost" id="btnDemoStay" type="button">留在教室里看看</button>
+          <a class="btn btn-ghost" href="../../index.html">返回主页</a>
+        </div>
+      </div>
+    </div>
+
     <!-- 暂停菜单 -->
     <div class="overlay pause" id="pauseMenu" role="dialog" aria-modal="true" aria-label="暂停菜单" hidden>
       <div class="panel" tabindex="-1" style="max-width:380px;text-align:center">
@@ -677,8 +697,8 @@
   <div class="under">
     <div class="note">
       <b>关于这个游戏</b><br>
-      完整版《没有人举手》：从高三 7 班后排的空座位开始，走遍教学楼、操场、体育馆、食堂、停车场、宿舍和行政楼，
-      问出七份证词，然后你会发现一些没人愿意提的事。<br>
+      网页<b>体验版</b>只放了第一章「后排的空位」：从高三 7 班后排的空座位开始，问出一点不该问的事。<br>
+      后面还有六份证词、一次不该进的潜入、和最后那个选择 —— 这些都在<b>完整版</b>（Windows 桌面版）里，下载解压就能一路玩到两个结局。
       <span class="warnline">题材提示：涉及校园霸凌与学生死亡，不描写具体细节；开场有内容提示，结尾附现实求助信息。</span>
       <br>进度自动保存在这台浏览器里，关掉页面也能接着玩。<br>
       想要桌面版？同一个故事移植到了 Unity —— <a href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版 ↗</a>
@@ -720,6 +740,19 @@
 
   var REDUCED = false;
   try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+
+
+
+
+
+
+
+
+  var DEMO = true;
+  var DEMO_CHAPTER = 1;
+  var DEMO_SCENES = { class7: 1 };
+  function demoAllowsScene(id) { return !DEMO || !!DEMO_SCENES[id]; }
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function lerp(a, b, t) { return a + (b - a) * t; }
@@ -1053,6 +1086,9 @@
   function restoreSave() {
     var s = peekSave();
     if (!s || !SCENES[s.scene]) return false;
+
+    if (DEMO && (s.chapter || 1) > DEMO_CHAPTER) return false;
+    if (!demoAllowsScene(s.scene)) return false;
     game.clues = s.clues || game.clues;
     game.notes = s.notes || {};
     game.flags = s.flags || {};
@@ -1100,6 +1136,8 @@
     }
   }
   function goScene(to, spawn, after, opts) {
+
+    if (!demoAllowsScene(to)) { openDemoEnd(); return; }
     if (game.transition) return;
     game.transition = { to: to, spawn: spawn, after: after || null, opts: opts || {} };
     game.mode = 'transition';
@@ -4790,21 +4828,34 @@
   function buildNotebook() {
     nbList.innerHTML = '';
     var got = 0;
-    for (var i = 0; i < TESTIMONY_ORDER.length; i++) {
-      var k = TESTIMONY_ORDER[i], t = TESTIMONY[k], on = !!game.clues[k];
-      if (on) got++;
-      var row = el('div', 'nb-row' + (on ? ' on' : ''));
-      row.appendChild(el('span', 'sin', on ? t.name : '· · ·'));
-      var body = el('div', 'body');
+    if (DEMO) {
 
-      body.appendChild(el('b', '', on ? t.from : (t.where ? '没问到 · 去' + t.where + '看看' : '未取得')));
-      body.appendChild(el('span', '', on ? t.text : '还没问到。'));
-      row.appendChild(body);
-      row.appendChild(el('span', 'st', on ? '已取得' : '未取得'));
-      nbList.appendChild(row);
+      var rowD = el('div', 'nb-row');
+      rowD.style.gridTemplateColumns = '1fr';
+      var bodyD = el('div', 'body');
+      bodyD.appendChild(el('b', '', '体验版 · 第一章'));
+      bodyD.appendChild(el('span', '', '七份证词、一次不该进的潜入、最后那个选择 —— 都在完整版里。'));
+      rowD.appendChild(bodyD);
+      nbList.appendChild(rowD);
+    } else {
+      for (var i = 0; i < TESTIMONY_ORDER.length; i++) {
+        var k = TESTIMONY_ORDER[i], t = TESTIMONY[k], on = !!game.clues[k];
+        if (on) got++;
+        var row = el('div', 'nb-row' + (on ? ' on' : ''));
+        row.appendChild(el('span', 'sin', on ? t.name : '· · ·'));
+        var body = el('div', 'body');
+
+        body.appendChild(el('b', '', on ? t.from : (t.where ? '没问到 · 去' + t.where + '看看' : '未取得')));
+        body.appendChild(el('span', '', on ? t.text : '还没问到。'));
+        row.appendChild(body);
+        row.appendChild(el('span', 'st', on ? '已取得' : '未取得'));
+        nbList.appendChild(row);
+      }
     }
     var sub = notebook.querySelector('.nb-sub');
-    if (sub) sub.textContent = '已取得 ' + got + ' / 7。没拿到的证词，本子上不写罪名，只写着该去哪儿问。';
+    if (sub) sub.textContent = DEMO
+      ? '网页体验版只到第一章。完整故事里的证词本，会一份份填满。'
+      : '已取得 ' + got + ' / 7。没拿到的证词，本子上不写罪名，只写着该去哪儿问。';
     nbClues.innerHTML = '';
     var any = false;
     for (var nk in NOTES) {
@@ -4958,6 +5009,9 @@
 
   function updateHud() {
     if (chipClue) chipClue.textContent = String(clueCount());
+
+    var cw = document.getElementById('chipClueWrap');
+    if (cw) cw.style.display = DEMO ? 'none' : '';
     var c = CHAPTERS[game.chapter];
     if (chipChapter && c) chipChapter.textContent = c.no + ' · ' + c.title;
     var b = $('btnSound');
@@ -4988,6 +5042,30 @@
   function closePause() {
     pauseMenu.hidden = true;
     game.mode = 'play';
+    updateHint();
+    focusCanvas();
+  }
+
+
+
+  function openDemoEnd() {
+    if (!DEMO) return;
+    var box = $('demoEnd');
+    if (!box) return;
+    if (game.dialog) { game.dialog = null; dlgBox.hidden = true; stageEl.classList.remove('dialog-open'); }
+    game.mode = 'demo';
+    box.hidden = false;
+    updateHint();
+    sfx('page');
+    var b = $('btnDemoDownload');
+    if (b) { try { b.focus({ preventScroll: true }); } catch (e) { b.focus(); } }
+    var live = $('ariaLive');
+    if (live) live.textContent = '体验版就到这里。后面的章节在完整版里，可以下载 Windows 桌面版继续。';
+  }
+  function closeDemoEnd() {
+    var box = $('demoEnd');
+    if (box) box.hidden = true;
+    if (game.mode === 'demo') game.mode = 'play';
     updateHint();
     focusCanvas();
   }
@@ -5131,6 +5209,7 @@
     else if (game.mode === 'lock') modal = lockPanel;
     else if (game.mode === 'cabinet') modal = cabinetPanel;
     else if (game.mode === 'pause') modal = pauseMenu;
+    else if (game.mode === 'demo') modal = $('demoEnd');
     else if (game.mode === 'ending') modal = endingEl;
     if (modal && k === 'Tab') { trapTab(e, modal); return; }
 
@@ -5179,6 +5258,10 @@
     }
     if (game.mode === 'pause') {
       if (k === 'Escape' || k === 'e' || k === 'E') { e.preventDefault(); closePause(); }
+      return;
+    }
+    if (game.mode === 'demo') {
+      if (k === 'Escape' || k === 'e' || k === 'E' || k === 'Enter' || k === ' ') { e.preventDefault(); closeDemoEnd(); }
       return;
     }
     if (game.mode === 'ending') return;
@@ -5236,6 +5319,8 @@
     $('btnCloseLock').addEventListener('click', closeLock);
     $('btnCloseCabinet').addEventListener('click', closeCabinet);
     $('btnResume').addEventListener('click', closePause);
+    var bStay = $('btnDemoStay');
+    if (bStay) bStay.addEventListener('click', closeDemoEnd);
     $('btnSaveNow').addEventListener('click', function () { saveGame(); showToast('已保存。', 1600); });
     $('btnRestart').addEventListener('click', function () { clearSave(); location.reload(); });
     $('btnAgain').addEventListener('click', function () { clearSave(); location.reload(); });
@@ -5305,7 +5390,7 @@
   try { DEBUG = new URLSearchParams(location.search || '').get('debug') === '1'; } catch (e) {}
   game.debug = DEBUG;
   if (DEBUG) window.SCHOOLSCAPE = {
-    version: '2.1.3',
+    version: '2.2.0',
     getState: publicState,
     ui: {
       start: function () { startGame(false); },
@@ -5368,13 +5453,22 @@
     updateLockDigits();
     var save = peekSave();
     if (save) {
-      var btn = document.getElementById('btnContinue');
-      if (btn) btn.hidden = false;
+      var savedChapter = save.chapter || 1;
       var ts = document.getElementById('titleSave');
-      if (ts) {
-        ts.hidden = false;
-        var d = new Date(save.savedAt || Date.now());
-        ts.textContent = '有上次的进度：' + (save.scene === 'rooftop' ? '天台' : '游戏内') + ' · ' + d.toLocaleDateString();
+      if (DEMO && savedChapter > DEMO_CHAPTER) {
+
+        if (ts) {
+          ts.hidden = false;
+          ts.textContent = '有一份来自完整版的存档（第 ' + savedChapter + ' 章）。网页体验版只能从第一章开始 —— 完整进度请下载 Windows 版。';
+        }
+      } else {
+        var btn = document.getElementById('btnContinue');
+        if (btn) btn.hidden = false;
+        if (ts) {
+          ts.hidden = false;
+          var d = new Date(save.savedAt || Date.now());
+          ts.textContent = '有上次的进度：' + (save.scene === 'rooftop' ? '天台' : '游戏内') + ' · ' + d.toLocaleDateString();
+        }
       }
     }
     render();

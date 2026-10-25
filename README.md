@@ -14,7 +14,7 @@
 | `avatar.jpg` | 头像照片（和 `index.html` 放在同一层） |
 | `README.md` | 这份说明。⚠️ 仓库是公开的，它在 <https://yukiii-26.github.io/README.md> 也能被任何人直接打开 |
 | `projects/` | 放作品用的文件夹（一个项目一个子文件夹） |
-| `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（完整版 2D 像素校园剧情解谜，约 30 分钟、双结局、自动保存，单文件零依赖）。网址 <https://yukiii-26.github.io/projects/schoolscape/> |
+| `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（网页**体验版**：第一章「后排的空位」，约 5 分钟、单文件零依赖；完整版在 Unity 桌面版，见下面「特别企划」）。网址 <https://yukiii-26.github.io/projects/schoolscape/> |
 | `projects/minesweeper/` | 扫雷小游戏。**2026-10-24 已从首页隐藏**：文件都还在、网址也还能打开，只是首页不再链过去（恢复方法见「隐藏 / 恢复一个作品」） |
 | `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。网址 <https://yukiii-26.github.io/projects/konbini/> |
 | `projects/konbini/_dev/` | 上面那个单文件的**开发源码**（src / vendor / 打包脚本）。下划线开头，GitHub Pages 不会发布它，只在本地用 |
@@ -39,9 +39,12 @@
 
 ---
 
-## 《没有人举手》网页完整版
+## 《没有人举手》网页体验版
 
-作品区第一张卡片（`projects/schoolscape/index.html`）是一个可以完整通关的 2D 像素剧情解谜：约 30 分钟，从一间教室的空座位开始，问出一些没人愿意提的事，最后要做一个选择 —— 有两个结局。单文件、零依赖、无外部请求，手机和电脑都能玩，进度自动保存在浏览器里。
+作品区第一张卡片（`projects/schoolscape/index.html`）是**第一章「后排的空位」的体验版**：约 5 分钟，从一间教室的空座位开始，问出一些没人愿意提的事。单文件、零依赖、无外部请求，手机和电脑都能玩，进度自动保存在浏览器里。
+
+- **为什么只有第一章**：完整故事（七份证词、档案室、天台上的选择、两个结局）在 Unity 桌面版里，网页版故意只放第一章，让想先看看的人不用下载。
+- **后面章节没有删**：场景、对话、谜题、结局全都还在 `index.html` 里，只是被一个开关挡着 —— 在 `preview/schoolscape2/src/00-core.js` 里把 `var DEMO = true;` 改成 `false`，再跑 `node preview/schoolscape2/build.js`，网页版就变回完整版（这是我们自己留的开关，页面上没有入口）。
 
 - **操作**：`WASD` / 方向键移动，`E` / 空格互动和继续，`Tab` 证词本，`Esc` 暂停，`M` 声音，`F` 全屏。手机用画面下方的方向键和按钮。
 - **内容提示**：涉及校园霸凌与学生死亡，不描写具体方式与细节；开场有提示，结尾有现实求助信息。

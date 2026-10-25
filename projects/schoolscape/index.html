@@ -14,7 +14,7 @@
 <!--
   ============================================================================
   没有人举手 / No One Raised a Hand（项目代号 SchoolScape）
-  projects/schoolscape/index.html　版本 v2.2.0（2026-10-25 · 网页体验版）
+  projects/schoolscape/index.html　版本 v2.3.0（2026-10-25 · 网页体验版）
   单文件、零依赖、无外部请求；场景 Canvas 桌面 400×225 / 手机 320×180，界面是普通 HTML。
   内容边界：含学生死亡与校园霸凌题材，不描写具体方式与细节；
   开场有内容提示，结尾附现实求助信息。
@@ -109,6 +109,7 @@
 
   /* 缩略图模式（?shot=1）：界面往中间收一点，方便主页 16:10 裁切时不切掉字 */
   .stage.shotmode .hud,
+  .stage.shotmode .goalbar,
   .stage.shotmode .hintbar{display:none}
   .stage.shotmode .dialog{left:100px;right:100px;bottom:26px}
 
@@ -125,6 +126,24 @@
   .chip b{color:var(--accent);font-weight:800}
   button.chip{cursor:pointer;font-family:inherit}
   button.chip:hover{border-color:var(--accent);color:var(--accent-hi)}
+
+  /* 当前目标：常显在画面上（第一章的小目标，玩家不用翻证词本也知道下一步做什么） */
+  .goalbar{
+    position:absolute;z-index:3;left:9px;top:38px;max-width:min(60%,360px);margin:0;
+    font-size:11.5px;font-weight:600;letter-spacing:.02em;line-height:1.5;
+    color:rgba(244,239,232,.92);
+    padding:5px 9px;border-radius:9px;
+    background:rgba(8,13,22,.72);border:1px solid rgba(255,255,255,.12);
+    border-left:2px solid rgba(110,193,242,.7);
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+    pointer-events:none;
+  }
+  .goalbar b{color:var(--accent);font-weight:800}
+  .goalbar.flash{animation:goalFlash .9s ease-out}
+  @keyframes goalFlash{
+    0%{background:rgba(22,46,72,.94);border-left-color:var(--accent)}
+    100%{background:rgba(8,13,22,.72);border-left-color:rgba(110,193,242,.7)}
+  }
 
   /* 操作提示条：贴在画面右侧中部（原来贴底边，容易一眼扫过去漏掉） */
   .hintbar{
@@ -394,7 +413,7 @@
   @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
-    .choices button,.btn,.hintbar,.fade-in,.shake{transition:none;animation:none}
+    .choices button,.btn,.hintbar,.goalbar,.fade-in,.shake{transition:none;animation:none}
     .end-lines p{opacity:1;transform:none;animation:none}
   }
 
@@ -411,6 +430,7 @@
   @media (max-width:520px){
     .page-head h1{letter-spacing:.12em;text-indent:.12em}
     .hintbar{font-size:10.5px;right:6px;max-width:48%;padding:5px 8px;line-height:1.4;border-radius:10px}
+    .goalbar{left:6px;top:32px;max-width:64%;font-size:10.5px;padding:4px 7px;line-height:1.45;border-radius:8px}
     .title-screen .panel{padding:0 2px;max-height:100%}
     /* 窄屏舞台只有约 200px 高、标题卡内容却有 260px：把装饰性的小标题收掉，
        并让按钮「吸附」在卡片底部——内容提示可以在卡片里滚动，但「开始」永远看得见 */
@@ -428,7 +448,7 @@
     #btnDownload{display:none}
     .title-keys{display:none}
     .title-save{font-size:10.5px;margin-top:6px}
-    .overlay{padding:8px}
+    .overlay{padding:8px;background:rgba(5,9,16,.93)}
     .overlay .panel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
     .lock .panel{max-width:300px}
     .lock h3{font-size:14px}
@@ -446,8 +466,8 @@
     .nb-clues ul{font-size:11.5px;line-height:1.55}
     .nb-goal{font-size:11.5px;margin-top:8px;padding-top:6px}
     .nb-foot{position:sticky;bottom:0;background:rgba(8,13,22,.96);margin-top:10px;padding:8px 0 2px;font-size:11px}
-    .overlay.lock,.overlay.cabinet,.overlay.ending,.overlay.nb{position:fixed;inset:0;z-index:100;padding:12px}
-    .overlay.lock .panel,.overlay.cabinet .panel,.overlay.ending .panel,.overlay.nb .panel{max-height:100vh}
+    .overlay.lock,.overlay.cabinet,.overlay.ending,.overlay.nb,.overlay.pause{position:fixed;inset:0;z-index:100;padding:12px}
+    .overlay.lock .panel,.overlay.cabinet .panel,.overlay.ending .panel,.overlay.nb .panel,.overlay.pause .panel{max-height:100vh}
     .ending .panel{max-height:100%}
     .ending h2{font-size:26px;margin:2px 0 8px}
     .end-reflect canvas{width:60px;height:68px}
@@ -496,6 +516,9 @@
       <button class="chip" id="btnSound" type="button" title="声音开关（M）" aria-label="声音开关">🔊</button>
       <button class="chip" id="btnFull" type="button" title="全屏（F）" aria-label="全屏">⛶</button>
     </div>
+
+    <!-- 当前目标（常显；体验版和完整版都用它提示下一步） -->
+    <p class="goalbar" id="goalbar" role="status" aria-live="polite" hidden></p>
 
     <!-- 操作提示 -->
     <div class="hintbar" id="hintbar" role="status" aria-live="polite"><kbd>WASD</kbd> / 方向键移动 · <em>E</em> 互动 · <em>Tab</em> 证词本</div>
@@ -638,6 +661,7 @@
           后面的六份证词、档案室、天台上的那个选择 —— 都在<b>完整版</b>里。
           同一个故事已经移植成 Windows 桌面版，下载解压就能一路玩到两个结局。
         </p>
+        <p class="nb-sub" id="demoSummary" style="margin-top:8px;color:var(--warm)"></p>
         <div class="title-actions" style="justify-content:flex-start">
           <a class="btn btn-primary" id="btnDemoDownload" href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版（完整）↗</a>
           <button class="btn btn-ghost" id="btnDemoStay" type="button">留在教室里看看</button>
@@ -1360,6 +1384,7 @@
       camera: { x: Math.round(cam.x), y: Math.round(cam.y) },
       clues: clues,
       notes: notes,
+      goal: game.flags.goal || '',
       flags: flags,
       items: Object.keys(game.items),
       near: computeNear() ? computeNear().id : null,
@@ -2142,7 +2167,7 @@
       room(s, 4, 3, 23, 11, TILE.FLOOR);
 
       tset(s, 15, 14, TILE.DOOR); tset(s, 16, 14, TILE.DOOR);
-      addExit(s, 15 * TS, 200, 2 * TS, 24, 'hall1', 240, 88, '去走廊', { dir: 'south' });
+      addExit(s, 15 * TS, 200, 2 * TS, 24, 'hall1', 240, 88, '走出教室', { dir: 'south' });
 
       var cols = [6, 9, 12, 15, 18, 21, 24], rows = [5, 7, 9, 11];
       for (var r = 0; r < rows.length; r++) for (var c = 0; c < cols.length; c++) {
@@ -3686,6 +3711,8 @@
     game.flags.goal = text;
     var el = document.getElementById('nbGoal');
     if (el) el.textContent = '目标：' + text;
+
+    if (typeof updateGoalBar === 'function') updateGoalBar();
     saveGame();
   }
   function chapterCardIfNeeded(n, cb) {
@@ -4370,7 +4397,19 @@
       startDialogue('archive_truth');
       return true;
     }
+    try { demoChapterWrapUp(); } catch (e) { console.error(e); }
     return false;
+  }
+
+
+
+
+  function demoChapterWrapUp() {
+    if (!DEMO || game.flags.demoWrapped) return;
+    if (!game.flags.noteRead || !game.flags.chenyuIntro || !game.flags.sumanIntro) return;
+    game.flags.demoWrapped = true;
+    setGoal('走出教室，去走廊看看。');
+    showToast('（教室里能问的都问完了。）', 2800);
   }
 
 
@@ -4601,7 +4640,7 @@
     }
   }
 
-  var dlgBox, dlgWho, dlgTag, dlgText, dlgChoices, dlgNext, hintbar;
+  var dlgBox, dlgWho, dlgTag, dlgText, dlgChoices, dlgNext, hintbar, goalbar;
   var titleScreen, notebook, nbList, nbClues, nbGoal;
   var lockPanel, lockDigits, lockMsg, cabinetPanel;
   var endingEl, endLines, pauseMenu;
@@ -5007,6 +5046,22 @@
 
 
 
+
+
+  function updateGoalBar() {
+    if (!goalbar) return;
+    var g = game.flags ? game.flags.goal : '';
+    var show = !!(game.started && g && game.mode !== 'title' && game.mode !== 'demo' && game.mode !== 'ending');
+    if (!show) { goalbar.hidden = true; return; }
+    var txt = '目标：' + g;
+    if (goalbar.textContent !== txt) {
+      goalbar.textContent = txt;
+      goalbar.classList.remove('flash');
+      void goalbar.offsetWidth;
+      goalbar.classList.add('flash');
+    }
+    goalbar.hidden = false;
+  }
   function updateHud() {
     if (chipClue) chipClue.textContent = String(clueCount());
 
@@ -5016,10 +5071,12 @@
     if (chipChapter && c) chipChapter.textContent = c.no + ' · ' + c.title;
     var b = $('btnSound');
     if (b) b.textContent = audio.on ? '🔊' : '🔇';
+    updateGoalBar();
   }
   function updateHint() {
     if (!hintbar) return;
 
+    updateGoalBar();
     hintbar.classList.toggle('near', !!(game.mode === 'play' && game.near));
     if (game.toastUntil > game.time) { hintbar.innerHTML = game.toastText; return; }
     if (game.mode !== 'play') return;
@@ -5057,6 +5114,22 @@
     box.hidden = false;
     updateHint();
     sfx('page');
+
+    var sum = $('demoSummary');
+    if (sum) {
+      var notes = 0;
+      for (var nk in game.notes) if (game.notes[nk]) notes++;
+      var both = !!(game.flags.chenyuIntro && game.flags.sumanIntro);
+      if (notes <= 0) {
+        sum.textContent = '（你空着手出来了 —— 后排那张课桌、锁着的抽屉和那本笔记本，都还可以回去看看。）';
+      } else if (!game.flags.noteRead) {
+        sum.textContent = '这一章你记下了 ' + notes + ' 条线索，不过那本笔记本还没翻开。';
+      } else if (!both) {
+        sum.textContent = '这一章你记下了 ' + notes + ' 条线索。教室里还有同学没问过。';
+      } else {
+        sum.textContent = '这一章你记下了 ' + notes + ' 条线索，教室里能问的也都问过了。';
+      }
+    }
     var b = $('btnDemoDownload');
     if (b) { try { b.focus({ preventScroll: true }); } catch (e) { b.focus(); } }
     var live = $('ariaLive');
@@ -5135,6 +5208,7 @@
     dlgBox = $('dialog'); dlgWho = $('dlgWho'); dlgTag = $('dlgTag'); dlgText = $('dlgText');
     dlgChoices = $('dlgChoices'); dlgNext = $('dlgNext');
     hintbar = $('hintbar');
+    goalbar = $('goalbar');
     titleScreen = $('titleScreen'); notebook = $('notebook'); nbList = $('nbList'); nbClues = $('nbClues'); nbGoal = $('nbGoal');
     lockPanel = $('lockPanel'); lockDigits = $('lockDigits'); lockMsg = $('lockMsg'); cabinetPanel = $('cabinetPanel');
     endingEl = $('ending'); endLines = $('endLines'); pauseMenu = $('pauseMenu');
@@ -5390,7 +5464,7 @@
   try { DEBUG = new URLSearchParams(location.search || '').get('debug') === '1'; } catch (e) {}
   game.debug = DEBUG;
   if (DEBUG) window.SCHOOLSCAPE = {
-    version: '2.2.0',
+    version: '2.3.0',
     getState: publicState,
     ui: {
       start: function () { startGame(false); },

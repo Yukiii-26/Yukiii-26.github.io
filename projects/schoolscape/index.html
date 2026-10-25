@@ -769,7 +769,9 @@
     VOID: 0, FLOOR: 1, CORR: 2, WALL: 3, GRASS: 4, PATH: 5, COURT: 6,
     STAIR: 7, DOOR: 8, CONCRETE: 9, WOOD: 10, TILEF: 11, SKY: 12, FENCE: 13
   };
-  function solidTile(t) { return t === TILE.WALL || t === TILE.VOID || t === TILE.SKY; }
+  // 门不是"可以走过去的地板"：所有门都要站在门前按 E 才进出。
+  // 以前门是可走地块，7 班南门一走出去就直接站到外面的草地上（那里什么都没有）。
+  function solidTile(t) { return t === TILE.WALL || t === TILE.VOID || t === TILE.SKY || t === TILE.DOOR; }
 
   var game = {
     mode: 'title',           // title | play | dialog | lock | book | cabinet | pause | cinema | chapter | ending | transition
@@ -2121,7 +2123,7 @@
       // 南墙：操场门
       tset(s, 22, 10, TILE.DOOR); tset(s, 23, 10, TILE.DOOR);
       // 东端楼梯
-      tfill(s, 41, 6, 2, 3, TILE.STAIR);
+      tfill(s, 40, 6, 2, 3, TILE.STAIR);
       // 出口
       addExit(s, 13 * TS, 4 * TS, 2 * TS, 16, 'class7', 248, 208, '进 7 班', { dir: 'north' });
       addExit(s, 24 * TS, 4 * TS, 2 * TS, 16, 'class8', 266, 150, '进 8 班', { dir: 'north' });
@@ -5128,7 +5130,7 @@
   try { DEBUG = new URLSearchParams(location.search || '').get('debug') === '1'; } catch (e) {}
   game.debug = DEBUG;
   if (DEBUG) window.SCHOOLSCAPE = {
-    version: '2.0.1',
+    version: '2.0.2',
     getState: publicState,
     ui: {
       start: function () { startGame(false); },

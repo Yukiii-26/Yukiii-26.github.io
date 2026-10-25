@@ -14,8 +14,8 @@
 <!--
   ============================================================================
   没有人举手 / No One Raised a Hand（项目代号 SchoolScape）
-  projects/schoolscape/index.html　版本 v2.1.0（2026-10-25）
-  单文件、零依赖、无外部请求；场景 Canvas 320×180，界面是普通 HTML。
+  projects/schoolscape/index.html　版本 v2.1.1（2026-10-25）
+  单文件、零依赖、无外部请求；场景 Canvas 桌面 400×225 / 手机 320×180，界面是普通 HTML。
   内容边界：含学生死亡与校园霸凌题材，不描写具体方式与细节；
   开场有内容提示，结尾附现实求助信息。
   ============================================================================
@@ -126,15 +126,20 @@
   button.chip{cursor:pointer;font-family:inherit}
   button.chip:hover{border-color:var(--accent);color:var(--accent-hi)}
 
-  /* 操作提示条 */
+  /* 操作提示条：贴在画面右侧中部（原来贴底边，容易一眼扫过去漏掉） */
   .hintbar{
-    position:absolute;z-index:3;left:50%;bottom:8px;transform:translateX(-50%);
-    max-width:92%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    font-size:12.5px;font-weight:600;letter-spacing:.02em;color:rgba(244,239,232,.88);
-    padding:5px 12px;border-radius:999px;
-    background:rgba(8,13,22,.62);border:1px solid rgba(255,255,255,.10);
+    position:absolute;z-index:3;right:12px;top:50%;transform:translateY(-50%);
+    max-width:46%;text-align:left;white-space:normal;
+    font-size:12.5px;font-weight:600;letter-spacing:.02em;line-height:1.45;color:rgba(244,239,232,.9);
+    padding:7px 11px;border-radius:12px;
+    background:rgba(8,13,22,.72);border:1px solid rgba(255,255,255,.12);
     -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
-    transition:opacity .18s;
+    transition:opacity .18s,border-color .18s,background .18s;
+  }
+  /* 靠近可互动目标时突出显示 */
+  .hintbar.near{
+    border-color:rgba(110,193,242,.62);background:rgba(10,20,34,.88);
+    box-shadow:0 0 0 1px rgba(110,193,242,.22),0 10px 24px -18px rgba(0,0,0,.9);
   }
   .hintbar em{font-style:normal;color:var(--warm);font-weight:800}
   .hintbar kbd{font-family:inherit;color:var(--accent);font-weight:800}
@@ -403,7 +408,7 @@
   }
   @media (max-width:520px){
     .page-head h1{letter-spacing:.12em;text-indent:.12em}
-    .hintbar{font-size:11px;bottom:6px;padding:4px 9px;white-space:normal;line-height:1.45;border-radius:10px}
+    .hintbar{font-size:10.5px;right:6px;max-width:48%;padding:5px 8px;line-height:1.4;border-radius:10px}
     .title-screen .panel{padding:0 2px;max-height:100%}
     .title-badge{font-size:9px;padding:3px 8px}
     .title-screen h2{font-size:clamp(28px,8vw,34px);letter-spacing:.12em;text-indent:.12em;margin-top:6px}
@@ -470,7 +475,7 @@
 
 <main class="stage-wrap">
   <div class="stage" id="stage">
-    <canvas id="game" width="320" height="180" tabindex="-1" aria-label="像素风校园场景。画面下方的文字会同步朗读剧情。"></canvas>
+    <canvas id="game" width="400" height="225" tabindex="-1" aria-label="像素风校园场景。画面下方的文字会同步朗读剧情。"></canvas>
 
     <!-- HUD -->
     <div class="hud tl">
@@ -692,7 +697,11 @@
 
 
 
-  var VW = 320, VH = 180, TS = 16;
+
+
+
+
+  var VW = 400, VH = 225, TS = 16;
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -970,8 +979,8 @@
     var safe = findFreeSpot(sp.x, sp.y);
     game.player.x = safe.x; game.player.y = safe.y;
     game.player.dir = sp.dir || 'down';
-    cam.x = clamp(game.player.x - VW / 2, 0, Math.max(0, def.w * TS - VW));
-    cam.y = clamp(game.player.y - VH / 2, 0, Math.max(0, def.h * TS - VH));
+    cam.x = camTargetX(game.player.x);
+    cam.y = camTargetY(game.player.y);
     setAmbience(def.ambience || 'indoor');
     var o = opts || {};
     if (!o.silent && def.onEnter) def.onEnter(scene, o);
@@ -979,6 +988,11 @@
     saveGame();
   }
 
+
+
+  var CAM_LIFT_Y = 14;
+  function camTargetX(px) { return clamp(px - VW / 2, 0, Math.max(0, sceneW() - VW)); }
+  function camTargetY(py) { return clamp(py - VH / 2 - CAM_LIFT_Y, 0, Math.max(0, sceneH() - VH)); }
   function sceneW() { return scene ? scene.w * TS : VW; }
   function sceneH() { return scene ? scene.h * TS : VH; }
 
@@ -1993,7 +2007,7 @@
       var g = ctx.createLinearGradient(48, 0, 300, 0);
       g.addColorStop(0, 'rgba(255,190,120,.11)');
       g.addColorStop(0.75, 'rgba(255,190,120,0)');
-      ctx.fillStyle = g; ctx.fillRect(48, 16, 260, 150);
+      ctx.fillStyle = g; ctx.fillRect(48, 16, 260, VH);
     } else if (id === 'campus' || id === 'gym' || id === 'canteen' || id === 'parking' || id === 'rooftop') {
       ctx.fillStyle = 'rgba(255,170,110,.055)';
       ctx.fillRect(0, 0, scene.w * TS, scene.h * TS);
@@ -2009,10 +2023,10 @@
 
       for (var l = 0; l < 3; l++) {
         var lx = 5 * TS + l * 10 * TS;
-        var gg = ctx.createRadialGradient(lx, 2 * TS, 4, lx, 5 * TS, 90);
+        var gg = ctx.createRadialGradient(lx, 2 * TS, 4, lx, 5 * TS, 120);
         gg.addColorStop(0, 'rgba(210,235,240,.10)');
         gg.addColorStop(1, 'rgba(210,235,240,0)');
-        ctx.fillStyle = gg; ctx.fillRect(lx - 90, 0, 180, 160);
+        ctx.fillStyle = gg; ctx.fillRect(lx - 120, 0, 240, VH);
       }
     } else if (id === 'dorm') {
       ctx.fillStyle = 'rgba(80,70,110,.10)';
@@ -2103,7 +2117,7 @@
 
 
   registerScene('hall1', {
-    name: '教学楼 1F 走廊', sub: '高三', w: 44, h: 14, ambience: 'hall',
+    name: '教学楼 1F 走廊', sub: '高三', w: 44, h: 15, ambience: 'hall',
     tint: { floor: '#b6b2a8' },
     spawn: { x: 240, y: 80, dir: 'down' },
     build: function (s) {
@@ -2393,12 +2407,12 @@
 
 
   registerScene('hall5', {
-    name: '教学楼 5F', sub: '档案副室 / 天台入口', w: 30, h: 12, ambience: 'hall',
+    name: '教学楼 5F', sub: '档案副室 / 天台入口', w: 30, h: 15, ambience: 'hall',
     tint: { floor: '#aaa79c', corr: '#aaa79c' },
     spawn: { x: 5 * TS, y: 6 * TS, dir: 'right' },
     build: function (s) {
       tfill(s, 0, 0, s.w, s.h, TILE.WALL);
-      room(s, 3, 3, 24, 5, TILE.CORR);
+      room(s, 3, 3, 24, 8, TILE.CORR);
 
       tfill(s, 3, 5, 2, 2, TILE.STAIR);
       addExit(s, 3 * TS, 5 * TS, 2 * TS, 2 * TS, 'hall1', 40 * TS, 7 * TS, '下楼', { dir: 'west' });
@@ -2462,14 +2476,15 @@
 
 
 
+
   var TESTIMONY = {
-    pride:    { name: '傲慢', from: '年级主任', text: '「他自己心理素质不行，怪谁？」' },
-    envy:     { name: '嫉妒', from: '李芷',     text: '「我只是想让老师公平点。」' },
-    wrath:    { name: '暴怒', from: '严亮',     text: '「他先不合群的。」' },
-    lazy:     { name: '懒惰', from: '方老师',   text: '「我按流程做了。」' },
-    greed:    { name: '贪婪', from: '罗启',     text: '「我家也要吃饭啊。」' },
-    gluttony: { name: '暴食', from: '吴桐',     text: '「大家都传，我就传了。」' },
-    lust:     { name: '色欲', from: '孙雅',     text: '「我们只是开玩笑。」' }
+    pride:    { name: '傲慢', from: '年级主任', text: '「他自己心理素质不行，怪谁？」', where: '教学楼 1F 走廊' },
+    envy:     { name: '嫉妒', from: '李芷',     text: '「我只是想让老师公平点。」', where: '高二 8 班' },
+    wrath:    { name: '暴怒', from: '严亮',     text: '「他先不合群的。」', where: '体育馆' },
+    lazy:     { name: '懒惰', from: '方老师',   text: '「我按流程做了。」', where: '行政楼 3F 心理室' },
+    greed:    { name: '贪婪', from: '罗启',     text: '「我家也要吃饭啊。」', where: '停车场' },
+    gluttony: { name: '暴食', from: '吴桐',     text: '「大家都传，我就传了。」', where: '食堂' },
+    lust:     { name: '色欲', from: '孙雅',     text: '「我们只是开玩笑。」', where: '学生宿舍' }
   };
 
   var NOTES = {
@@ -4755,14 +4770,15 @@
       var row = el('div', 'nb-row' + (on ? ' on' : ''));
       row.appendChild(el('span', 'sin', on ? t.name : '· · ·'));
       var body = el('div', 'body');
-      body.appendChild(el('b', '', on ? t.from : '未取得'));
+
+      body.appendChild(el('b', '', on ? t.from : (t.where ? '没问到 · 去' + t.where + '看看' : '未取得')));
       body.appendChild(el('span', '', on ? t.text : '还没问到。'));
       row.appendChild(body);
       row.appendChild(el('span', 'st', on ? '已取得' : '未取得'));
       nbList.appendChild(row);
     }
     var sub = notebook.querySelector('.nb-sub');
-    if (sub) sub.textContent = '已取得 ' + got + ' / 7。未取得的证词，本子上不会留下任何名字。';
+    if (sub) sub.textContent = '已取得 ' + got + ' / 7。没拿到的证词，本子上不写罪名，只写着该去哪儿问。';
     nbClues.innerHTML = '';
     var any = false;
     for (var nk in NOTES) {
@@ -4923,6 +4939,8 @@
   }
   function updateHint() {
     if (!hintbar) return;
+
+    hintbar.classList.toggle('near', !!(game.mode === 'play' && game.near));
     if (game.toastUntil > game.time) { hintbar.innerHTML = game.toastText; return; }
     if (game.mode !== 'play') return;
     if (game.near) {
@@ -5005,6 +5023,11 @@
 
   function initDom() {
     stageEl = $('stage');
+
+    if (canvas && (canvas.width !== VW || canvas.height !== VH)) {
+      canvas.width = VW; canvas.height = VH;
+      ctx.imageSmoothingEnabled = false;
+    }
     dlgBox = $('dialog'); dlgWho = $('dlgWho'); dlgTag = $('dlgTag'); dlgText = $('dlgText');
     dlgChoices = $('dlgChoices'); dlgNext = $('dlgNext');
     hintbar = $('hintbar');
@@ -5038,8 +5061,8 @@
     if (game.fixedCam) {
       cam.x = game.fixedCam.x; cam.y = game.fixedCam.y;
     } else {
-      var tx = clamp(game.player.x - VW / 2, 0, Math.max(0, sceneW() - VW));
-      var ty = clamp(game.player.y - VH / 2, 0, Math.max(0, sceneH() - VH));
+      var tx = camTargetX(game.player.x);
+      var ty = camTargetY(game.player.y);
       cam.x = lerp(cam.x, tx, Math.min(1, dt * 7));
       cam.y = lerp(cam.y, ty, Math.min(1, dt * 7));
     }
@@ -5252,7 +5275,7 @@
   try { DEBUG = new URLSearchParams(location.search || '').get('debug') === '1'; } catch (e) {}
   game.debug = DEBUG;
   if (DEBUG) window.SCHOOLSCAPE = {
-    version: '2.1.0',
+    version: '2.1.1',
     getState: publicState,
     ui: {
       start: function () { startGame(false); },
@@ -5281,8 +5304,7 @@
       },
       teleport: function (x, y) {
         game.player.x = x; game.player.y = y;
-        cam.x = clamp(x - VW / 2, 0, Math.max(0, sceneW() - VW));
-        cam.y = clamp(y - VH / 2, 0, Math.max(0, sceneH() - VH));
+        cam.x = camTargetX(x); cam.y = camTargetY(y);
       },
       giveClue: function (k) { applyEffect({ testimony: k }); },
       setFlag: function (k, v) { game.flags[k] = (v === undefined ? true : v); updateHud(); saveGame(); },
@@ -5298,6 +5320,11 @@
 
 
   function boot() {
+
+
+    try {
+      if (window.innerWidth < 620) { VW = 320; VH = 180; }
+    } catch (e) {}
     initDom();
     var y = document.getElementById('year');
     if (y) y.textContent = String(new Date().getFullYear());

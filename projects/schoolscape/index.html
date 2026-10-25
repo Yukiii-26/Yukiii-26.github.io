@@ -14,7 +14,7 @@
 <!--
   ============================================================================
   没有人举手 / No One Raised a Hand（项目代号 SchoolScape）
-  projects/schoolscape/index.html　版本 v2.1.2（2026-10-25）
+  projects/schoolscape/index.html　版本 v2.1.3（2026-10-25）
   单文件、零依赖、无外部请求；场景 Canvas 桌面 400×225 / 手机 320×180，界面是普通 HTML。
   内容边界：含学生死亡与校园霸凌题材，不描写具体方式与细节；
   开场有内容提示，结尾附现实求助信息。
@@ -378,6 +378,8 @@
   .under .note b{color:var(--ink)}
   .under .note .warnline{color:#e4c9a5}
   .under .ops{font-size:13px;line-height:1.9;color:var(--muted);padding:4px 2px}
+  .under a{color:var(--accent);border-bottom:1px solid rgba(110,193,242,.38)}
+  .under a:hover{color:var(--accent-hi);border-bottom-color:var(--accent-hi)}
   .under .ops kbd{
     display:inline-block;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
     border-radius:5px;padding:0 5px;font-family:Consolas,monospace;font-size:10.5px;color:var(--ink);
@@ -410,13 +412,20 @@
     .page-head h1{letter-spacing:.12em;text-indent:.12em}
     .hintbar{font-size:10.5px;right:6px;max-width:48%;padding:5px 8px;line-height:1.4;border-radius:10px}
     .title-screen .panel{padding:0 2px;max-height:100%}
-    .title-badge{font-size:9px;padding:3px 8px}
-    .title-screen h2{font-size:clamp(28px,8vw,34px);letter-spacing:.12em;text-indent:.12em;margin-top:6px}
+    /* 窄屏舞台只有约 200px 高、标题卡内容却有 260px：把装饰性的小标题收掉，
+       并让按钮「吸附」在卡片底部——内容提示可以在卡片里滚动，但「开始」永远看得见 */
+    .title-screen .panel{display:flex;flex-direction:column}
+    .title-screen .title-actions{position:sticky;bottom:0;padding-top:10px;
+      background:linear-gradient(180deg,rgba(6,10,18,0),rgba(6,10,18,.94) 42%)}
+    .title-badge{display:none}
+    .title-screen h2{font-size:clamp(26px,7.4vw,32px);letter-spacing:.1em;text-indent:.1em;margin-top:2px}
     .title-screen .t-en{font-size:10.5px;margin-top:2px}
-    .title-screen .t-sub{font-size:11px;margin-top:4px}
-    .title-warn{margin-top:8px;font-size:12.5px;line-height:1.55;padding:7px 9px;max-width:100%}
-    .title-actions{margin-top:10px;gap:8px}
-    .title-actions .btn{min-height:36px;padding:7px 13px;font-size:12.5px}
+    .title-screen .t-sub{display:none}
+    .title-warn{margin-top:6px;font-size:12px;line-height:1.45;padding:6px 8px;max-width:100%}
+    .title-actions{margin-top:8px;gap:8px}
+    .title-actions .btn{min-height:34px;padding:6px 12px;font-size:12.5px}
+    /* 第 4 个按钮（桌面版下载）在标题卡里放不下，手机上只在下方说明区 / 页脚保留下载入口 */
+    #btnDownload{display:none}
     .title-keys{display:none}
     .title-save{font-size:10.5px;margin-top:6px}
     .overlay{padding:8px}
@@ -530,6 +539,8 @@
           <button class="btn btn-primary" id="btnStart" type="button">开始 · 走进教室</button>
           <button class="btn btn-ghost" id="btnContinue" type="button" hidden>继续上次</button>
           <button class="btn btn-ghost" id="btnHelp" type="button">操作说明</button>
+          <!-- 桌面版下载（Unity 移植，同一个故事的 Windows 版） -->
+          <a class="btn btn-ghost" id="btnDownload" href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版 ↗</a>
         </div>
         <p class="title-save" id="titleSave" hidden></p>
         <p class="title-keys"><kbd>WASD</kbd> 移动　<kbd>E</kbd> 互动　<kbd>Tab</kbd> 证词本　<kbd>Esc</kbd> 菜单　<kbd>M</kbd> 声音</p>
@@ -669,7 +680,8 @@
       完整版《没有人举手》：从高三 7 班后排的空座位开始，走遍教学楼、操场、体育馆、食堂、停车场、宿舍和行政楼，
       问出七份证词，然后你会发现一些没人愿意提的事。<br>
       <span class="warnline">题材提示：涉及校园霸凌与学生死亡，不描写具体细节；开场有内容提示，结尾附现实求助信息。</span>
-      <br>进度自动保存在这台浏览器里，关掉页面也能接着玩。
+      <br>进度自动保存在这台浏览器里，关掉页面也能接着玩。<br>
+      想要桌面版？同一个故事移植到了 Unity —— <a href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版 ↗</a>
     </div>
     <div class="ops">
       <b>操作</b><br>
@@ -684,7 +696,7 @@
 <footer>
   <div class="wrap">
     <span>© <span id="year">2026</span> Yukishiro · 没有人举手（项目代号 SchoolScape）</span>
-    <span>零依赖单文件 · 无外部请求 · <a href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">Unity 项目源码 ↗</a></span>
+    <span>零依赖单文件 · 无外部请求 · <a href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版 ↗</a> · <a href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">Unity 项目源码 ↗</a></span>
   </div>
 </footer>
 
@@ -5123,7 +5135,11 @@
     if (modal && k === 'Tab') { trapTab(e, modal); return; }
 
     if (game.mode === 'title') {
-      if (k === 'Enter' || k === ' ' || k === 'e' || k === 'E') { e.preventDefault(); startGame(false); }
+
+      var tgt = e.target;
+      var onLink = false;
+      try { onLink = !!(tgt && tgt.closest && tgt.closest('a[href]')); } catch (e3) {}
+      if (!onLink && (k === 'Enter' || k === ' ' || k === 'e' || k === 'E')) { e.preventDefault(); startGame(false); }
       return;
     }
     if (game.mode === 'cinema') {
@@ -5289,7 +5305,7 @@
   try { DEBUG = new URLSearchParams(location.search || '').get('debug') === '1'; } catch (e) {}
   game.debug = DEBUG;
   if (DEBUG) window.SCHOOLSCAPE = {
-    version: '2.1.2',
+    version: '2.1.3',
     getState: publicState,
     ui: {
       start: function () { startGame(false); },

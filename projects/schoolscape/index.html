@@ -14,7 +14,7 @@
 <!--
   ============================================================================
   没有人举手 / No One Raised a Hand（项目代号 SchoolScape）
-  projects/schoolscape/index.html　版本 v2.1.1（2026-10-25）
+  projects/schoolscape/index.html　版本 v2.1.2（2026-10-25）
   单文件、零依赖、无外部请求；场景 Canvas 桌面 400×225 / 手机 320×180，界面是普通 HTML。
   内容边界：含学生死亡与校园霸凌题材，不描写具体方式与细节；
   开场有内容提示，结尾附现实求助信息。
@@ -1876,6 +1876,13 @@
         ell(x + 10, y - 2, 6, 5, '#2a2d33'); ell(x + 38, y - 2, 6, 5, '#2a2d33');
         ell(x + 10, y - 2, 3, 2, '#6a7078'); ell(x + 38, y - 2, 3, 2, '#6a7078');
         break;
+      case 'psign':
+
+        rr(x + 4, y - 16, 3, 16, '#7c8288');
+        rr(x, y - 26, 18, 14, '#24507a');
+        rr(x, y - 26, 18, 2, '#3f74a6');
+        pixText('P', x + 6, y - 24, '#eef4f8', 2);
+        break;
       case 'watertank':
         rr(x, y - 40, 44, 32, '#7d8288'); rr(x, y - 44, 44, 6, '#8f959b');
         rr(x + 4, y - 36, 36, 1, 'rgba(255,255,255,.12)');
@@ -2206,7 +2213,12 @@
       addExit(s, 57 * TS, 17 * TS, 2 * TS, 20, 'dorm', 18 * TS, 10 * TS, '进宿舍楼', { dir: 'north' });
 
       tfill(s, 47, 31, 15, 10, TILE.CONCRETE);
-      addExit(s, 47 * TS, 35 * TS, 20, 3 * TS, 'parking', 3 * TS, 10 * TS, '去停车场', { dir: 'west' });
+
+
+
+      addProp(s, 'psign', 46 * TS + 4, 33 * TS + 10, { sort: 33 });
+      addProp(s, 'psign', 61 * TS - 10, 31 * TS + 10, { sort: 31 });
+      addExit(s, 47 * TS, 31 * TS, 15 * TS, 10 * TS, 'parking', 3 * TS, 10 * TS, '进停车场', { dir: 'west' });
 
       tfill(s, 21, 3, 6, 39, TILE.PATH);
       tfill(s, 7, 28, 49, 3, TILE.PATH);
@@ -2322,7 +2334,9 @@
       tfill(s, 0, 0, s.w, s.h, TILE.CONCRETE);
       tfill(s, 0, 0, s.w, 1, TILE.WALL); tfill(s, 0, 0, 1, s.h, TILE.WALL);
       tfill(s, 33, 0, 1, s.h, TILE.WALL); tfill(s, 0, 19, s.w, 1, TILE.WALL);
-      addExit(s, 2 * TS, 8 * TS, 24, 4 * TS, 'campus', 48 * TS, 36 * TS, '回操场', { dir: 'west' });
+
+      addExit(s, 1 * TS, 5 * TS, 4 * TS, 11 * TS, 'campus', 48 * TS, 36 * TS, '回操场', { dir: 'west' });
+      addProp(s, 'psign', 2 * TS, 7 * TS, { sort: 7 });
       addProp(s, 'car', 6 * TS, 10 * TS, { v: { color: '#5a6674', color2: '#6d7a89' }, solid: true, sort: 10, sx: 0, sy: -26, sw: 48, sh: 26 });
       addProp(s, 'car', 13 * TS, 10 * TS, { v: { color: '#7a6a5a', color2: '#8d7c6a' }, solid: true, sort: 10, sx: 0, sy: -26, sw: 48, sh: 26 });
       addProp(s, 'car', 20 * TS, 10 * TS, { v: { color: '#4f5f5a', color2: '#61736c' }, solid: true, sort: 10, sx: 0, sy: -26, sw: 48, sh: 26 });
@@ -2480,9 +2494,9 @@
   var TESTIMONY = {
     pride:    { name: '傲慢', from: '年级主任', text: '「他自己心理素质不行，怪谁？」', where: '教学楼 1F 走廊' },
     envy:     { name: '嫉妒', from: '李芷',     text: '「我只是想让老师公平点。」', where: '高二 8 班' },
-    wrath:    { name: '暴怒', from: '严亮',     text: '「他先不合群的。」', where: '体育馆' },
+    wrath:    { name: '暴怒', from: '严亮',     text: '「他先不合群的。」', where: '体育馆（操场西侧）' },
     lazy:     { name: '懒惰', from: '方老师',   text: '「我按流程做了。」', where: '行政楼 3F 心理室' },
-    greed:    { name: '贪婪', from: '罗启',     text: '「我家也要吃饭啊。」', where: '停车场' },
+    greed:    { name: '贪婪', from: '罗启',     text: '「我家也要吃饭啊。」', where: '停车场（校园东南角）' },
     gluttony: { name: '暴食', from: '吴桐',     text: '「大家都传，我就传了。」', where: '食堂' },
     lust:     { name: '色欲', from: '孙雅',     text: '「我们只是开玩笑。」', where: '学生宿舍' }
   };
@@ -5275,7 +5289,7 @@
   try { DEBUG = new URLSearchParams(location.search || '').get('debug') === '1'; } catch (e) {}
   game.debug = DEBUG;
   if (DEBUG) window.SCHOOLSCAPE = {
-    version: '2.1.1',
+    version: '2.1.2',
     getState: publicState,
     ui: {
       start: function () { startGame(false); },

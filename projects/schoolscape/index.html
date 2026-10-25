@@ -984,7 +984,8 @@
     game.sceneId = id;
     def.build(scene);
     var sp = spawn || def.spawn || { x: def.w * TS / 2, y: def.h * TS / 2 };
-    game.player.x = sp.x; game.player.y = sp.y;
+    var safe = findFreeSpot(sp.x, sp.y);
+    game.player.x = safe.x; game.player.y = safe.y;
     game.player.dir = sp.dir || 'down';
     cam.x = clamp(game.player.x - VW / 2, 0, Math.max(0, def.w * TS - VW));
     cam.y = clamp(game.player.y - VH / 2, 0, Math.max(0, def.h * TS - VH));
@@ -1245,6 +1246,21 @@
   function tryMove(x, y) {
     var p = game.player;
     if (!blockedRect(footRect(x, y))) { p.x = x; p.y = y; }
+  }
+  // 出生点保护：落点如果正好压在家具碰撞盒里（课桌、讲台…），就近推到最近的可站立位置。
+  // 没有这一层的话，只要出生点或存档坐标被家具盖住，角色就永远动不了。
+  function findFreeSpot(x, y) {
+    if (!blockedRect(footRect(x, y))) return { x: x, y: y };
+    for (var r = 1; r <= 48; r++) {
+      for (var dy = -r; dy <= r; dy++) {
+        for (var dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          var nx = x + dx * 4, ny = y + dy * 4;
+          if (!blockedRect(footRect(nx, ny))) return { x: nx, y: ny };
+        }
+      }
+    }
+    return { x: x, y: y };
   }
   function updatePlayer(dt) {
     var p = game.player, mx = 0, my = 0;
@@ -2055,7 +2071,7 @@
   registerScene('class7', {
     name: '高三 7 班教室', sub: '教学楼 1F', w: 30, h: 18, ambience: 'class',
     tint: { floor: '#c7beaa' },
-    spawn: { x: 248, y: 190, dir: 'up' },
+    spawn: { x: 266, y: 190, dir: 'up' },
     build: function (s) {
       tfill(s, 0, 0, s.w, s.h, TILE.GRASS);
       room(s, 4, 3, 23, 11, TILE.FLOOR);
@@ -2108,7 +2124,7 @@
       tfill(s, 41, 6, 2, 3, TILE.STAIR);
       // 出口
       addExit(s, 13 * TS, 4 * TS, 2 * TS, 16, 'class7', 248, 208, '进 7 班', { dir: 'north' });
-      addExit(s, 24 * TS, 4 * TS, 2 * TS, 16, 'class8', 240, 150, '进 8 班', { dir: 'north' });
+      addExit(s, 24 * TS, 4 * TS, 2 * TS, 16, 'class8', 266, 150, '进 8 班', { dir: 'north' });
       addExit(s, 22 * TS, 9 * TS, 2 * TS, 16, 'campus', 24 * TS, 5 * TS, '去操场', { dir: 'south' });
       addExit(s, 40 * TS + 8, 6 * TS, 24, 3 * TS, 'hall5', 5 * TS, 6 * TS, '上五楼', { dir: 'east' });
       // 家具
@@ -2131,7 +2147,7 @@
   registerScene('class8', {
     name: '高二 8 班教室', sub: '教学楼 1F', w: 28, h: 16, ambience: 'class',
     tint: { floor: '#c9c0aa' },
-    spawn: { x: 240, y: 150, dir: 'up' },
+    spawn: { x: 266, y: 150, dir: 'up' },
     build: function (s) {
       tfill(s, 0, 0, s.w, s.h, TILE.GRASS);
       room(s, 4, 3, 20, 10, TILE.FLOOR);
@@ -5112,7 +5128,7 @@
   try { DEBUG = new URLSearchParams(location.search || '').get('debug') === '1'; } catch (e) {}
   game.debug = DEBUG;
   if (DEBUG) window.SCHOOLSCAPE = {
-    version: '2.0.0',
+    version: '2.0.1',
     getState: publicState,
     ui: {
       start: function () { startGame(false); },

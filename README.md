@@ -19,6 +19,7 @@
 | `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。网址 <https://yukiii-26.github.io/projects/konbini/> |
 | `projects/konbini/_dev/` | 上面那个单文件的**开发源码**（src / vendor / 打包脚本）。下划线开头，GitHub Pages 不会发布它，只在本地用 |
 | `projects/mapgen/` | 作品三：架空世界地图生成器。网址 <https://yukiii-26.github.io/projects/mapgen/> |
+| `projects/fartsim/` | 作品四：SCI-POOT 3000 放屁扩散模拟器。**纯属搞怪**——一个抽象搞笑的玩具，不是真科学。网址 <https://yukiii-26.github.io/projects/fartsim/> |
 | `projects/valley/` | 岁月山谷 Valley of Ages。**2026-10-24 已从首页隐藏**：文件都还在、网址也还能打开，只是首页不再链过去（恢复方法见「隐藏 / 恢复一个作品」） |
 | `assets/` | 主页用到的图片：作品缩略图 `thumb-*.jpg`（16:10、800×500）与背景图 `bg-dusk.jpg` / `bg-dusk-mobile.jpg` |
 | `projects/template/` | 「项目详情页」模板。复制一份改个名就是新项目，见下面「怎么加一个新作品」 |
@@ -58,6 +59,16 @@
 - **Unity 桌面版**：同一套内容的 Unity 移植版（工程在另一个仓库 <https://github.com/Yukiii-26/SchoolScape>），
   现在 **v0.4** 已能完整通关，剧情和网页版逐字一致；Windows 版下载：<https://github.com/Yukiii-26/SchoolScape/releases/latest>（解压双击 `SchoolScape.exe`）。
   ⚠️ 那个仓库**不在这个工作区**里，这里只放链接，不要试图在本目录改它。
+
+---
+
+## 纯属搞怪：SCI-POOT 3000 放屁扩散模拟器
+
+作品区第 4 张卡片（`projects/fartsim/index.html`）本来是本机「零碎任务」里做着玩的一个**搞怪页面**，2026-10-25 原样搬进了站里。
+
+- **它只是为了抽象搞笑**：把一个「肠道气体边界层扩散观测平台」演得很像回事——拖三根滑块调排气功率 / 憋气时长 / 风速风向，点「执行排放」，看浓度云团在观测场上扩散开，峰值、影响半径、波及人数一路往上跳。
+- **不是真科学**：模型是简化高斯气团 + 平流，参数是「目测标定」的，所有读数都不可用于任何真实安全或职业卫生评估，也不针对任何人或场景。页面上（顶部的「纯属搞怪 · JUST FOR FUN」标记、左下角说明）都写清楚了。
+- 技术上：单文件、零依赖、无外部请求。画面是 Canvas 画的，声音（排气音、警报）是 WebAudio 现场合成的，没有音频文件。手机竖屏会把控制面板排到观测区下面。
 
 ---
 

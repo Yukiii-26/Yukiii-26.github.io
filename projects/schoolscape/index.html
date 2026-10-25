@@ -14,27 +14,12 @@
 <!--
   ============================================================================
   没有人举手 / No One Raised a Hand（项目代号 SchoolScape）
-  projects/schoolscape/index.html
-  ============================================================================
-  【这是什么】按《没有人举手》设定集 v0.2 做的完整版 2D 像素网页游戏。
-  单文件、零依赖、无外部请求。场景用 Canvas 320×180 绘制，对话 / 证词本 /
-  密码锁 / 档案柜 / 结局是普通 HTML。
-
-  【怎么改】游戏数据全在页面底部 <script> 里，按顺序：
-    SCENES       —— 场景地图、家具、可交互物件、人物、出口
-    TESTIMONY    —— 七份证词（罪 / 地点 / 载体 / 提供者 / 原话）
-    NOTES / TALK —— 线索笔记、所有台词（改文案主要改这里）
-    buildEnding  —— 双结局与最后一句
-  改完保存，双击文件即可预览；不需要构建。
-
-  【要不要联网】不要。全文件没有任何外部请求，字体用系统字体，音乐音效是
-  WebAudio 现场合成的。
-
-  【内容边界】完整故事，含学生死亡与校园霸凌题材，但不描写具体方式与细节；
-  开场有内容提示，结尾有现实求助信息。
+  projects/schoolscape/index.html　版本 v2.1.0（2026-10-25）
+  单文件、零依赖、无外部请求；场景 Canvas 320×180，界面是普通 HTML。
+  内容边界：含学生死亡与校园霸凌题材，不描写具体方式与细节；
+  开场有内容提示，结尾附现实求助信息。
   ============================================================================
 -->
-
 <style>
   :root{
     color-scheme:dark;
@@ -424,7 +409,7 @@
     .title-screen h2{font-size:clamp(28px,8vw,34px);letter-spacing:.12em;text-indent:.12em;margin-top:6px}
     .title-screen .t-en{font-size:10.5px;margin-top:2px}
     .title-screen .t-sub{font-size:11px;margin-top:4px}
-    .title-warn{margin-top:8px;font-size:10.5px;line-height:1.5;padding:6px 8px;max-width:100%}
+    .title-warn{margin-top:8px;font-size:12.5px;line-height:1.55;padding:7px 9px;max-width:100%}
     .title-actions{margin-top:10px;gap:8px}
     .title-actions .btn{min-height:36px;padding:7px 13px;font-size:12.5px}
     .title-keys{display:none}
@@ -677,7 +662,7 @@
     <div class="note">
       <b>关于这个游戏</b><br>
       完整版《没有人举手》：从高三 7 班后排的空座位开始，走遍教学楼、操场、体育馆、食堂、停车场、宿舍和行政楼，
-      拿到七份「不是故意的」证词，进档案室，上天台，做最后那个选择。<br>
+      问出七份证词，然后你会发现一些没人愿意提的事。<br>
       <span class="warnline">题材提示：涉及校园霸凌与学生死亡，不描写具体细节；开场有内容提示，结尾附现实求助信息。</span>
       <br>进度自动保存在这台浏览器里，关掉页面也能接着玩。
     </div>
@@ -700,17 +685,13 @@
 
 <script>
 
-/* ================================================================
- *  没有人举手 · 完整版 —— 游戏源码（由 preview/schoolscape2 分片构建）
- *  结构：核心 → 美术 → 场景 → 剧情 → 引擎/UI → 启动
- *  零依赖，全部在本文件内。改文案主要看「剧情数据」那一段。
- * ================================================================ */
+
 (function () {
   'use strict';
 
-  // ============================================================
-  // 0 · 基础工具 / 画布 / 状态
-  // ============================================================
+
+
+
   var VW = 320, VH = 180, TS = 16;
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
@@ -730,7 +711,7 @@
   function rr(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); }
   function ell(cx, cy, rx, ry, c) { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); }
 
-  // 3×5 像素字模：只用来画门牌、序号这类小字（中文在 320×180 里会糊，画面里不放中文）
+
   var PIXFONT = {
     '0': ['111', '101', '101', '101', '111'], '1': ['010', '110', '010', '010', '111'],
     '2': ['111', '001', '111', '100', '111'], '3': ['111', '001', '111', '001', '111'],
@@ -769,12 +750,12 @@
     VOID: 0, FLOOR: 1, CORR: 2, WALL: 3, GRASS: 4, PATH: 5, COURT: 6,
     STAIR: 7, DOOR: 8, CONCRETE: 9, WOOD: 10, TILEF: 11, SKY: 12, FENCE: 13
   };
-  // 门不是"可以走过去的地板"：所有门都要站在门前按 E 才进出。
-  // 以前门是可走地块，7 班南门一走出去就直接站到外面的草地上（那里什么都没有）。
+
+
   function solidTile(t) { return t === TILE.WALL || t === TILE.VOID || t === TILE.SKY || t === TILE.DOOR; }
 
   var game = {
-    mode: 'title',           // title | play | dialog | lock | book | cabinet | pause | cinema | chapter | ending | transition
+    mode: 'title',
     time: 0,
     started: false,
     ended: false,
@@ -806,9 +787,9 @@
   var scene = null;
   var SCENES = {};
 
-  // ============================================================
-  // 1 · 声音（WebAudio 现场合成，没有音频文件）
-  // ============================================================
+
+
+
   var audio = { ctx: null, master: null, amb: null, ambGain: null, ambFilter: null, noise: null, on: true };
   try { audio.on = (localStorage.getItem('nohand_sound') || '1') !== '0'; } catch (e) {}
 
@@ -821,7 +802,7 @@
       audio.master = audio.ctx.createGain();
       audio.master.gain.value = audio.on ? 0.5 : 0;
       audio.master.connect(audio.ctx.destination);
-      // 2 秒循环噪声，做风扇 / 风 / 走廊底噪
+
       var len = Math.floor(audio.ctx.sampleRate * 2);
       var buf = audio.ctx.createBuffer(1, len, audio.ctx.sampleRate);
       var data = buf.getChannelData(0);
@@ -912,9 +893,9 @@
     if (b) { b.textContent = on ? '🔊' : '🔇'; b.setAttribute('aria-label', on ? '关闭声音' : '打开声音'); }
   }
 
-  // ============================================================
-  // 2 · 场景系统
-  // ============================================================
+
+
+
   function registerScene(id, def) { SCENES[id] = def; }
 
   function makeScene(id, def) {
@@ -938,7 +919,7 @@
   }
   function tileAt(x, y) { return tget(scene, x, y); }
 
-  // 建一个矩形房间：地板 + 一圈墙
+
   function room(s, x, y, w, h, floor, wall) {
     tfill(s, x, y, w, h, floor == null ? TILE.FLOOR : floor);
     var wt = wall == null ? TILE.WALL : wall;
@@ -1001,9 +982,9 @@
   function sceneW() { return scene ? scene.w * TS : VW; }
   function sceneH() { return scene ? scene.h * TS : VH; }
 
-  // ============================================================
-  // 3 · 存档（localStorage，一局自动保存）
-  // ============================================================
+
+
+
   var SAVE_KEY = 'nohand_save_v1';
   var saveReady = false;
   function hasSave() {
@@ -1015,6 +996,17 @@
       return raw ? JSON.parse(raw) : null;
     } catch (e) { return null; }
   }
+
+
+
+  function encodeComplicity(v) { return ((v | 0) + 9) * 7; }
+  function decodeComplicity(s) {
+    if (typeof s.cx === 'number' && isFinite(s.cx)) {
+      var v = Math.round(s.cx / 7 - 9);
+      if (isFinite(v)) return v;
+    }
+    return s.complicity || 0;
+  }
   function saveGame() {
     if (game.saveDisabled || !game.started || game.ended) return;
     var s = peekSave() || {};
@@ -1022,7 +1014,7 @@
       s = {
         v: 1, scene: game.sceneId, x: Math.round(game.player.x), y: Math.round(game.player.y),
         dir: game.player.dir, clues: game.clues, notes: game.notes, flags: game.flags,
-        items: game.items, complicity: game.complicity, chapter: game.chapter,
+        items: game.items, cx: encodeComplicity(game.complicity), chapter: game.chapter,
         time: Math.round(game.time), savedAt: Date.now()
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(s));
@@ -1039,7 +1031,7 @@
     game.notes = s.notes || {};
     game.flags = s.flags || {};
     game.items = s.items || {};
-    game.complicity = s.complicity || 0;
+    game.complicity = decodeComplicity(s);
     game.chapter = s.chapter || 1;
     game.ended = false;
     game.started = true;
@@ -1063,9 +1055,9 @@
     return true;
   }
 
-  // ============================================================
-  // 4 · 黑幕 / 转场 / 章节卡 / 电影字幕
-  // ============================================================
+
+
+
   function fadeTo(target, cb) {
     game.fade.target = target;
     game.fade.cb = cb || null;
@@ -1137,7 +1129,7 @@
     if (cb) cb();
   }
 
-  // 电影式字幕：黑屏一行一行出，E / 点击继续
+
   function playCinema(lines, onDone) {
     game.cinema = { lines: lines.slice(), i: -1, onDone: onDone || null };
     game.mode = 'cinema';
@@ -1203,7 +1195,7 @@
     if (h) h.innerHTML = text;
   }
 
-  // 计算玩家附近可交互的东西
+
   function computeNear() {
     if (!scene || game.mode !== 'play') return null;
     var px = game.player.x, py = game.player.y;
@@ -1249,8 +1241,8 @@
     var p = game.player;
     if (!blockedRect(footRect(x, y))) { p.x = x; p.y = y; }
   }
-  // 出生点保护：落点如果正好压在家具碰撞盒里（课桌、讲台…），就近推到最近的可站立位置。
-  // 没有这一层的话，只要出生点或存档坐标被家具盖住，角色就永远动不了。
+
+
   function findFreeSpot(x, y) {
     if (!blockedRect(footRect(x, y))) return { x: x, y: y };
     for (var r = 1; r <= 48; r++) {
@@ -1283,9 +1275,9 @@
     if (Math.random() < dt * 7) sfx('step');
   }
 
-  // ============================================================
-  // 5 · 全局状态（供调试/验收读取；共谋值不对外暴露）
-  // ============================================================
+
+
+
   function publicState() {
     var clues = {}, notes = [], flags = {};
     for (var k in game.clues) if (game.clues[k]) clues[k] = true;
@@ -1319,9 +1311,9 @@
     };
   }
 
-  // ============================================================
-  // 6 · 人物像素图
-  // ============================================================
+
+
+
   var PAL = {
     wang:     { skin: '#d8a87e', hair: '#241d1a', cloth: '#a8443f', cloth2: '#8c3733', pants: '#2d3245', shoe: '#1c1f26' },
     chen:     { skin: '#ddb08a', hair: '#2b2622', cloth: '#3f5a78', cloth2: '#334a63', pants: '#2b3040', shoe: '#1d2026', glasses: true },
@@ -1349,7 +1341,7 @@
     ctx.fill();
   }
 
-  // cx / cy = 脚底中心；frame：0/2 站立，1/3 迈步
+
   function drawPerson(cx, cy, pal, dir, frame, tall, opts) {
     var p = PAL[pal] || PAL.wang;
     var o = opts || {};
@@ -1435,7 +1427,7 @@
     if (alpha < 1) ctx.globalAlpha = 1;
   }
 
-  // 立绘（结局用）：整张人像，倒影在上
+
   function drawPortrait(cv, flip) {
     var c = cv.getContext('2d');
     c.clearRect(0, 0, cv.width, cv.height);
@@ -1457,9 +1449,9 @@
     c.restore();
   }
 
-  // ============================================================
-  // 7 · 绘制：地面 / 墙 / 家具 / 光
-  // ============================================================
+
+
+
   function pal() { return (scene && scene.tint) || {}; }
 
   function drawTile(t, px, py, tx, ty) {
@@ -1559,13 +1551,13 @@
     }
   }
 
-  // 墙面装饰（按场景分发）
+
   function drawWallDecals() {
     if (!scene) return;
     var id = scene.id;
     var P = pal();
     if (id === 'class7' || id === 'class8') {
-      // 左墙窗
+
       var wx = 3 * TS, wtop = 3 * TS, wh = 8 * TS;
       rr(wx + 1, wtop, TS - 2, wh, '#6b6457');
       var sky = ctx.createLinearGradient(0, wtop, 0, wtop + wh);
@@ -1574,7 +1566,7 @@
       ctx.fillStyle = 'rgba(72,64,54,.82)';
       for (var m = 1; m < 5; m++) ctx.fillRect(wx + 3, wtop + m * (wh / 5), TS - 6, 1);
       rr(wx, wtop + wh, TS, 2, '#8b8272');
-      // 黑板 / 讲台墙
+
       var bx = 74, by = 18, bw = 226, bh = 14;
       rr(bx - 2, by - 2, bw + 4, bh + 4, '#5b4c3a');
       rr(bx, by, bw, bh, '#2f4a3d');
@@ -1584,79 +1576,79 @@
       pixText(id === 'class7' ? '268' : '267', bx + 196, by + 4, 'rgba(240,244,236,.72)', 1);
       rr(bx, by + bh, bw, 2, '#4a3f30');
       rr(bx + 24, by + bh - 1, 5, 1, '#e9ece2'); rr(bx + 150, by + bh - 1, 4, 1, '#e9ece2');
-      // 教室后墙标语 / 照片
+
       rr(190, 42, 54, 9, '#8a3f3a');
       ctx.fillStyle = 'rgba(250,240,220,.7)';
       for (var q = 0; q < 6; q++) ctx.fillRect(194 + q * 8, 45, 5, 2);
-      // 班级合影（挂在后墙）
+
       rr(36, 46, 26, 18, '#d8c9a8'); rr(38, 48, 22, 14, '#8a7a62');
       ctx.fillStyle = 'rgba(240,230,210,.6)';
       for (var ph = 0; ph < 7; ph++) ctx.fillRect(40 + ph * 3, 52 + (ph % 3), 2, 3);
-      // 门牌
+
       rr(13 * TS + 2, 14 * TS + 4, 12, 9, '#e8e5da');
       pixText(id === 'class7' ? '7' : '8', 13 * TS + 5, 14 * TS + 5, '#3b3a35', 1);
-      // 时钟
+
       ell(24 * TS + 8, 20, 7, 7, '#e6e0d2'); ell(24 * TS + 8, 20, 6, 6, '#f6f2e8');
       ctx.strokeStyle = '#3b3a35'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(24 * TS + 8, 20); ctx.lineTo(24 * TS + 8, 16); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(24 * TS + 8, 20); ctx.lineTo(24 * TS + 11, 22); ctx.stroke();
     } else if (id === 'hall1') {
-      // 走廊北墙：门洞上方的门牌/光荣榜
+
       rr(5 * TS + 2, 3 * TS + 2, 3 * TS - 4, 18, '#5e574a');
       rr(5 * TS + 4, 3 * TS + 4, 3 * TS - 8, 14, '#33484f');
       for (var hc = 0; hc < 4; hc++) for (var hr = 0; hr < 3; hr++) {
         rr(5 * TS + 7 + hc * 10, 3 * TS + 6 + hr * 3, 7, 2, 'rgba(240,238,228,.8)');
       }
       rr(5 * TS + 7 + 10 * 2, 3 * TS + 6 + 3, 7, 2, '#c2a06c');
-      // 高窗（南墙）
+
       for (var w2 = 0; w2 < 4; w2++) {
         var cwx = (11 + w2 * 8) * TS, cwy = 10 * TS + 4;
         rr(cwx, cwy, 3 * TS, 8, '#6b6457');
         rr(cwx + 2, cwy + 2, 3 * TS - 4, 4, '#c9b291');
       }
-      // 门牌
+
       rr(13 * TS + 2, 3 * TS + 2, 12, 9, '#e8e5da'); pixText('7', 13 * TS + 5, 3 * TS + 3, '#3b3a35', 1);
       rr(24 * TS + 2, 3 * TS + 2, 12, 9, '#e8e5da'); pixText('8', 24 * TS + 5, 3 * TS + 3, '#3b3a35', 1);
-      // 楼层索引
+
       rr(37 * TS, 3 * TS + 2, 40, 13, '#e8e5da');
       pixText('5F', 38 * TS, 3 * TS + 3, '#3b3a35', 1);
       pixText('1F', 39 * TS + 6, 3 * TS + 3, '#3b3a35', 1);
       ctx.fillStyle = '#7c766a'; ctx.fillRect(37 * TS + 2, 3 * TS + 10, 36, 1);
-      // 走廊尽头「行政楼 →」小牌
+
       rr(40 * TS, 5 * TS, 30, 10, '#2f4a5a'); pixText('ADM', 40 * TS + 3, 5 * TS + 3, '#dceaf0', 1);
     } else if (id === 'gym') {
-      // 墙裙软包
+
       for (var gx = 2; gx < 34; gx += 3) {
         rr(gx * TS, 3 * TS + 10, 2 * TS, 14, '#3f4a58');
         rr(gx * TS, 3 * TS + 10, 2 * TS, 2, '#55637a');
       }
-      // 记分牌
+
       rr(26 * TS, 3 * TS + 2, 44, 18, '#22262c'); pixText('0', 26 * TS + 8, 3 * TS + 7, '#e9a04a', 2); pixText('0', 26 * TS + 27, 3 * TS + 7, '#e9a04a', 2);
-      // 器材室门牌
+
       rr(30 * TS, 3 * TS + 4, 18, 8, '#e8e5da'); pixText('EQ', 30 * TS + 3, 3 * TS + 5, '#3b3a35', 1);
     } else if (id === 'canteen') {
-      // 菜单牌 / 窗口
+
       rr(6 * TS, 3 * TS + 2, 88, 18, '#2f4a3d');
       ctx.fillStyle = 'rgba(240,238,228,.75)';
       for (var mi = 0; mi < 5; mi++) { ctx.fillRect(6 * TS + 8, 3 * TS + 6 + mi * 3, 22 + (mi % 2) * 8, 1); }
       pixText('12:30', 6 * TS + 58, 3 * TS + 6, 'rgba(240,238,228,.8)', 1);
-      // 后墙班级合影（被裁掉一个人）
+
       rr(24 * TS, 3 * TS + 4, 60, 16, '#d8c9a8'); rr(26 * TS, 3 * TS + 6, 56, 12, '#8a7a62');
       ctx.fillStyle = 'rgba(240,230,210,.65)';
       for (var cp = 0; cp < 13; cp++) { ctx.fillRect(28 * TS + cp * 4, 3 * TS + 12 + (cp % 2) * 2, 2, 3); }
-      ctx.fillStyle = 'rgba(90,70,55,.8)'; ctx.fillRect(24 * TS + 48, 3 * TS + 4, 11, 16); // 被裁掉的一角
+      ctx.fillStyle = 'rgba(90,70,55,.8)'; ctx.fillRect(24 * TS + 48, 3 * TS + 4, 11, 16);
     } else if (id === 'admin') {
-      // 心理咨询室门牌
+
       rr(8 * TS, 3 * TS + 4, 34, 10, '#e8e5da'); pixText('PSY', 8 * TS + 4, 3 * TS + 6, '#3b3a35', 1);
-      // 档案室门牌 + 读卡器
+
       rr(24 * TS, 3 * TS + 2, 34, 12, '#e8e5da'); pixText('FILE', 24 * TS + 4, 3 * TS + 5, '#3b3a35', 1);
       rr(27 * TS + 2, 3 * TS + 7, 20, 8, '#3a3f48'); rr(27 * TS + 4, 3 * TS + 9, 5, 2, '#e9a04a');
-      // 教务处门牌
+
       rr(31 * TS + 8, 3 * TS + 4, 30, 9, '#e8e5da'); pixText('OFFICE', 31 * TS + 10, 3 * TS + 6, '#3b3a35', 1);
-      // 走廊窗
+
       for (var aw = 0; aw < 3; aw++) { rr((4 + aw * 4) * TS, 3 * TS + 4, 2 * TS, 8, '#6b6457'); rr((4 + aw * 4) * TS + 2, 3 * TS + 6, 2 * TS - 4, 4, '#c9b291'); }
     } else if (id === 'dorm') {
-      // 走廊两侧寝室门牌
+
       for (var dd = 0; dd < 6; dd++) {
         rr((6 + dd * 5) * TS, 3 * TS + 4, 14, 8, '#e8e5da');
         pixText(String(401 + dd), (6 + dd * 5) * TS + 1, 3 * TS + 5, '#3b3a35', 1);
@@ -1665,22 +1657,22 @@
       ctx.fillStyle = 'rgba(240,238,228,.6)';
       for (var nr = 0; nr < 4; nr++) ctx.fillRect(3 * TS + 4, 3 * TS + 5 + nr * 2, 24, 1);
     } else if (id === 'hall5') {
-      // 5F 走廊：档案副室 / 天台指示
+
       rr(6 * TS, 3 * TS + 3, 42, 11, '#e8e5da');
       pixText('5F', 6 * TS + 3, 3 * TS + 5, '#3b3a35', 1);
       pixText('ROOF', 6 * TS + 14, 3 * TS + 5, '#3b3a35', 1);
       rr(16 * TS, 3 * TS + 4, 30, 9, '#e8e5da'); pixText('FILE-B', 16 * TS + 2, 3 * TS + 5, '#3b3a35', 1);
-      // 封条
+
       ctx.fillStyle = 'rgba(226,177,120,.8)';
       ctx.fillRect(16 * TS + 2, 3 * TS + 10, 26, 2);
     } else if (id === 'archive') {
       rr(3 * TS, 3 * TS + 3, 36, 12, '#2f4a3d');
       ctx.fillStyle = 'rgba(240,238,228,.6)';
       for (var ar = 0; ar < 3; ar++) ctx.fillRect(3 * TS + 5, 3 * TS + 6 + ar * 3, 28 - ar * 6, 1);
-      // 冷白灯
+
       rr(14 * TS, 2 * TS + 14, 60, 3, '#dfe8e8');
     } else if (id === 'rooftop') {
-      // 远处的城市剪影（画在天空上，围栏后面）
+
       ctx.fillStyle = 'rgba(45,49,64,.55)';
       ctx.fillRect(0, 96, 520, 18);
       for (var bi = 0; bi < 16; bi++) {
@@ -1691,7 +1683,7 @@
         ctx.fillStyle = 'rgba(226,177,120,.30)';
         for (var bw = 0; bw < 3; bw++) ctx.fillRect(bx + 4 + bw * 6, 92 - bh + 2, 2, 2);
       }
-      // 铁门内侧的刻字
+
       rr(2 * TS, 8 * TS, 22, 12, '#6b6459');
       ctx.fillStyle = 'rgba(235,230,215,.55)';
       ctx.fillRect(2 * TS + 4, 8 * TS + 4, 9, 1);
@@ -1704,44 +1696,44 @@
     if (!scene) return;
     var id = scene.id;
     if (id === 'campus') {
-      // 篮球场线
+
       ctx.save();
       ctx.strokeStyle = 'rgba(238,234,222,.28)'; ctx.lineWidth = 1;
       ctx.strokeRect(36 * TS + 3.5, 13 * TS + 3.5, 11 * TS - 7, 7 * TS - 7);
       ctx.beginPath(); ctx.moveTo(36 * TS + 3.5, 13 * TS + 3.5 + 7 * TS / 2 - 3.5); ctx.lineTo(47 * TS - 3.5, 13 * TS + 3.5 + 7 * TS / 2 - 3.5); ctx.stroke();
       ctx.beginPath(); ctx.arc(41.5 * TS, 16.5 * TS, 22, 0, Math.PI * 2); ctx.stroke();
       ctx.restore();
-      // 跑道线
+
       ctx.fillStyle = 'rgba(230,226,214,.18)';
       ctx.fillRect(6 * TS, 30 * TS, 52 * TS, 1);
       ctx.fillRect(6 * TS, 38 * TS, 52 * TS, 1);
-      // 老树落叶
+
       for (var i = 0; i < 26; i++) {
         var r1 = hash2(i * 7 + 1, i * 13 + 5), r2 = hash2(i * 3 + 9, i * 11 + 2);
         ctx.fillStyle = 'rgba(150,112,62,.42)';
         ctx.fillRect(28 * TS + (r1 - 0.5) * 110, 23 * TS + (r2 - 0.5) * 70, 2, 1);
       }
     } else if (id === 'parking') {
-      // 车位线
+
       ctx.fillStyle = 'rgba(235,230,218,.35)';
       for (var p = 0; p < 4; p++) {
         ctx.fillRect((4 + p * 7) * TS, 5 * TS, 1, 10 * TS);
         ctx.fillRect((4 + p * 7) * TS, 5 * TS, 7 * TS, 1);
       }
-      // 油渍
+
       for (var o = 0; o < 4; o++) {
         var rr1 = hash2(o * 5 + 2, 9);
         ell(8 * TS + rr1 * 20 * TS, 12 * TS + hash2(o, 3) * 4 * TS, 5 + rr1 * 4, 2, 'rgba(30,30,34,.22)');
       }
     } else if (id === 'rooftop') {
-      // 地面裂缝 / 水渍
+
       for (var c = 0; c < 8; c++) {
         var cr = hash2(c * 3 + 1, c * 7 + 2);
         ctx.fillStyle = 'rgba(50,52,48,.22)';
         ctx.fillRect(6 * TS + cr * 18 * TS, 8 * TS + hash2(c, 9) * 8 * TS, 10 + cr * 12, 1);
       }
     } else if (id === 'gym') {
-      // 场地线
+
       ctx.strokeStyle = 'rgba(245,238,225,.24)'; ctx.lineWidth = 1;
       ctx.strokeRect(5 * TS + 3.5, 6 * TS + 3.5, 26 * TS - 7, 12 * TS - 7);
       ctx.beginPath(); ctx.moveTo(5 * TS + 3.5, 12 * TS); ctx.lineTo(31 * TS - 3.5, 12 * TS); ctx.stroke();
@@ -1754,9 +1746,9 @@
     }
   }
 
-  // ============================================================
-  // 8 · 道具 / 家具
-  // ============================================================
+
+
+
   function drawProp(p) {
     var x = p.x, y = p.y;
     var v = p.v || {};
@@ -1777,7 +1769,7 @@
           rr(x + 5, y + 6, 6, 3, '#e9e3d4'); rr(x + 5, y + 6, 1, 3, '#c0504a');
           if (!game.flags.lockOpen) { rr(x + 12, y + 8, 4, 3, '#5d6169'); rr(x + 13, y + 7, 2, 1, '#8d939c'); }
           else { rr(x + 12, y + 8, 4, 1, '#8d939c'); }
-          // 王焱被排到这里之后，桌上多一个名牌
+
           if (game.flags.finalSeat) { rr(x + 4, y + 3, 9, 2, '#e8e5da'); pixText('31', x + 5, y + 3, '#3b3a35', 1); }
         }
         break;
@@ -1815,14 +1807,14 @@
       case 'table':
         ell(x + 18, y - 12, 18, 11, '#8d6c4c'); ell(x + 18, y - 13, 17, 9, '#a5825c');
         rr(x + 15, y - 4, 6, 8, '#6b5238');
-        // 长凳
+
         rr(x - 4, y - 2, 12, 3, '#7d5f42'); rr(x + 28, y - 2, 12, 3, '#7d5f42');
         if (v.tray) { rr(x + 10, y - 17, 12, 5, '#d8d2c2'); rr(x + 12, y - 16, 5, 3, '#b0703a'); }
         break;
       case 'counter':
         rr(x, y - 20, 56, 20, '#9a9a92'); rr(x, y - 20, 56, 4, '#b9b9ae');
         rr(x + 2, y - 14, 52, 2, 'rgba(70,70,64,.35)');
-        // 蒸汽
+
         for (var st = 0; st < 4; st++) {
           var aa = 0.10 + 0.05 * Math.sin(game.time * 1.4 + st);
           ctx.fillStyle = 'rgba(235,240,235,' + aa.toFixed(2) + ')';
@@ -1844,7 +1836,7 @@
           ctx.fillStyle = t1 > 0.5 ? 'rgba(126,150,98,.45)' : 'rgba(58,80,50,.45)';
           ctx.fillRect(x + (t1 - 0.5) * 62, y - 54 + (t2 - 0.5) * 40, 2, 2);
         }
-        // 刻字
+
         ctx.fillStyle = 'rgba(230,225,210,.55)';
         ctx.fillRect(x - 3, y - 18, 5, 1); ctx.fillRect(x - 3, y - 14, 7, 1);
         break;
@@ -1954,7 +1946,7 @@
         })(npc, frame)
       });
     }
-    // 玩家
+
     var pf = game.player.moving ? (1 + Math.floor(game.player.phase) % 2) : 0;
     var alpha = 1;
     if (game.flags.finalSeat && game.sceneId === 'class7') alpha = 1;
@@ -1963,7 +1955,7 @@
     for (var k = 0; k < list.length; k++) list[k].fn();
   }
 
-  // 环境粒子
+
   function drawParticles() {
     if (!scene) return;
     var id = scene.id;
@@ -2014,7 +2006,7 @@
     } else if (id === 'archive' || id === 'admin' || id === 'hall5') {
       ctx.fillStyle = 'rgba(120,170,190,.06)';
       ctx.fillRect(0, 0, scene.w * TS, scene.h * TS);
-      // 走廊顶灯的冷光
+
       for (var l = 0; l < 3; l++) {
         var lx = 5 * TS + l * 10 * TS;
         var gg = ctx.createRadialGradient(lx, 2 * TS, 4, lx, 5 * TS, 90);
@@ -2028,7 +2020,7 @@
     }
   }
 
-  // 天空 / 室外背景
+
   function drawBackdrop() {
     if (!scene) return;
     var def = scene.def;
@@ -2057,19 +2049,19 @@
     drawParticles();
     drawLight();
     ctx.restore();
-    // 黑幕
+
     if (game.fade.a > 0.001) {
       ctx.fillStyle = 'rgba(3,5,9,' + game.fade.a.toFixed(3) + ')';
       ctx.fillRect(0, 0, VW, VH);
     }
   }
 
-  // ============================================================
-  // 9 · 场景：地图 / 家具 / 交互物 / 人物 / 出口
-  //     坐标单位是像素；瓦片 16px。房间 floor 区域 = 可以走的地方。
-  // ============================================================
 
-  // ---------- 高三 7 班教室 ----------
+
+
+
+
+
   registerScene('class7', {
     name: '高三 7 班教室', sub: '教学楼 1F', w: 30, h: 18, ambience: 'class',
     tint: { floor: '#c7beaa' },
@@ -2077,10 +2069,10 @@
     build: function (s) {
       tfill(s, 0, 0, s.w, s.h, TILE.GRASS);
       room(s, 4, 3, 23, 11, TILE.FLOOR);
-      // 南墙门
+
       tset(s, 15, 14, TILE.DOOR); tset(s, 16, 14, TILE.DOOR);
       addExit(s, 15 * TS, 200, 2 * TS, 24, 'hall1', 240, 88, '去走廊', { dir: 'south' });
-      // 课桌
+
       var cols = [6, 9, 12, 15, 18, 21, 24], rows = [5, 7, 9, 11];
       for (var r = 0; r < rows.length; r++) for (var c = 0; c < cols.length; c++) {
         var empty = (cols[c] === 6 && rows[r] === 11);
@@ -2090,16 +2082,16 @@
       addProp(s, 'cabinet', 4 * TS + 4, 5 * TS + 12, { solid: true, sort: 20, sx: 0, sy: -20, sw: 26, sh: 20 });
       addProp(s, 'plant', 17 * TS, 13 * TS + 12, { solid: true, sort: 12, sx: 3, sy: -8, sw: 10, sh: 8 });
       addProp(s, 'clock', 24 * TS + 8, 26, {});
-      // 交互物
+
       addObj(s, 'seat', '后排空座位', 6 * TS + 8, 11 * TS + 12, 28, { talk: 'obj_seat' });
       addObj(s, 'blackboard', '黑板', 15 * TS, 3 * TS + 4, 30, { talk: 'obj_blackboard' });
       addObj(s, 'teacherdesk', '讲台', 15 * TS + 16, 3 * TS + 16, 28, { talk: 'obj_teacherdesk' });
       addObj(s, 'window', '教室的窗', 3 * TS + 8, 8 * TS, 28, { talk: 'obj_window' });
       addObj(s, 'classphoto', '班级合影', 50, 3 * TS + 22, 24, { talk: 'obj_classphoto' });
       addObj(s, 'backcabinet', '教室后柜', 4 * TS + 14, 5 * TS + 16, 24, { talk: 'obj_backcabinet' });
-      // 人物
+
       if (game.flags.finalSeat) {
-        // 终章：新学期。陈屿和苏小满不在这间教室里了，班主任站在门口。
+
         addNPC(s, 'linwei', '林薇', 16 * TS + 8, 12 * TS + 12, 'down', 'linwei', '班主任');
       } else {
         addNPC(s, 'chenyu', '陈屿', 23 * TS + 8, 11 * TS + 8, 'left', 'chen', '7 班 · 会修东西');
@@ -2109,7 +2101,7 @@
     onEnter: function () { if (typeof sceneEnterClass7 === 'function') sceneEnterClass7(); }
   });
 
-  // ---------- 教学楼 1F 走廊 ----------
+
   registerScene('hall1', {
     name: '教学楼 1F 走廊', sub: '高三', w: 44, h: 14, ambience: 'hall',
     tint: { floor: '#b6b2a8' },
@@ -2117,35 +2109,35 @@
     build: function (s) {
       tfill(s, 0, 0, s.w, s.h, TILE.GRASS);
       room(s, 3, 4, 39, 6, TILE.CORR);
-      // 北墙：7 班 / 8 班门
+
       tset(s, 13, 3, TILE.DOOR); tset(s, 14, 3, TILE.DOOR);
       tset(s, 24, 3, TILE.DOOR); tset(s, 25, 3, TILE.DOOR);
-      // 南墙：操场门
+
       tset(s, 22, 10, TILE.DOOR); tset(s, 23, 10, TILE.DOOR);
-      // 东端楼梯
+
       tfill(s, 40, 6, 2, 3, TILE.STAIR);
-      // 出口
+
       addExit(s, 13 * TS, 4 * TS, 2 * TS, 16, 'class7', 248, 208, '进 7 班', { dir: 'north' });
       addExit(s, 24 * TS, 4 * TS, 2 * TS, 16, 'class8', 266, 150, '进 8 班', { dir: 'north' });
       addExit(s, 22 * TS, 9 * TS, 2 * TS, 16, 'campus', 24 * TS, 5 * TS, '去操场', { dir: 'south' });
       addExit(s, 40 * TS + 8, 6 * TS, 24, 3 * TS, 'hall5', 5 * TS, 6 * TS, '上五楼', { dir: 'east' });
-      // 家具
+
       addProp(s, 'board', 5 * TS + 2, 3 * TS + 20, { sort: 30 });
       addProp(s, 'notice', 30 * TS, 3 * TS + 20, { sort: 30 });
       addProp(s, 'plant', 39 * TS, 9 * TS + 12, { solid: true, sort: 12, sx: 3, sy: -8, sw: 10, sh: 8 });
       addProp(s, 'bin', 18 * TS, 9 * TS + 12, { solid: true, sort: 12, sx: 2, sy: -12, sw: 12, sh: 12 });
       addProp(s, 'clock', 33 * TS, 3 * TS + 20, {});
-      // 交互物
+
       addObj(s, 'honor', '光荣榜', 6 * TS, 4 * TS + 4, 28, { talk: 'obj_honor' });
       addObj(s, 'levelmap', '楼层索引', 37 * TS, 4 * TS + 2, 26, { talk: 'obj_levelmap' });
       addObj(s, 'office1', '教师办公室', 30 * TS, 4 * TS + 4, 26, { talk: 'obj_office1' });
       addObj(s, 'stairs5', '楼梯', 41 * TS, 7 * TS, 28, { talk: 'obj_stairs5' });
-      // 人物
+
       addNPC(s, 'director', '年级主任', 7 * TS + 8, 5 * TS + 8, 'down', 'director', '巡查中');
     }
   });
 
-  // ---------- 8 班 ----------
+
   registerScene('class8', {
     name: '高二 8 班教室', sub: '教学楼 1F', w: 28, h: 16, ambience: 'class',
     tint: { floor: '#c9c0aa' },
@@ -2168,7 +2160,7 @@
     }
   });
 
-  // ---------- 校园（操场 / 球场 / 老树 / 校门） ----------
+
   registerScene('campus', {
     name: '校园 · 操场', sub: '教学楼外', w: 64, h: 44, ambience: 'outdoor',
     sky: ['#2b3550', '#5a5a72', '#b98a78'],
@@ -2178,36 +2170,36 @@
       tfill(s, 0, 0, s.w, s.h, TILE.GRASS);
       tfill(s, 0, 0, s.w, 1, TILE.WALL); tfill(s, 0, 0, 1, s.h, TILE.WALL);
       tfill(s, 63, 0, 1, s.h, TILE.WALL); tfill(s, 0, 43, s.w, 1, TILE.WALL);
-      // 教学楼（北）
+
       tfill(s, 11, 0, 25, 3, TILE.WALL);
       tset(s, 23, 3, TILE.DOOR); tset(s, 24, 3, TILE.DOOR);
       addExit(s, 23 * TS, 3 * TS, 2 * TS, 20, 'hall1', 23 * TS, 9 * TS, '回教学楼', { dir: 'north' });
-      // 食堂（北偏东）
+
       tfill(s, 37, 0, 12, 2, TILE.WALL);
       tset(s, 41, 2, TILE.DOOR); tset(s, 42, 2, TILE.DOOR);
       addExit(s, 41 * TS, 2 * TS, 2 * TS, 20, 'canteen', 20 * TS, 12 * TS, '进食堂', { dir: 'north' });
-      // 行政楼（东北）
+
       tfill(s, 50, 0, 13, 3, TILE.WALL);
       tset(s, 56, 3, TILE.DOOR); tset(s, 57, 3, TILE.DOOR);
       addExit(s, 56 * TS, 3 * TS, 2 * TS, 20, 'admin', 20 * TS, 9 * TS, '进行政楼', { dir: 'north' });
-      // 体育馆（西）
+
       tfill(s, 0, 5, 11, 1, TILE.WALL);
       tset(s, 5, 5, TILE.DOOR); tset(s, 6, 5, TILE.DOOR);
       addExit(s, 5 * TS, 5 * TS, 2 * TS, 20, 'gym', 15 * TS, 12 * TS, '进体育馆', { dir: 'north' });
-      // 宿舍（东）
+
       tfill(s, 55, 17, 8, 1, TILE.WALL);
       tset(s, 57, 17, TILE.DOOR); tset(s, 58, 17, TILE.DOOR);
       addExit(s, 57 * TS, 17 * TS, 2 * TS, 20, 'dorm', 18 * TS, 10 * TS, '进宿舍楼', { dir: 'north' });
-      // 停车场（东南）
+
       tfill(s, 47, 31, 15, 10, TILE.CONCRETE);
       addExit(s, 47 * TS, 35 * TS, 20, 3 * TS, 'parking', 3 * TS, 10 * TS, '去停车场', { dir: 'west' });
-      // 道路
+
       tfill(s, 21, 3, 6, 39, TILE.PATH);
       tfill(s, 7, 28, 49, 3, TILE.PATH);
       tfill(s, 20, 15, 34, 3, TILE.PATH);
-      // 篮球场
+
       tfill(s, 35, 8, 13, 12, TILE.COURT);
-      // 校门
+
       addProp(s, 'gate', 29 * TS, 42 * TS, { sort: 40 });
       addProp(s, 'gate', 33 * TS, 42 * TS, { sort: 40 });
       addProp(s, 'hoop', 34 * TS, 14 * TS, { sort: 14 });
@@ -2223,20 +2215,20 @@
       addProp(s, 'notice', 19 * TS, 6 * TS, { sort: 6 });
       addProp(s, 'bench', 12 * TS, 10 * TS, { solid: true, sort: 10, sx: 0, sy: -6, sw: 34, sh: 6 });
       addProp(s, 'plant', 34 * TS, 5 * TS, { solid: true, sort: 12, sx: 3, sy: -8, sw: 10, sh: 8 });
-      // 道路铺完之后，把被道路覆盖的教学楼门补回来
+
       tset(s, 23, 3, TILE.DOOR); tset(s, 24, 3, TILE.DOOR);
-      // 交互物
+
       addObj(s, 'tree', '百年老树', 30 * TS + 8, 28 * TS, 34, { talk: 'obj_tree' });
       addObj(s, 'bench', '长椅', 26 * TS + 16, 29 * TS + 8, 26, { talk: 'obj_bench' });
       addObj(s, 'gate', '校门', 30 * TS + 8, 40 * TS + 8, 34, { talk: 'obj_gate' });
       addObj(s, 'track', '操场', 14 * TS, 34 * TS, 40, { talk: 'obj_track' });
       addObj(s, 'court', '篮球场', 41 * TS, 14 * TS, 36, { talk: 'obj_court' });
-      // 人物
+
       addNPC(s, 'heyiming', '何一鸣', 42 * TS, 22 * TS, 'down', 'he', '7 班 · 体育生', { tall: true });
     }
   });
 
-  // ---------- 体育馆 ----------
+
   registerScene('gym', {
     name: '体育馆', sub: '篮球场 / 器材室', w: 36, h: 22, ambience: 'gym',
     tint: { floor: '#a5794c', wall: '#6f6458' },
@@ -2244,16 +2236,16 @@
     build: function (s) {
       tfill(s, 0, 0, s.w, s.h, TILE.GRASS);
       room(s, 3, 3, 22, 16, TILE.WOOD);
-      // 器材室
+
       tfill(s, 26, 4, 8, 8, TILE.CONCRETE);
       tfill(s, 25, 3, 1, 10, TILE.WALL);
       tfill(s, 26, 12, 3, 1, TILE.WALL); tfill(s, 31, 12, 3, 1, TILE.WALL);
       tset(s, 29, 12, TILE.DOOR); tset(s, 30, 12, TILE.DOOR);
       tfill(s, 25, 13, 9, 6, TILE.WOOD);
-      // 南门
+
       tset(s, 14, 20, TILE.DOOR); tset(s, 15, 20, TILE.DOOR);
       addExit(s, 14 * TS, 18 * TS, 2 * TS, 32, 'campus', 6 * TS, 7 * TS, '出体育馆', { dir: 'south' });
-      // 家具
+
       addProp(s, 'locker', 4 * TS, 5 * TS + 30, { v: { no: 1 }, sort: 5 });
       addProp(s, 'locker', 5 * TS, 5 * TS + 30, { v: { no: 2 }, sort: 5 });
       addProp(s, 'locker', 6 * TS, 5 * TS + 30, { v: { no: 3 }, sort: 5 });
@@ -2266,18 +2258,18 @@
       addProp(s, 'keybox', 29 * TS, 8 * TS, { solid: true, sort: 8, sx: 0, sy: -14, sw: 12, sh: 14 });
       addProp(s, 'seatpile', 27 * TS, 10 * TS + 10, { solid: true, sort: 10, sx: 0, sy: -10, sw: 20, sh: 10 });
       addProp(s, 'bin', 12 * TS, 18 * TS, { solid: true, sort: 12, sx: 2, sy: -12, sw: 12, sh: 12 });
-      // 交互物
+
       addObj(s, 'locker_he', '3 号储物柜', 6 * TS + 8, 5 * TS + 8, 28, { talk: 'obj_locker_he' });
       addObj(s, 'locker_yan', '5 号储物柜', 8 * TS + 8, 5 * TS + 8, 28, { talk: 'obj_locker_yan' });
       addObj(s, 'keybox', '器材室钥匙柜', 29 * TS + 6, 8 * TS, 28, { talk: 'obj_keybox' });
       addObj(s, 'gymboard', '记分牌', 26 * TS, 3 * TS + 20, 26, { talk: 'obj_gymboard' });
-      // 人物
+
       addNPC(s, 'yanliang', '严亮', 10 * TS, 8 * TS, 'down', 'yanliang', '2 班', { tall: true });
       addNPC(s, 'tiyu', '体育老师', 22 * TS, 14 * TS, 'left', 'tiyu', '器材室');
     }
   });
 
-  // ---------- 食堂 ----------
+
   registerScene('canteen', {
     name: '食堂', sub: '午休', w: 40, h: 22, ambience: 'canteen',
     tint: { floor: '#c9c0ac' },
@@ -2298,7 +2290,7 @@
       addObj(s, 'photo', '班级合影', 24 * TS, 3 * TS + 24, 28, { talk: 'obj_canteenphoto' });
       addObj(s, 'menu', '菜单', 8 * TS, 3 * TS + 24, 26, { talk: 'obj_menu' });
       addNPC(s, 'wutong', '吴桐', 21 * TS, 12 * TS, 'down', 'wutong', '9 班');
-      // 调虎离山：陈屿和苏小满会来这里拖住主任
+
       if (game.flags.stallReady && !game.flags.stalled) {
         addNPC(s, 'chenyu', '陈屿', 13 * TS, 11 * TS, 'right', 'chen', '7 班 · 会修东西');
         addNPC(s, 'suman', '苏小满', 15 * TS, 13 * TS, 'left', 'su', '7 班 · 消息最灵');
@@ -2306,7 +2298,7 @@
     }
   });
 
-  // ---------- 停车场 ----------
+
   registerScene('parking', {
     name: '停车场', sub: '东南角', w: 34, h: 20, ambience: 'outdoor',
     sky: ['#2b3550', '#5a5a72', '#b98a78'],
@@ -2327,7 +2319,7 @@
     }
   });
 
-  // ---------- 宿舍 ----------
+
   registerScene('dorm', {
     name: '学生宿舍', sub: '一楼走廊', w: 38, h: 20, ambience: 'indoor',
     tint: { floor: '#b0a898', corr: '#b0a898' },
@@ -2348,7 +2340,7 @@
     }
   });
 
-  // ---------- 行政楼 3F ----------
+
   registerScene('admin', {
     name: '行政楼 3F', sub: '档案室 / 心理咨询室 / 教务处', w: 40, h: 18, ambience: 'admin',
     tint: { floor: '#b4b2aa', corr: '#b4b2aa' },
@@ -2357,7 +2349,7 @@
       tfill(s, 0, 0, s.w, s.h, TILE.WALL);
       room(s, 3, 3, 34, 11, TILE.CORR);
       tset(s, 20, 14, TILE.DOOR); tset(s, 21, 14, TILE.DOOR);
-      // 门洞（视觉）
+
       tset(s, 8, 3, TILE.DOOR); tset(s, 9, 3, TILE.DOOR);
       tset(s, 24, 3, TILE.DOOR); tset(s, 25, 3, TILE.DOOR);
       tset(s, 31, 3, TILE.DOOR); tset(s, 32, 3, TILE.DOOR);
@@ -2375,7 +2367,7 @@
     }
   });
 
-  // ---------- 档案室 ----------
+
   registerScene('archive', {
     name: '档案室', sub: '行政楼 3F · 最里面一间', w: 30, h: 18, ambience: 'archive',
     tint: { floor: '#9aa6a8', wall: '#5d6668', corr: '#9aa6a8' },
@@ -2399,7 +2391,7 @@
     }
   });
 
-  // ---------- 教学楼 5F 走廊 ----------
+
   registerScene('hall5', {
     name: '教学楼 5F', sub: '档案副室 / 天台入口', w: 30, h: 12, ambience: 'hall',
     tint: { floor: '#aaa79c', corr: '#aaa79c' },
@@ -2407,10 +2399,10 @@
     build: function (s) {
       tfill(s, 0, 0, s.w, s.h, TILE.WALL);
       room(s, 3, 3, 24, 5, TILE.CORR);
-      // 西端楼梯（回 1F）
+
       tfill(s, 3, 5, 2, 2, TILE.STAIR);
       addExit(s, 3 * TS, 5 * TS, 2 * TS, 2 * TS, 'hall1', 40 * TS, 7 * TS, '下楼', { dir: 'west' });
-      // 东端铁门 + 天台
+
       tset(s, 27, 5, TILE.DOOR); tset(s, 27, 6, TILE.DOOR);
       addExit(s, 26 * TS, 4 * TS, 16, 3 * TS, 'rooftop', 5 * TS, 11 * TS, '上天台', {
         dir: 'east',
@@ -2426,19 +2418,19 @@
     }
   });
 
-  // ---------- 天台 ----------
+
   registerScene('rooftop', {
     name: '天台', sub: '教学楼 5F 顶', w: 32, h: 15, ambience: 'rooftop',
     sky: ['#2b3550', '#6b5f70', '#c08a72', '#d9a778'],
     spawn: { x: 8 * TS, y: 10 * TS, dir: 'up' },
     build: function (s) {
       tfill(s, 0, 0, s.w, s.h, TILE.CONCRETE);
-      // 上方天空 + 围栏
+
       tfill(s, 0, 0, s.w, 7, TILE.SKY);
       for (var rx = 2; rx < 30; rx++) addProp(s, 'railing', rx * TS, 7 * TS + 14, { sort: 60 });
-      // 天台地面
+
       tfill(s, 2, 7, 28, 7, TILE.CONCRETE);
-      // 回 5F 的门（南墙）
+
       tfill(s, 2, 14, 28, 1, TILE.WALL);
       tset(s, 4, 14, TILE.DOOR); tset(s, 5, 14, TILE.DOOR);
       addExit(s, 4 * TS, 12 * TS, 2 * TS, 32, 'hall5', 26 * TS, 6 * TS, '回 5F', { dir: 'south' });
@@ -2453,14 +2445,22 @@
     onEnter: function () { if (typeof sceneEnterRooftop === 'function') sceneEnterRooftop(); }
   });
 
-  // ============================================================
-  // 10 · 剧情数据（一）：证词 / 线索 / 物件台词 / 开场
-  //     改文案主要改这一段。格式说明：
-  //       TALK[key] = { who:'默认说话人', tag:'身份', nodes:[ ... ] }
-  //       节点：{ t:'台词' } / { who:'换人', t:'...' } / { do:fn }
-  //             { choice:[ { label, effect, lines:[...] } ] }
-  //       效果：{ complicity:+1, testimony:'pride', note:'honor', flag:'x', item:'x', fn:fn }
-  // ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   var TESTIMONY = {
     pride:    { name: '傲慢', from: '年级主任', text: '「他自己心理素质不行，怪谁？」' },
@@ -2477,6 +2477,7 @@
     note:       '锁着的抽屉里有一本笔记本。最后一页写着：「明天，我想跟老师说：我不想去补习班。」',
     charger:    '何一鸣柜子里有一根旧充电线。陈屿说，能恢复沈知遥旧手机里的聊天记录。',
     level:      '楼层索引：五楼 档案副室 / 天台，一楼 高三。',
+    levelLocked:'楼层索引：五楼那一行被人用胶带贴住了，只露出「职员区域」几个字。',
     floors:     '陈屿说：他高一在三楼，高二在二楼，现在在一楼。三年，三层楼。',
     lockHint:   '陈屿说：三个数，跟他在学校待过的年份有关。',
     honor:      '光荣榜上第七名的位置，被一张发黄的胶带贴住了。那年六月，他考了第七。',
@@ -2501,13 +2502,13 @@
     caracy:     '天台铁门内侧刻着一行字：「沈知遥 6.23 我尽力了。」'
   };
 
-  // 小工具：换说话人
+
   function L(who, t) { return { who: who, t: t }; }
   function say(who, t) { return { who: who, t: t }; }
 
   var TALK = {};
 
-  // ---------- 开场 ----------
+
   TALK.intro = {
     who: '王焱', tag: '高三 7 班',
     nodes: [
@@ -2527,7 +2528,7 @@
     ]
   };
 
-  // ---------- 空座位（主线） ----------
+
   TALK.seatFirst = {
     who: '王焱', tag: '检视',
     nodes: [
@@ -2559,7 +2560,7 @@
     ]
   };
 
-  // ---------- 教室物件 ----------
+
   TALK.obj_blackboard = {
     who: '王焱', tag: '检视',
     nodes: [
@@ -2599,7 +2600,7 @@
     ]
   };
 
-  // ---------- 走廊 ----------
+
   TALK.obj_honor = {
     who: '王焱', tag: '检视',
     nodes: [
@@ -2612,10 +2613,20 @@
   };
   TALK.obj_levelmap = {
     who: '王焱', tag: '检视',
+
+
     nodes: [
-      { t: '楼层索引：五楼 档案副室 / 天台，四楼 实验室，三楼 高一，二楼 高二，一楼 高三。' },
-      { t: '牌子上有一层灰。擦掉的地方，刚好是「五楼」那一行。' },
-      { do: function () { addNote('level'); } }
+      { if: function () { return !!game.flags.archiveInfo; },
+        then: [
+          { t: '楼层索引：五楼 档案副室 / 天台，四楼 实验室，三楼 高一，二楼 高二，一楼 高三。' },
+          { t: '牌子上有一层灰。擦掉的地方，刚好是「五楼」那一行。' },
+          { do: function () { addNote('level'); } }
+        ],
+        else: [
+          { t: '楼层索引：四楼 实验室，三楼 高一，二楼 高二，一楼 高三。' },
+          { t: '五楼那一行被人用胶带贴住了，胶带底下只露出「职员区域」几个字。' },
+          { do: function () { addNote('levelLocked'); } }
+        ] }
     ]
   };
   TALK.obj_office1 = {
@@ -2627,13 +2638,22 @@
   };
   TALK.obj_stairs5 = {
     who: '王焱', tag: '检视',
+
     nodes: [
-      { t: '楼梯通向五楼。五楼只有两间房：档案副室，和天台。' },
-      { t: '声控灯坏了。你跺了一下脚，灯没亮。' }
+      { if: function () { return !!game.flags.archiveInfo; },
+        then: [
+          { t: '楼梯通向五楼。五楼只有两间房：档案副室，和天台。' },
+          { t: '声控灯坏了。你跺了一下脚，灯没亮。' }
+        ],
+        else: [
+          { t: '楼梯通向五楼。' },
+          { t: '四楼往上那一层平时归行政处管，走廊里长年没人打扫。' },
+          { t: '（现在上去，大概也看不出什么。）' }
+        ] }
     ]
   };
 
-  // ---------- 8 班 ----------
+
   TALK.obj_class8board = {
     who: '王焱', tag: '检视',
     nodes: [
@@ -2649,7 +2669,7 @@
     ]
   };
 
-  // ---------- 校园 ----------
+
   TALK.obj_tree = {
     who: '王焱', tag: '检视',
     nodes: [
@@ -2683,7 +2703,7 @@
     nodes: [
       { t: '跑道内侧有一块补过的水泥，颜色比周围深一点。' },
       { t: '补得不太平。踩上去，鞋底会发出很小的声音。' },
-      { t: '何一鸣说，六月那天晚上，这里围了很多人。' },
+      { t: '那天晚上的事，没人愿意提。' },
       { do: function () { addNote('track'); } }
     ]
   };
@@ -2696,12 +2716,13 @@
     ]
   };
 
-  // ---------- 体育馆 ----------
+
   TALK.obj_gymboard = {
     who: '王焱', tag: '检视',
     nodes: [
       { t: '记分牌停在 47 : 45。' },
-      { t: '下面的日期是六月二十三日。那天的比赛没打完。' }
+      { t: '下面的日期蒙了一层灰，只认得出一个「六」字。' },
+      { t: '那场比赛没打完。' }
     ]
   };
   TALK.obj_locker_he = {
@@ -2733,7 +2754,7 @@
     ]
   };
 
-  // ---------- 食堂 ----------
+
   TALK.obj_canteenphoto = {
     who: '王焱', tag: '检视',
     nodes: [
@@ -2751,7 +2772,7 @@
     ]
   };
 
-  // ---------- 停车场 ----------
+
   TALK.obj_receipt = {
     who: '王焱', tag: '检视',
     nodes: [
@@ -2763,13 +2784,23 @@
     ]
   };
 
-  // ---------- 宿舍 ----------
+
   TALK.obj_suguanbook = {
     who: '王焱', tag: '检视',
+
     nodes: [
-      { t: '宿管登记本翻在六月那一页。' },
-      { t: '六月二十三日那一行，进出记录只写了一半。' },
-      { t: '「23:10 高三 7 班 沈知遥 外出 ——」后面没有回来的时间。' }
+      { if: function () { return !!game.flags.archiveInfo; },
+        then: [
+          { t: '宿管登记本翻在六月那一页。' },
+          { t: '六月二十三日那一行，进出记录只写了一半。' },
+          { t: '「23:10 高三 7 班 沈知遥 外出 ——」后面没有回来的时间。' }
+        ],
+        else: [
+          { t: '宿管登记本摊在桌上，翻在六月那一页。' },
+          { t: '阿姨从窗口探过身，把本子合上了。' },
+          { t: '「这个不能随便看。」' },
+          { t: '（先跟阿姨搭句话吧。）' }
+        ] }
     ]
   };
   TALK.obj_chatlog = {
@@ -2782,7 +2813,7 @@
     ]
   };
 
-  // ---------- 行政楼 ----------
+
   TALK.obj_counsel = {
     who: '王焱', tag: '检视',
     nodes: [
@@ -2794,7 +2825,7 @@
     who: '王焱', tag: '检视',
     nodes: [
       { t: '教务处的门开着，里面在复印东西。' },
-      { t: '墙上贴着一张通知：高三档案整理，六月二十五日前完成。' }
+      { t: '墙上贴着一张通知：高三档案整理，六月底前完成。' }
     ]
   };
   TALK.obj_copyroom = {
@@ -2835,11 +2866,21 @@
   };
   TALK.obj_fileb = {
     who: '王焱', tag: '检视',
+
+
     nodes: [
-      { t: '档案副室的门上贴着封条。' },
-      { t: '封条上的日期是六月二十五日。' },
-      { t: '你听见里面很轻的一声响，像是纸张落在地上。' },
-      { t: '再听，就什么都没有了。' }
+      { if: function () { return !!game.flags.archiveDone; },
+        then: [
+          { t: '档案副室的门上贴着封条。' },
+          { t: '封条上的日期是六月二十五日。' },
+          { t: '你听见里面很轻的一声响，像是纸张落在地上。' },
+          { t: '再听，就什么都没有了。' }
+        ],
+        else: [
+          { t: '档案副室的门锁着。' },
+          { t: '门缝底下压着一张废纸，被反复踩过，字已经看不清了。' },
+          { t: '（这扇门平时没人开。）' }
+        ] }
     ]
   };
   TALK.obj_watertank = {
@@ -2869,11 +2910,11 @@
     ]
   };
 
-  // ============================================================
-  // 11 · 剧情数据（二）：人物对话与推进逻辑
-  // ============================================================
 
-  // ---------- 陈屿 ----------
+
+
+
+
   TALK.chenyu1 = {
     who: '陈屿', tag: '7 班 · 会修东西',
     nodes: [
@@ -3012,7 +3053,7 @@
     nodes: [{ t: '锁开了叫我。' }, { t: '……或者，有别的事，也可以叫我。' }]
   };
 
-  // ---------- 苏小满 ----------
+
   TALK.suman1 = {
     who: '苏小满', tag: '7 班 · 消息最灵',
     nodes: [
@@ -3106,7 +3147,7 @@
     nodes: [{ t: '别问我了，我嘴笨。' }, { t: '……但我可以去帮你吵那一架。' }]
   };
 
-  // ---------- 何一鸣 ----------
+
   TALK.heyiming1 = {
     who: '何一鸣', tag: '7 班 · 体育生',
     nodes: [
@@ -3137,7 +3178,7 @@
           ] }
         ]
       },
-      { t: '篮球场那边，六月的时候围过很多人。' },
+      { t: '篮球场那边，六月的时候，没人愿意多站一会儿。' },
       { t: '你要去看就去吧。地上的补丁还在。' }
     ]
   };
@@ -3149,7 +3190,7 @@
     ]
   };
 
-  // ---------- 年级主任（傲慢） ----------
+
   TALK.director1 = {
     who: '年级主任', tag: '巡查中',
     nodes: [
@@ -3186,7 +3227,7 @@
     nodes: [{ t: '高三了，少管闲事。' }, { t: '你们这届，心理素质一个比一个差。' }]
   };
 
-  // ---------- 李芷（嫉妒） ----------
+
   TALK.lizhi1 = {
     who: '李芷', tag: '8 班',
     nodes: [
@@ -3195,7 +3236,7 @@
       { t: '你怎么知道是我写的。' },
       L('王焱', '信里说「老师总在办公室单独给他讲题」。只有 8 班能看见那间办公室。'),
       { t: '（她沉默了几秒。）' },
-      { t: '我只是想让老师公平一点。我们问问题要排队，他不用。' },
+      { t: '我只是想让老师公平点。我们问问题要排队，他不用。' },
       L('王焱', '所以你就写了。'),
       { t: '我没署名。我只是想让老师看见我。' },
       { t: '后来老师确实看见我了。她把我叫去，问我最近是不是心事太重。' },
@@ -3234,7 +3275,7 @@
     ]
   };
 
-  // ---------- 严亮（暴怒） ----------
+
   TALK.yanliang1 = {
     who: '严亮', tag: '2 班',
     nodes: [
@@ -3296,7 +3337,21 @@
     ]
   };
 
-  // ---------- 吴桐（暴食） ----------
+
+  TALK.tiyu_lied = {
+    who: '体育老师', tag: '器材室',
+    nodes: [
+      { t: '（他把手机揣回兜里，抬头看你。）' },
+      { t: '你说的那节体育课，根本没来器材室拿东西。' },
+      { t: '我在这儿坐了一整节，门没响过。' },
+      L('王焱', '……'),
+      { t: '（他没有再问，只是把柜子锁上了。）' },
+      { t: '钥匙你拿着吧。' },
+      { t: '我不管你要上去干什么。但我希望你想清楚了。' }
+    ]
+  };
+
+
   TALK.wutong1 = {
     who: '吴桐', tag: '9 班',
     nodes: [
@@ -3338,7 +3393,7 @@
     nodes: [{ t: '照片的事，别问我了。' }, { t: '我真的只是跟着传了一下。' }]
   };
 
-  // ---------- 罗启（贪婪） ----------
+
   TALK.luoqi1 = {
     who: '罗启', tag: '5 班',
     nodes: [
@@ -3382,7 +3437,7 @@
     nodes: [{ t: '我家也要吃饭啊。' }, { t: '这话我说了很多遍了，自己都不信。' }]
   };
 
-  // ---------- 孙雅（色欲 / 流言） ----------
+
   TALK.sunya1 = {
     who: '孙雅', tag: '10 班',
     nodes: [
@@ -3424,7 +3479,7 @@
     nodes: [{ t: '群里那些话，我已经删了。' }, { t: '可是删了也没用，对吧。' }]
   };
 
-  // ---------- 宿管 ----------
+
   TALK.suguan1 = {
     who: '宿管阿姨', tag: '宿舍',
     nodes: [
@@ -3461,7 +3516,7 @@
     nodes: [{ t: '早点回去。' }, { t: '……那孩子要是有人多问一句，可能就不一样了。' }]
   };
 
-  // ---------- 方老师（懒惰） ----------
+
   TALK.fang1 = {
     who: '方老师', tag: '心理老师',
     nodes: [
@@ -3505,7 +3560,7 @@
     nodes: [{ t: '我按流程做了。' }, { t: '这句话，我说了很多年。' }]
   };
 
-  // ---------- 教务处老师 ----------
+
   TALK.jiaowu1 = {
     who: '教务处老师', tag: '教务处',
     nodes: [
@@ -3538,9 +3593,9 @@
     nodes: [{ t: '档案室的事，别跟别人说是我放你进去的。' }]
   };
 
-  // ============================================================
-  // 12 · 剧情推进：人物状态机 / 档案室 / 天台 / 双结局
-  // ============================================================
+
+
+
 
   function clueCount() {
     var n = 0;
@@ -3562,7 +3617,7 @@
     startSimple('repeat_' + Math.random().toString(36).slice(2, 6), '王焱', '检视', text);
   }
 
-  // ---------- 空座位 / 密码锁 ----------
+
   function useSeat() {
     if (game.flags.lockOpen && !game.flags.noteRead) {
       startDialogue('note', function () {
@@ -3582,11 +3637,11 @@
     });
   }
   function maybeStartChapter2() {
-    // 第二章的标题卡在拿到第一份证词时由 applyEffect 静默更新。
-    // 这里保留空实现：开场不要提前说出「七份证词」。
+
+
   }
 
-  // ---------- 器材室钥匙：偷 / 借 / 骗 ----------
+
   function useKeybox() {
     if (game.items.roofKey) {
       startSimple('key_already', '王焱', '检视', '钥匙已经在你口袋里了。铁牌上那个「顶」字，硌着腿。');
@@ -3596,12 +3651,15 @@
       startDialogue('key_notyet');
       return;
     }
-    startDialogue('key_choice', function () {
+    var done = function () {
       if (game.items.roofKey) {
         setGoal('上教学楼五楼，打开天台的铁门。');
         showToast('拿到天台钥匙了。', 2600);
       }
-    });
+    };
+
+
+    startDialogue(game.flags.alarm ? 'key_choice_alarm' : 'key_choice', done);
   }
   TALK.key_notyet = {
     who: '王焱', tag: '检视',
@@ -3642,9 +3700,40 @@
             complicity: 1, item: 'roofKey', flag: 'keyLied',
             fn: function () { setGoal('上教学楼五楼，打开天台的铁门。'); }
           }, lines: [
-            { t: '「老师，下节体育课要收器材，让我来拿钥匙。」' },
+            { t: '「老师，体育课要收器材，让我来拿钥匙。」' },
             { t: '（他头也没抬，指了指柜子。）' },
             { t: '「自己拿。别弄丢。」' },
+            { t: '你说了一声谢谢。声音有点干。' }
+          ] }
+        ]
+      }
+    ]
+  };
+
+
+  TALK.key_choice_alarm = {
+    who: '王焱', tag: '检视',
+    nodes: [
+      { t: '钥匙串最边上那把，铁牌上写着一个字：顶。' },
+      { t: '体育老师在隔壁打电话，声音压得很低：「……三楼的窗，谁撬的？」' },
+      { t: '（现在叫他一声，等于自己走过去。）' },
+      {
+        choice: [
+          { label: '趁他在打电话，把钥匙解下来。', effect: {
+            complicity: 2, item: 'roofKey', flag: 'keyStolen',
+            fn: function () { setGoal('上教学楼五楼，打开天台的铁门。'); }
+          }, lines: [
+            { t: '钥匙从钩子上滑下来，发出一声很轻的响。' },
+            { t: '他还在讲电话，没有回头。' },
+            { t: '你把钥匙攥在手心，手心有点出汗。' }
+          ] },
+          { label: '等他挂了电话，说体育课要收器材。', effect: {
+            complicity: 1, item: 'roofKey', flag: 'keyLied',
+            fn: function () { setGoal('上教学楼五楼，打开天台的铁门。'); }
+          }, lines: [
+            { t: '「老师，体育课要收器材，让我来拿钥匙。」' },
+            { t: '（他放下手机，盯着你看了两秒。）' },
+            { t: '「……自己拿。别弄丢。」' },
             { t: '你说了一声谢谢。声音有点干。' }
           ] }
         ]
@@ -3673,7 +3762,7 @@
     ]
   };
 
-  // ---------- 文印室：帮教务处老师跑腿 ----------
+
   function useCopyroom() {
     if (game.flags.errandDone || game.items.papers) {
       startSimple('copyroom_done', '王焱', '检视', '文印室里只剩下油墨味。试卷已经被你搬走了。');
@@ -3698,7 +3787,7 @@
     ]
   };
 
-  // ---------- 档案室：门禁三条路 ----------
+
   function openFiledoor() {
     if (game.flags.archiveDone) {
       startSimple('filedoor_after', '王焱', '检视', '档案室的门虚掩着。里面已经没有什么你没看过的了。');
@@ -3784,7 +3873,7 @@
     });
   }
 
-  // ---------- 档案柜：缺号谜题 ----------
+
   function openCabinet() {
     if (game.flags.archiveDone) {
       startSimple('cabinet_done', '王焱', '检视', '13 号抽屉还开着。里面只剩一个空的牛皮纸袋。');
@@ -3872,7 +3961,7 @@
     }
   }
 
-  // ---------- 天台 ----------
+
   function useRoofdoor() {
     if (!game.items.roofKey) {
       startSimple('roofdoor_locked', '王焱', '检视', '铁门锁着。锁孔里有新鲜的划痕，像是最近有人开过。');
@@ -3919,7 +4008,7 @@
     });
   }
 
-  // ---------- 档案室里的真相（两件都找到后自动接上） ----------
+
   TALK.archive_truth = {
     who: '王焱', tag: '档案室',
     nodes: [
@@ -3937,7 +4026,7 @@
     ]
   };
 
-  // ---------- 食堂：调虎离山 ----------
+
   function canteenPairTalk() {
     if (game.flags.stalled) {
       startSimple('stall_done', '陈屿', '7 班 · 会修东西', '主任已经被我们拖住了。快去行政楼，别浪费。');
@@ -3974,7 +4063,7 @@
     ]
   };
 
-  // ---------- 天台对峙 ----------
+
   TALK.linwei_repeat = {
     who: '林薇', tag: '班主任 · 语文',
     nodes: [
@@ -4071,7 +4160,7 @@
     ]
   };
 
-  // ---------- 终章 / 双结局 ----------
+
   function startFinale(type) {
     game.finaleType = type;
     game.saveDisabled = true;
@@ -4114,12 +4203,15 @@
     ];
   }
 
-  function complicityLastLine() {
-    // 设定集只定义了两端：≤2 与 ≥8。3–7 是设计空白，
-    // 这里补一句同样落在「沉默」上的中间台词，避免中间值没有收束。
-    if (game.complicity <= 2) return '「你和她不一样。」';
+  function complicityLastLine(type) {
+
+
+
+
     if (game.complicity >= 8) return '「你刚才，也说过同样的话。」';
-    return '「你没有举手。」';
+    if (type === 'silent') return '「你没有举手。」';
+    if (game.complicity <= 2) return '「你和她不一样。」';
+    return '「你举了手。」';
   }
 
   function drawReflection() {
@@ -4132,7 +4224,7 @@
     tmp.width = 72; tmp.height = 82;
     drawPortrait(tmp, false);
     c.drawImage(tmp, 0, 0);
-    // 倒影：把同一张图翻过来，压低透明度
+
     c.save();
     c.globalAlpha = game.complicity >= 8 ? 0.45 : 0.22;
     c.translate(0, cv.height);
@@ -4146,7 +4238,7 @@
       c.fillRect(0, 0, cv.width, cv.height);
       c.restore();
     }
-    // 水线
+
     c.fillStyle = 'rgba(110,193,242,.25)';
     c.fillRect(0, cv.height / 2, cv.width, 1);
   }
@@ -4180,7 +4272,7 @@
       }
       var last = document.createElement('p');
       last.className = 'last';
-      last.textContent = complicityLastLine();
+      last.textContent = complicityLastLine(type);
       last.style.animationDelay = (REDUCED ? 0 : lines.length * 0.45) + 's';
       box.appendChild(last);
     }
@@ -4192,7 +4284,7 @@
     updateHud();
   }
 
-  // ---------- 对话结束后的连锁检查 ----------
+
   function afterDialogue() {
     if (game.flags.archiveDone && !game.flags.archiveTruthSeen) {
       game.flags.archiveTruthSeen = true;
@@ -4202,7 +4294,7 @@
     return false;
   }
 
-  // ---------- 人物状态机 ----------
+
   var NPC_TALK = {};
 
   NPC_TALK.chenyu = function () {
@@ -4300,8 +4392,15 @@
     startDialogue('yanliang_after');
   };
   NPC_TALK.tiyu = function () {
-    if (game.flags.keyBorrowed) {
-      startSimple('tiyu_after', '体育老师', '器材室', '钥匙用完了记得还。别在楼顶待太久。');
+
+
+    if (game.flags.keyLied && !game.flags.keyLiedCaught) {
+      startDialogue('tiyu_lied', function () { game.flags.keyLiedCaught = true; });
+      return;
+    }
+    if (game.items.roofKey) {
+      startSimple('tiyu_after', '体育老师', '器材室',
+        game.flags.alarm ? '警报都响了，你还惦记着那把钥匙。用完记得还。' : '钥匙用完了记得还。别在楼顶待太久。');
       return;
     }
     if (!hasAllClues()) { startDialogue('tiyu_early'); return; }
@@ -4349,7 +4448,7 @@
     startDialogue('linwei_repeat');
   };
 
-  // ---------- 物件 → 静态台词 ----------
+
   var OBJECT_TALK = {
     blackboard: 'obj_blackboard',
     teacherdesk: 'obj_teacherdesk',
@@ -4385,7 +4484,7 @@
     carving: 'obj_carving'
   };
 
-  // ---------- 特殊物件 ----------
+
   var SPECIAL_USE = {
     seat: useSeat,
     keybox: useKeybox,
@@ -4397,9 +4496,9 @@
     roofdoor: useRoofdoor
   };
 
-  // ============================================================
-  // 13 · 对话系统
-  // ============================================================
+
+
+
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, text) {
     var e = document.createElement(tag);
@@ -4588,11 +4687,34 @@
   function skipDialog() {
     var d = game.dialog;
     if (!d) return;
+
+
+
+
+    var rest = d.nodes.slice(d.i + 1);
     game.dialog = null;
     dlgBox.hidden = true;
     stageEl.classList.remove('dialog-open');
     game.mode = 'play';
+
+    if (scene) for (var i = 0; i < scene.npcs.length; i++) if (scene.npcs[i].id === d.key) scene.npcs[i].mark = false;
+    for (var j = 0; j < rest.length; j++) {
+      var n = rest[j];
+      if (!n) continue;
+      if (typeof n === 'function') { try { n(); } catch (e) { console.error(e); } continue; }
+      if (n.do) { try { n.do(); } catch (e) { console.error(e); } }
+    }
+
+
+    if (game.dialog || game.mode !== 'play') {
+      updateHint(); updateHud(); saveGame();
+      return;
+    }
+    if (d.onDone) { try { d.onDone(); } catch (e) { console.error(e); } }
     updateHint();
+    updateHud();
+    saveGame();
+    if (game.mode === 'play') { try { afterDialogue(); } catch (e) { console.error(e); } }
   }
   function endDialogue(skipped) {
     var d = game.dialog;
@@ -4619,9 +4741,9 @@
     saveGame();
   }
 
-  // ============================================================
-  // 14 · 证词本
-  // ============================================================
+
+
+
   var TESTIMONY_ORDER = ['pride', 'envy', 'wrath', 'lazy', 'greed', 'gluttony', 'lust'];
 
   function buildNotebook() {
@@ -4666,9 +4788,9 @@
     focusCanvas();
   }
 
-  // ============================================================
-  // 15 · 密码锁
-  // ============================================================
+
+
+
   function updateLockDigits() {
     var ds = lockDigits.children;
     for (var i = 0; i < ds.length; i++) {
@@ -4756,9 +4878,9 @@
     return false;
   }
 
-  // ============================================================
-  // 16 · 交互
-  // ============================================================
+
+
+
   function talkTo(npc) {
     if (!npc) return;
     if (NPC_TALK[npc.id]) { NPC_TALK[npc.id](); return; }
@@ -4789,9 +4911,9 @@
     useObject(near.obj);
   }
 
-  // ============================================================
-  // 17 · HUD / 提示 / 暂停 / 全屏
-  // ============================================================
+
+
+
   function updateHud() {
     if (chipClue) chipClue.textContent = String(clueCount());
     var c = CHAPTERS[game.chapter];
@@ -4844,12 +4966,12 @@
     setSound(audio.on);
     game.started = true;
     game.mode = 'play';
-    game.saveDisabled = !silent;   // 开场演出期间不存档，避免「继续」跳掉开场
+    game.saveDisabled = !silent;
     hideTitle();
     setChapter(1);
     setGoal('先弄清楚那个空座位是怎么回事。');
     if (!silent) {
-      // 标题演出：黑屏点名 → 「沈知遥。」停两秒 → 标题浮现 → 切到 7 班
+
       playCinema([
         { t: '「王焱。」\n「到。」' },
         { t: '「陈屿。」\n「到。」' },
@@ -4878,9 +5000,9 @@
     updateHint();
   }
 
-  // ============================================================
-  // 18 · 主循环 / 输入 / 启动
-  // ============================================================
+
+
+
   function initDom() {
     stageEl = $('stage');
     dlgBox = $('dialog'); dlgWho = $('dlgWho'); dlgTag = $('dlgTag'); dlgText = $('dlgText');
@@ -4899,7 +5021,7 @@
       game.chapterTimer += dt;
       if (game.chapterTimer > 3.6) advanceChapter();
     }
-    // 打字机
+
     var d = game.dialog;
     if (d && d.typing) {
       d.shown += dt * 70;
@@ -4910,9 +5032,9 @@
       }
       renderDialogText();
     }
-    // 移动
+
     if (game.mode === 'play') updatePlayer(dt);
-    // 相机
+
     if (game.fixedCam) {
       cam.x = game.fixedCam.x; cam.y = game.fixedCam.y;
     } else {
@@ -4921,13 +5043,13 @@
       cam.x = lerp(cam.x, tx, Math.min(1, dt * 7));
       cam.y = lerp(cam.y, ty, Math.min(1, dt * 7));
     }
-    // 附近目标
+
     var near = computeNear();
     var oldId = game.near ? game.near.id : null;
     var newId = near ? near.id : null;
     game.near = near;
     if (oldId !== newId) updateHint();
-    // 提示到期
+
     if (game.toastUntil && game.time > game.toastUntil) {
       game.toastUntil = 0;
       updateHint();
@@ -4945,9 +5067,9 @@
     requestAnimationFrame(frame);
   }
 
-  // ============================================================
-  // 19 · 键盘 / 触摸 / 按钮
-  // ============================================================
+
+
+
   function handleKeyDown(e) {
     var k = e.key;
     var t = e.target;
@@ -5008,7 +5130,7 @@
     }
     if (game.mode === 'ending') return;
 
-    // play
+
     if (k === 'ArrowLeft' || k === 'a' || k === 'A') { keys.left = true; e.preventDefault(); }
     else if (k === 'ArrowRight' || k === 'd' || k === 'D') { keys.right = true; e.preventDefault(); }
     else if (k === 'ArrowUp' || k === 'w' || k === 'W') { keys.up = true; e.preventDefault(); }
@@ -5112,9 +5234,9 @@
     } catch (e) {}
   }
 
-  // ============================================================
-  // 20 · 调试接口（验收脚本用；普通玩家看不到）
-  // ============================================================
+
+
+
   function findNpc(id) {
     if (!scene) return null;
     for (var i = 0; i < scene.npcs.length; i++) if (scene.npcs[i].id === id) return scene.npcs[i];
@@ -5125,12 +5247,12 @@
     for (var i = 0; i < scene.objects.length; i++) if (scene.objects[i].id === id) return scene.objects[i];
     return null;
   }
-  // 调试接口只在 ?debug=1 时暴露：普通访问不会看到这些能跳门控的入口。
+
   var DEBUG = false;
   try { DEBUG = new URLSearchParams(location.search || '').get('debug') === '1'; } catch (e) {}
   game.debug = DEBUG;
   if (DEBUG) window.SCHOOLSCAPE = {
-    version: '2.0.2',
+    version: '2.1.0',
     getState: publicState,
     ui: {
       start: function () { startGame(false); },
@@ -5172,9 +5294,9 @@
     }
   };
 
-  // ============================================================
-  // 21 · 启动
-  // ============================================================
+
+
+
   function boot() {
     initDom();
     var y = document.getElementById('year');

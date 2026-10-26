@@ -14,7 +14,7 @@
 | `avatar.jpg` | 头像照片（和 `index.html` 放在同一层） |
 | `README.md` | 这份说明。⚠️ 仓库是公开的，它在 <https://yukiii-26.github.io/README.md> 也能被任何人直接打开 |
 | `projects/` | 放作品用的文件夹（一个项目一个子文件夹） |
-| `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（网页**体验版**：第一章「后排的空位」，约 5 分钟、单文件零依赖；完整版在 Unity 桌面版，工程在私有仓库）。网址 <https://yukiii-26.github.io/projects/schoolscape/> |
+| `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（网页**体验版**：第一章「后排的空位」，约 5 分钟、单文件零依赖）。网址 <https://yukiii-26.github.io/projects/schoolscape/> |
 | `projects/minesweeper/` | 扫雷小游戏。**2026-10-24 已从首页隐藏**：文件都还在、网址也还能打开，只是首页不再链过去（恢复方法见「隐藏 / 恢复一个作品」） |
 | `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。网址 <https://yukiii-26.github.io/projects/konbini/> |
 | `projects/konbini/_dev/` | 上面那个单文件的**开发源码**（src / vendor / 打包脚本）。下划线开头，GitHub Pages 不会发布它，只在本地用 |
@@ -44,11 +44,11 @@
 
 作品区第一张卡片（`projects/schoolscape/index.html`）是**第一章「后排的空位」的体验版**：约 5 分钟，从一间教室的空座位开始，问出一些没人愿意提的事。单文件、零依赖、无外部请求，手机和电脑都能玩，进度自动保存在浏览器里。
 
-- **为什么只有第一章**：完整故事（七份证词、档案室、天台上的选择、两个结局）在 Unity 桌面版里，网页版故意只放第一章，让想先看看的人不用下载。
-- **后面章节没有删**：场景、对话、谜题、结局全都还在 `index.html` 里，只是被一个开关挡着 —— 在 `preview/schoolscape2/src/00-core.js` 里把 `var DEMO = true;` 改成 `false`，再跑 `node preview/schoolscape2/build.js`，网页版就变回完整版（这是我们自己留的开关，页面上没有入口）。
+- **为什么只有第一章**：完整故事（七份证词、档案室、天台上的选择、两个结局）后面还在做，暂时没有公开；网页版先放第一章，让人不用下载就能看看。
+- **后面章节没有删**：场景、对话、谜题、结局全都还在 `index.html` 里，只是被一个开关挡着 —— 在 `preview/schoolscape2/src/00-core.js` 里把 `var DEMO = true;` 改成 `false`，再跑 `node preview/schoolscape2/build.js`，网页版就把全部章节都放出来（我们自己留的开关，页面上没有入口）。
 
 - **操作**：`WASD` / 方向键移动，`E` / 空格互动和继续，`Tab` 证词本，`Esc` 暂停，`M` 声音，`F` 全屏。手机用画面下方的方向键和按钮。
-- **不知道下一步做什么？** 画面**左上角一直显示「目标：…」**（和证词本里那行是同一句），跟着它走就行。把教室里能问的都问完，目标会变成「走出教室」，走到门口就会看到「体验版就到这里」和完整版的下载入口。
+- **不知道下一步做什么？** 画面**左上角一直显示「目标：…」**（和证词本里那行是同一句），跟着它走就行。把教室里能问的都问完，目标会变成「走出教室」，走到门口就会看到「体验版就到这里」。
 - **内容提示**：涉及校园霸凌与学生死亡，不描写具体方式与细节；开场有提示，结尾有现实求助信息。
 - **想改台词**：搜 `TALK`（人物对话）、`NOTES`（线索笔记）、`TESTIMONY`（七份证词）、`endingLines`（结局文本）。
 - **⚠️ 改之前先看清楚走哪条路**：
@@ -56,9 +56,6 @@
   - **正式改**：源码分片在 `preview/schoolscape2/src/`（`shell.html` + `00-core.js` / `10-art.js` / `20-scenes.js` / `30-story-*.js` / `40-engine.js` / `50-ui.js`，**这个目录不上传**）。改完跑一句 `node preview/schoolscape2/build.js`，它会拼成 `projects/schoolscape/index.html` 并顺手做语法检查。
   - 构建时会**自动剥掉源码里的所有 JS 注释**（防止玩家看源代码读到设计笔记），所以注释只写在 `preview/schoolscape2/src/` 里，不要指望在交付文件里看到。
 - **想改场景**：搜 `registerScene`，每个场景的地图、家具、交互物、人物和出口都在那里。
-- **Unity 桌面版**：同一套内容的 Unity 移植版，工程在**私有仓库** `Yukiii-26/SchoolScape`（2026-10-26 起不再公开，所以网页上不再放下载/源码链接；本地副本在 `D:\UnityProjects\SchoolScape`）。
-  v0.4 已能完整通关，剧情和网页版逐字一致。
-  ⚠️ 那个工程**不在这个工作区**里，不要试图在本目录改它。
 
 ---
 

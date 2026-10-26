@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0b1220" />
 <title>没有人举手 · No One Raised a Hand</title>
-<meta name="description" content="《没有人举手》网页体验版：第一章「后排的空位」。2D 像素校园剧情解谜，约 5 分钟，零依赖单文件；完整版为 Windows 桌面版。" />
+<meta name="description" content="《没有人举手》网页体验版：第一章「后排的空位」。2D 像素校园剧情解谜，约 5 分钟，零依赖单文件。" />
 <meta property="og:title" content="没有人举手 · No One Raised a Hand" />
-<meta property="og:description" content="网页体验版：第一章「后排的空位」。完整故事（七份证词、档案室、两个结局）在 Windows 桌面版。" />
+<meta property="og:description" content="网页体验版：第一章「后排的空位」。2D 像素校园剧情解谜，约 5 分钟。" />
 <meta property="og:type" content="website" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230b1220'/><text x='50' y='72' font-size='58' font-family='Georgia,serif' font-weight='700' fill='%236ec1f2' text-anchor='middle'>N</text></svg>" />
 
 <!--
   ============================================================================
-  没有人举手 / No One Raised a Hand（项目代号 SchoolScape）
+  没有人举手 / No One Raised a Hand
   projects/schoolscape/index.html　版本 v2.3.0（2026-10-25 · 网页体验版）
   单文件、零依赖、无外部请求；场景 Canvas 桌面 400×225 / 手机 320×180，界面是普通 HTML。
   内容边界：含学生死亡与校园霸凌题材，不描写具体方式与细节；
@@ -444,8 +444,6 @@
     .title-warn{margin-top:6px;font-size:12px;line-height:1.45;padding:6px 8px;max-width:100%}
     .title-actions{margin-top:8px;gap:8px}
     .title-actions .btn{min-height:34px;padding:6px 12px;font-size:12.5px}
-    /* 第 4 个按钮（桌面版下载）在标题卡里放不下，手机上只在下方说明区 / 页脚保留下载入口 */
-    #btnDownload{display:none}
     .title-keys{display:none}
     .title-save{font-size:10.5px;margin-top:6px}
     .overlay{padding:8px;background:rgba(5,9,16,.93)}
@@ -499,7 +497,7 @@
   <p class="kicker">No One Raised a Hand · Web</p>
   <h1>没有人举手</h1>
   <p class="en">No One Raised a Hand</p>
-  <p class="sub">2D 像素校园剧情解谜 · <b>体验版 · 第一章</b> · 完整版在 Windows 桌面版</p>
+  <p class="sub">2D 像素校园剧情解谜 · <b>体验版 · 第一章</b></p>
 </header>
 
 <main class="stage-wrap">
@@ -517,7 +515,7 @@
       <button class="chip" id="btnFull" type="button" title="全屏（F）" aria-label="全屏">⛶</button>
     </div>
 
-    <!-- 当前目标（常显；体验版和完整版都用它提示下一步） -->
+    <!-- 当前目标（常显；用它提示下一步该做什么） -->
     <p class="goalbar" id="goalbar" role="status" aria-live="polite" hidden></p>
 
     <!-- 操作提示 -->
@@ -562,8 +560,6 @@
           <button class="btn btn-primary" id="btnStart" type="button">开始 · 走进教室</button>
           <button class="btn btn-ghost" id="btnContinue" type="button" hidden>继续上次</button>
           <button class="btn btn-ghost" id="btnHelp" type="button">操作说明</button>
-          <!-- 桌面版下载（Unity 移植，同一个故事的 Windows 版） -->
-          <a class="btn btn-ghost" id="btnDownload" href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版 ↗</a>
         </div>
         <p class="title-save" id="titleSave" hidden></p>
         <p class="title-keys"><kbd>WASD</kbd> 移动　<kbd>E</kbd> 互动　<kbd>Tab</kbd> 证词本　<kbd>Esc</kbd> 菜单　<kbd>M</kbd> 声音</p>
@@ -644,7 +640,6 @@
         <div class="end-actions">
           <button class="btn btn-primary" id="btnAgain" type="button">再走一遍</button>
           <a class="btn btn-ghost" href="../../index.html">返回主页</a>
-          <a class="btn btn-ghost" href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">Unity 项目源码 ↗</a>
         </div>
       </div>
     </div>
@@ -658,13 +653,11 @@
           网页版只放了<b>第一章「后排的空位」</b>：教室、后排那张空课桌、锁着的抽屉和那本笔记本。
         </p>
         <p class="nb-sub" style="margin-top:8px">
-          后面的六份证词、档案室、天台上的那个选择 —— 都在<b>完整版</b>里。
-          同一个故事已经移植成 Windows 桌面版，下载解压就能一路玩到两个结局。
+          后面的六份证词、档案室、天台上的那个选择 —— 那些还在做，暂时还没有公开。
         </p>
         <p class="nb-sub" id="demoSummary" style="margin-top:8px;color:var(--warm)"></p>
         <div class="title-actions" style="justify-content:flex-start">
-          <a class="btn btn-primary" id="btnDemoDownload" href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版（完整）↗</a>
-          <button class="btn btn-ghost" id="btnDemoStay" type="button">留在教室里看看</button>
+          <button class="btn btn-primary" id="btnDemoStay" type="button">留在教室里看看</button>
           <a class="btn btn-ghost" href="../../index.html">返回主页</a>
         </div>
       </div>
@@ -695,7 +688,6 @@
           <p class="nb-sub">画面和对话是用 JavaScript 画的。请把浏览器的 JavaScript 打开再刷新；也可以先去主页看看别的作品。</p>
           <div class="title-actions">
             <a class="btn btn-primary" href="../../index.html">返回主页</a>
-            <a class="btn btn-ghost" href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">Unity 项目源码 ↗</a>
           </div>
         </div>
       </div>
@@ -722,10 +714,9 @@
     <div class="note">
       <b>关于这个游戏</b><br>
       网页<b>体验版</b>只放了第一章「后排的空位」：从高三 7 班后排的空座位开始，问出一点不该问的事。<br>
-      后面还有六份证词、一次不该进的潜入、和最后那个选择 —— 这些都在<b>完整版</b>（Windows 桌面版）里，下载解压就能一路玩到两个结局。
+      后面还有六份证词、一次不该进的潜入、和最后那个选择 —— 那些还在做，暂时还没有公开。
       <span class="warnline">题材提示：涉及校园霸凌与学生死亡，不描写具体细节；开场有内容提示，结尾附现实求助信息。</span>
-      <br>进度自动保存在这台浏览器里，关掉页面也能接着玩。<br>
-      想要桌面版？同一个故事移植到了 Unity —— <a href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版 ↗</a>
+      <br>进度自动保存在这台浏览器里，关掉页面也能接着玩。
     </div>
     <div class="ops">
       <b>操作</b><br>
@@ -739,8 +730,8 @@
 
 <footer>
   <div class="wrap">
-    <span>© <span id="year">2026</span> Yukishiro · 没有人举手（项目代号 SchoolScape）</span>
-    <span>零依赖单文件 · 无外部请求 · <a href="https://github.com/Yukiii-26/SchoolScape/releases/latest" target="_blank" rel="noopener">下载 Windows 版 ↗</a> · <a href="https://github.com/Yukiii-26/SchoolScape" target="_blank" rel="noopener">Unity 项目源码 ↗</a></span>
+    <span>© <span id="year">2026</span> Yukishiro · 没有人举手</span>
+    <span>零依赖单文件 · 无外部请求</span>
   </div>
 </footer>
 
@@ -4873,7 +4864,7 @@
       rowD.style.gridTemplateColumns = '1fr';
       var bodyD = el('div', 'body');
       bodyD.appendChild(el('b', '', '体验版 · 第一章'));
-      bodyD.appendChild(el('span', '', '七份证词、一次不该进的潜入、最后那个选择 —— 都在完整版里。'));
+      bodyD.appendChild(el('span', '', '七份证词、一次不该进的潜入、最后那个选择 —— 后面的内容还在做。'));
       rowD.appendChild(bodyD);
       nbList.appendChild(rowD);
     } else {
@@ -5130,10 +5121,10 @@
         sum.textContent = '这一章你记下了 ' + notes + ' 条线索，教室里能问的也都问过了。';
       }
     }
-    var b = $('btnDemoDownload');
+    var b = $('btnDemoStay');
     if (b) { try { b.focus({ preventScroll: true }); } catch (e) { b.focus(); } }
     var live = $('ariaLive');
-    if (live) live.textContent = '体验版就到这里。后面的章节在完整版里，可以下载 Windows 桌面版继续。';
+    if (live) live.textContent = '体验版就到这里。后面的章节还在做，暂时还没有公开。';
   }
   function closeDemoEnd() {
     var box = $('demoEnd');
@@ -5533,7 +5524,7 @@
 
         if (ts) {
           ts.hidden = false;
-          ts.textContent = '有一份来自完整版的存档（第 ' + savedChapter + ' 章）。网页体验版只能从第一章开始 —— 完整进度请下载 Windows 版。';
+          ts.textContent = '有一份来自旧版本的存档（第 ' + savedChapter + ' 章）。网页版只能从第一章开始。';
         }
       } else {
         var btn = document.getElementById('btnContinue');

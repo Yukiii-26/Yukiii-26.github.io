@@ -14,7 +14,7 @@
 | `avatar.jpg` | 头像照片（和 `index.html` 放在同一层） |
 | `README.md` | 这份说明。⚠️ 仓库是公开的，它在 <https://yukiii-26.github.io/README.md> 也能被任何人直接打开 |
 | `projects/` | 放作品用的文件夹（一个项目一个子文件夹） |
-| `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（网页**体验版**：第一章「后排的空位」，约 5 分钟、单文件零依赖；完整版在 Unity 桌面版，见下面「其他单独项目」）。网址 <https://yukiii-26.github.io/projects/schoolscape/> |
+| `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（网页版：第一章「后排的空位」，单文件零依赖）。**首页已不再挂试玩入口**，页面文件仍在，知道网址可直接访问 <https://yukiii-26.github.io/projects/schoolscape/> |
 | `projects/minesweeper/` | 扫雷小游戏。**2026-10-24 已从首页隐藏**：文件都还在、网址也还能打开，只是首页不再链过去（恢复方法见「隐藏 / 恢复一个作品」） |
 | `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。网址 <https://yukiii-26.github.io/projects/konbini/> |
 | `projects/konbini/_dev/` | 上面那个单文件的**开发源码**（src / vendor / 打包脚本）。下划线开头，GitHub Pages 不会发布它，只在本地用 |
@@ -34,7 +34,7 @@
 - **黄昏背景图** —— 首屏铺满一张雨夜街景插画，往下滚动的内容区自动压上深色面板，字始终看得清
 - **深色主题** —— 目前只有深色（亮色版在照片上看不清，先隐藏了；样式还留着，想恢复随时能开回来）
 - **自适应手机** —— 小屏幕上导航收成折叠菜单，作品列表从「编号行」改成上下排列，背景换成竖构图的另一张图
-- **其他单独项目** —— 作品区下面单独留了一块，专门放「代码主要不在本站」的项目（现在是 Unity 桌面版《没有人举手》：v0.4 已能完整通关，Windows 版挂在 GitHub Releases 上，完整故事也可以先玩网页版）
+- **其他单独项目** —— 作品区下面单独留了一块，专门放「代码主要不在本站」的项目。**目前内容已清空、只保留栏目位置**，加新项目时用 `index.html` 里的 `<template id="tpl-featured-card">` 结构
 - **全站同一套外观** —— 作品页（《没有人举手》、便利店、地图、扫雷、山谷）和彩蛋页、模板页都换成了同一套：深色 + 天蓝 + 圆弧角 + 同一张背景图，点进去不会像跳到了另一个网站
 - **关掉 JS 也不会白屏** —— 进场动画只在 JavaScript 可用时才启用
 
@@ -56,9 +56,9 @@
   - **正式改**：源码分片在 `preview/schoolscape2/src/`（`shell.html` + `00-core.js` / `10-art.js` / `20-scenes.js` / `30-story-*.js` / `40-engine.js` / `50-ui.js`，**这个目录不上传**）。改完跑一句 `node preview/schoolscape2/build.js`，它会拼成 `projects/schoolscape/index.html` 并顺手做语法检查。
   - 构建时会**自动剥掉源码里的所有 JS 注释**（防止玩家看源代码读到设计笔记），所以注释只写在 `preview/schoolscape2/src/` 里，不要指望在交付文件里看到。
 - **想改场景**：搜 `registerScene`，每个场景的地图、家具、交互物、人物和出口都在那里。
-- **Unity 桌面版**：同一套内容的 Unity 移植版（工程在另一个仓库 <https://github.com/Yukiii-26/SchoolScape>），
-  现在 **v0.4** 已能完整通关，剧情和网页版逐字一致；Windows 版下载：<https://github.com/Yukiii-26/SchoolScape/releases/latest>（解压双击 `SchoolScape.exe`）。
-  ⚠️ 那个仓库**不在这个工作区**里，这里只放链接，不要试图在本目录改它。
+- **Unity 桌面版**：同一套内容的 Unity 移植版，工程在**私有仓库** `Yukiii-26/SchoolScape`（2026-10-26 起不再公开，所以网页上不再放下载/源码链接；本地副本在 `D:\UnityProjects\SchoolScape`）。
+  v0.4 已能完整通关，剧情和网页版逐字一致。
+  ⚠️ 那个工程**不在这个工作区**里，不要试图在本目录改它。
 
 ---
 
@@ -94,7 +94,7 @@
 | ⑧ | 邮箱和 GitHub 链接 |
 | ⑨ | 页脚文字 |
 | ⑩ | 头像照片 |
-| ⑪ | **其他单独项目**：那块的标题、说明、标签，以及「在 GitHub 上看」的链接 |
+| ⑪ | **其他单独项目**：目前是空的占位区（只有标题与一句占位文字）；加项目时复制 `<template id="tpl-featured-card">` 里的结构到「新项目写在这里」下面 |
 
 **要注意的点：**
 

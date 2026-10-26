@@ -14,7 +14,7 @@
 | `avatar.jpg` | 头像照片（和 `index.html` 放在同一层） |
 | `README.md` | 这份说明。⚠️ 仓库是公开的，它在 <https://yukiii-26.github.io/README.md> 也能被任何人直接打开 |
 | `projects/` | 放作品用的文件夹（一个项目一个子文件夹） |
-| `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（网页版：第一章「后排的空位」，单文件零依赖）。**首页已不再挂试玩入口**，页面文件仍在，知道网址可直接访问 <https://yukiii-26.github.io/projects/schoolscape/> |
+| `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（网页**体验版**：第一章「后排的空位」，约 5 分钟、单文件零依赖；完整版在 Unity 桌面版，工程在私有仓库）。网址 <https://yukiii-26.github.io/projects/schoolscape/> |
 | `projects/minesweeper/` | 扫雷小游戏。**2026-10-24 已从首页隐藏**：文件都还在、网址也还能打开，只是首页不再链过去（恢复方法见「隐藏 / 恢复一个作品」） |
 | `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。网址 <https://yukiii-26.github.io/projects/konbini/> |
 | `projects/konbini/_dev/` | 上面那个单文件的**开发源码**（src / vendor / 打包脚本）。下划线开头，GitHub Pages 不会发布它，只在本地用 |

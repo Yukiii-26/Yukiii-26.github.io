@@ -1039,15 +1039,20 @@
     setPlayLabel();
   });
 
+  function syncThemeUI() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.getElementById('themeBtn').textContent = dark ? '☀ 浅色' : '☾ 深色';
+    var m = document.getElementById('themeColor');
+    if (m) m.setAttribute('content', dark ? '#0b1220' : '#e9f1f8');
+  }
   document.getElementById('themeBtn').addEventListener('click', function () {
     var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
     try { localStorage.setItem('theme', next); } catch (e) {}
-    document.getElementById('themeBtn').textContent = next === 'dark' ? '☀ 浅色' : '☾ 深色';
-    scene.fog.color.set(next === 'dark' ? 0x2a2320 : 0xefe6d6);
+    /* 只换界面层，不改 3D 场景的光照/雾（昼夜由「☾ 夜间」按钮单独控制） */
+    syncThemeUI();
   });
-  document.getElementById('themeBtn').textContent =
-    document.documentElement.getAttribute('data-theme') === 'dark' ? '☀ 浅色' : '☾ 深色';
+  syncThemeUI();
 
   var draggingTrack = false;
   function setFromEvent(ev) {

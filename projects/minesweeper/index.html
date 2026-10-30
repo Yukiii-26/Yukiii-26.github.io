@@ -1,16 +1,71 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>扫雷 Minesweeper</title>
+<meta name="theme-color" id="themeColor" content="#e9f1f8" />
+
+<script>
+  // 这段必须放在样式之前，否则会先闪一下别的底色。
+  // 默认浅色；用户按过右上角的 ☾ / ☀ 就记住他的选择（和主页共用 localStorage 的 theme）
+  (function () {
+    document.documentElement.classList.add('js');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', (saved === 'light' || saved === 'dark') ? saved : 'light');
+  })();
+</script>
+
 <style>
+  /* ===================== 配色 =====================
+     :root              = 原来那套深色（夜空深蓝 + 天蓝强调色），深色模式下保持原样
+     [data-theme=light] = 与个人主页完全一致的浅色（雾蓝白）
+     扫雷棋盘本身是经典 Windows 灰，两套主题下都不动，只把「外面那一层」做成主题色。 */
   :root {
+    color-scheme: dark;
+    --paper: #0b1220;
+    --ink: #f4efe8;
+    --muted: #bcb5ab;
+    --line: rgba(255, 255, 255, .14);
+    --accent: #6ec1f2;
+    --accent-hi: #9ad6ff;
+    --accent-ink: #06121e;
+    --panel: rgba(255, 255, 255, .06);
+    --panel-hi: rgba(255, 255, 255, .12);
+    --panel-line: rgba(255, 255, 255, .16);
+    --back-bg: rgba(9, 14, 24, .72);
+    --back-bg-hi: rgba(20, 30, 46, .92);
+    --h1-shadow: 0 2px 10px rgba(0, 0, 0, .6);
+    --frame-shadow: 0 26px 60px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .10);
+    --bg-img: url("../../assets/bg-dusk.jpg");
+    --bg-veil: linear-gradient(180deg, rgba(8, 12, 20, .80), rgba(8, 12, 20, .90));
+
+    /* 棋盘：经典 Windows 灰（两套主题共用，不要跟着变） */
     --face: #c0c0c0;
     --hi: #ffffff;
     --lo: #808080;
     --grid: #c6c6c6;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --paper: #e9f1f8;
+    --ink: #101a24;
+    --muted: #4c5a68;
+    --line: rgba(16, 26, 36, .14);
+    --accent: #1d6fa5;
+    --accent-hi: #2a86c2;
+    --accent-ink: #ffffff;
+    --panel: rgba(255, 255, 255, .72);
+    --panel-hi: rgba(255, 255, 255, .96);
+    --panel-line: rgba(16, 26, 36, .16);
+    --back-bg: rgba(255, 255, 255, .78);
+    --back-bg-hi: rgba(255, 255, 255, .96);
+    --h1-shadow: 0 1px 0 rgba(255, 255, 255, .72);
+    --frame-shadow: 0 18px 40px rgba(16, 26, 36, .18), 0 0 0 1px rgba(16, 26, 36, .10);
+    --bg-img: url("../../assets/bg-light.jpg");
+    --bg-veil: linear-gradient(180deg, rgba(233, 241, 248, .78), rgba(233, 241, 248, .92));
   }
   * { box-sizing: border-box; }
   body {
@@ -21,9 +76,10 @@
     align-items: center;
     justify-content: center;
     gap: 14px;
-    background: radial-gradient(circle at 50% 0%, #3c4a63, #1b2130 70%);
+    background: var(--paper);
     font-family: "Segoe UI", Tahoma, "Microsoft YaHei", system-ui, sans-serif;
-    color: #dfe6f2;
+    color: var(--ink);
+    transition: background-color .3s ease, color .3s ease;
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -34,17 +90,21 @@
     font-size: 20px;
     font-weight: 600;
     letter-spacing: .18em;
-    color: #f0f4ff;
-    text-shadow: 0 2px 10px rgba(0,0,0,.6);
+    color: var(--ink);
+    text-shadow: var(--h1-shadow);
+    transition: color .3s ease, text-shadow .3s ease;
   }
   .frame {
+    /* 棋盘外框：颜色一律不跟主题走（保持复古灰），只有阴影/圆角是「页面外观」 */
     background: var(--face);
     padding: 8px;
     border-top: 4px solid var(--hi);
     border-left: 4px solid var(--hi);
     border-right: 4px solid #404040;
     border-bottom: 4px solid #404040;
-    box-shadow: 0 18px 40px rgba(0,0,0,.5);
+    border-radius: 20px;
+    box-shadow: var(--frame-shadow);
+    transition: box-shadow .3s ease;
   }
   .panel {
     display: flex;
@@ -137,18 +197,19 @@
     padding: 6px 14px;
     font-size: 13px;
     cursor: pointer;
-    background: #2a3143;
-    color: #cfd8e8;
-    border: 1px solid #4c5773;
-    border-radius: 6px;
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--panel-line);
+    border-radius: 12px;
+    transition: background-color .18s, border-color .18s, color .18s;
   }
-  .levels button:hover { background: #35405a; }
-  .levels button.on { background: #4d6bd8; border-color: #7f96ff; color: #fff; }
-  .msg { height: 22px; font-size: 14px; color: #ffd479; }
-  .help { font-size: 12px; line-height: 1.9; color: #96a2ba; text-align: center; max-width: 620px; }
+  .levels button:hover { background: var(--panel-hi); border-color: var(--accent); }
+  .levels button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .msg { height: 22px; font-size: 14px; color: var(--accent); }
+  .help { font-size: 12px; line-height: 1.9; color: var(--muted); text-align: center; max-width: 620px; }
   kbd {
-    background: #2a3143; border: 1px solid #4c5773; border-radius: 4px;
-    padding: 1px 5px; font-family: Consolas, monospace; font-size: 11px; color: #cfd8e8;
+    background: var(--panel); border: 1px solid var(--panel-line); border-radius: 8px;
+    padding: 1px 5px; font-family: Consolas, monospace; font-size: 11px; color: var(--ink);
   }
   /* 返回主页：固定在左上角。用 fixed 定位就不参与上面那套垂直居中布局，不会把游戏挤歪 */
   .back-home {
@@ -164,37 +225,46 @@
     font-weight: 600;
     letter-spacing: .02em;
     text-decoration: none;
-    color: #cfd8e8;
-    background: rgba(42,49,67,.78);
-    border: 1px solid #4c5773;
-    border-radius: 6px;
+    color: var(--ink);
+    background: var(--back-bg);
+    border: 1px solid var(--panel-line);
+    border-radius: 12px;
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
     transition: background .18s, color .18s, border-color .18s, transform .18s;
   }
   .back-home:hover {
-    background: #35405a;
-    border-color: #7f96ff;
-    color: #fff;
+    background: var(--back-bg-hi);
+    border-color: var(--accent);
+    color: var(--ink);
     transform: translateY(-1px);
   }
   .back-home:active { transform: none; }
 
-/* ===================== 与主页统一的外观（2026-10-21） ===================== */
-body{background:#0b1220;color:#f4efe8}
-.site-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background:#0b1220 url("../../assets/bg-dusk.jpg") center 42%/cover no-repeat}
-.site-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,12,20,.80),rgba(8,12,20,.90))}
-h1{color:#f4efe8}
-/* 棋盘本身保留原来的复古灰，只把外面那圈做成圆角卡片 */
-.frame{border-radius:20px;box-shadow:0 26px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.10)}
-.levels button{border-radius:12px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16);color:#f4efe8}
-.levels button:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.30)}
-.levels button.on{background:#6ec1f2;border-color:#6ec1f2;color:#06121e}
-.msg{color:#6ec1f2}
-.help{color:#bcb5ab}
-kbd{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);border-radius:8px;color:#f4efe8}
-.back-home{border-radius:12px;background:rgba(9,14,24,.72);border-color:rgba(255,255,255,.16);color:#f4efe8}
-.back-home:hover{background:rgba(20,30,46,.92);border-color:#6ec1f2;color:#fff}
+/* ===================== 与主页统一的外观（2026-10-21；2026-10-30 统一为「默认浅色 + 右上角切换」） ===================== */
+/* 背景图：浅色 bg-light.jpg / 深色 bg-dusk.jpg，由上面的 --bg-img、--bg-veil 切换 */
+.site-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background-color:var(--paper);
+  background-image:var(--bg-img);
+  background-position:center 42%;
+  background-size:cover;
+  background-repeat:no-repeat;
+  transition:background-color .3s ease}
+.site-bg::after{content:"";position:absolute;inset:0;background:var(--bg-veil)}
+
+/* ☾ / ☀ 深浅色切换按钮（与主页同款），固定右上角，不参与游戏布局 */
+.theme-toggle{
+  position:fixed;top:14px;right:14px;z-index:11;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:32px;border-radius:10px;cursor:pointer;padding:0;
+  background:transparent;border:1px solid var(--line);color:var(--ink);
+  transition:border-color .18s,color .18s,background .18s;
+}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+.theme-toggle .i-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .i-moon{display:none}
+:root[data-theme="dark"] .theme-toggle .i-sun{display:block}
 </style>
 </head>
 <body>
@@ -202,6 +272,12 @@ kbd{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);border-r
 
 <!-- 返回主页。../../ 就是往上两层：minesweeper → projects → 网站根目录 -->
 <a class="back-home" href="../../index.html">← 返回主页</a>
+
+<!-- 深浅色切换：浅色时显示月亮（点了切深色），深色时显示太阳 -->
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+  <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
+  <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
+</button>
 
 <h1>扫 雷</h1>
 
@@ -624,6 +700,24 @@ kbd{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);border-r
 
   startGame('beginner');
 })();
+</script>
+
+<script>
+  // 深浅色切换：选择写进 localStorage 的 theme（和主页共用同一个键），刷新后记得住
+  (function () {
+    var themeToggle = document.getElementById('themeToggle');
+    var themeColorMeta = document.getElementById('themeColor');
+    function applyTheme(theme, persist) {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#e9f1f8');
+      if (persist) { try { localStorage.setItem('theme', theme); } catch (e) {} }
+    }
+    applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+    if (themeToggle) themeToggle.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next, true);
+    });
+  })();
 </script>
 </body>
 </html>

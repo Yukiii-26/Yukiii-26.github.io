@@ -1,19 +1,92 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark">
 <title>雨夜の街角 ─ Yukiii</title>
+<meta name="theme-color" id="themeColor" content="#e9f1f8" />
+
+<script>
+  // 这段必须放在样式之前，否则会先闪一下别的底色。
+  // 默认浅色；用户按过右上角的 ☾ / ☀ 就记住他的选择（和主页共用 localStorage 的 theme）
+  (function () {
+    document.documentElement.classList.add('js');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', (saved === 'light' || saved === 'dark') ? saved : 'light');
+  })();
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231b5b4b'/%3E%3Cg stroke='%23fff8e8' stroke-width='4.5' stroke-linecap='round'%3E%3Cpath d='M32 8v48M11 20l42 24M11 44l42-24'/%3E%3Cpath d='M26 12l6 6 6-6M26 52l6-6 6 6M12 26l8 4-4 8M52 26l-8 6 4 8M12 38l8-2 4 8M52 38l-8-2-4 8'/%3E%3C/g%3E%3C/svg%3E">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===================== 主题色板 =====================
+   :root              = 原来的深色（雨夜玻璃 HUD），深色模式下保持原样
+   [data-theme=light] = 与个人主页完全一致的浅色（白色玻璃 + 深色字）
+   3D 场景（canvas / vignette / grain）一点都没动，只有页面上的 HUD、按钮、
+   返回主页这些「界面层」跟着主题走。 */
+:root {
+  color-scheme: dark;
+  --paper: #070b14;
+  --ink: #f4efe8;
+  --muted: rgba(244, 239, 232, .68);
+  --line: rgba(255, 255, 255, .14);
+  --accent: #6ec1f2;
+  --accent-hi: #9ad6ff;
+  --accent-ink: #06121e;
+
+  /* ---- HUD 专用颜色（浅 / 深各一套，改配色时一起改） ---- */
+  --hud-ink: #f4efe8;
+  --hud-label: rgba(244, 239, 232, .68);
+  --hud-line: rgba(255, 255, 255, .16);
+  --hud-bg: rgba(9, 14, 24, .72);
+  --hud-bg-open: rgba(20, 30, 46, .88);
+  --hud-panel-bg: rgba(9, 14, 24, .86);
+  --hud-panel-shadow: 0 20px 44px rgba(0, 0, 0, .5);
+  --hud-row-line: rgba(255, 255, 255, .08);
+  --hud-seg-bg: rgba(255, 255, 255, .06);
+  --hud-seg-line: rgba(255, 255, 255, .12);
+  --hud-seg-ink: rgba(244, 239, 232, .72);
+  --hud-switch-bg: rgba(255, 255, 255, .08);
+  --hud-switch-on: rgba(110, 193, 242, .28);
+  --hud-knob: rgba(244, 239, 232, .82);
+  --hud-act-bg: rgba(255, 255, 255, .07);
+  --hud-act-line: rgba(255, 255, 255, .14);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --paper: #e9f1f8;
+  --ink: #101a24;
+  --muted: #4c5a68;
+  --line: rgba(16, 26, 36, .14);
+  --accent: #1d6fa5;
+  --accent-hi: #2a86c2;
+  --accent-ink: #ffffff;
+
+  --hud-ink: #101a24;
+  --hud-label: #4c5a68;
+  --hud-line: rgba(16, 26, 36, .14);
+  --hud-bg: rgba(255, 255, 255, .78);
+  --hud-bg-open: rgba(255, 255, 255, .96);
+  --hud-panel-bg: rgba(255, 255, 255, .90);
+  --hud-panel-shadow: 0 18px 40px rgba(16, 26, 36, .22);
+  --hud-row-line: rgba(16, 26, 36, .10);
+  --hud-seg-bg: rgba(16, 26, 36, .06);
+  --hud-seg-line: rgba(16, 26, 36, .14);
+  --hud-seg-ink: #4c5a68;
+  --hud-switch-bg: rgba(16, 26, 36, .10);
+  --hud-switch-on: rgba(29, 111, 165, .20);
+  --hud-knob: #ffffff;
+  --hud-act-bg: rgba(16, 26, 36, .05);
+  --hud-act-line: rgba(16, 26, 36, .12);
+}
 
 html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #070b14;
+  background: var(--paper);
+  transition: background-color .3s ease;
 }
 
 body {
@@ -32,6 +105,8 @@ body.dragging { cursor: grabbing; }
   height: 100%;
   display: block;
   outline: none;
+  /* 首帧渲染出来之前，画布本身先压深色底，避免浅色主题下闪一下白 */
+  background: #070b14;
 }
 
 .vignette {
@@ -53,18 +128,20 @@ body.dragging { cursor: grabbing; }
 }
 
 /* ---------------- 控制面板（与个人主页同一套外观） ---------------- */
+/* 右上角一列：最上面是 ☾ / ☀ 切换，下面才是「⚙ 控制」，两者不重叠 */
 .hud {
   position: fixed;
-  top: 14px;
+  top: 54px;
   right: 14px;
   z-index: 30;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   font: 600 12px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  color: #f4efe8;
+  color: var(--hud-ink);
   -webkit-user-select: none;
   user-select: none;
+  transition: color .3s ease;
 }
 
 .hud-btn {
@@ -75,27 +152,27 @@ body.dragging { cursor: grabbing; }
   border-radius: 12px;
   cursor: pointer;
   font: inherit;
-  color: #f4efe8;
-  background: rgba(9, 14, 24, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--hud-ink);
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-line);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  transition: border-color 0.18s, background 0.18s;
+  transition: border-color 0.18s, background 0.18s, color 0.3s ease;
 }
 
-.hud-btn:hover { border-color: #6ec1f2; }
-.hud-btn[aria-expanded="true"] { border-color: #6ec1f2; background: rgba(20, 30, 46, 0.88); }
+.hud-btn:hover { border-color: var(--accent); }
+.hud-btn[aria-expanded="true"] { border-color: var(--accent); background: var(--hud-bg-open); }
 
 .hud-panel {
   margin-top: 8px;
   width: 236px;
   padding: 12px 14px 14px;
   border-radius: 16px;
-  background: rgba(9, 14, 24, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--hud-panel-bg);
+  border: 1px solid var(--hud-line);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--hud-panel-shadow);
 }
 
 .hud-panel[hidden] { display: none; }
@@ -108,20 +185,20 @@ body.dragging { cursor: grabbing; }
   padding: 7px 0;
 }
 
-.hud-row + .hud-row { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.hud-row + .hud-row { border-top: 1px solid var(--hud-row-line); }
 
 .hud-label {
   font-size: 11px;
   letter-spacing: 0.1em;
-  color: rgba(244, 239, 232, 0.68);
+  color: var(--hud-label);
 }
 
 .hud-seg {
   display: flex;
   padding: 2px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--hud-seg-bg);
+  border: 1px solid var(--hud-seg-line);
 }
 
 .hud-seg button {
@@ -129,15 +206,15 @@ body.dragging { cursor: grabbing; }
   padding: 5px 11px;
   border-radius: 999px;
   background: transparent;
-  color: rgba(244, 239, 232, 0.72);
+  color: var(--hud-seg-ink);
   font: inherit;
   cursor: pointer;
   transition: background 0.16s, color 0.16s;
 }
 
 .hud-seg button.on {
-  background: #6ec1f2;
-  color: #06121e;
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .hud-switch {
@@ -147,8 +224,8 @@ body.dragging { cursor: grabbing; }
   padding: 0;
   border-radius: 999px;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--hud-switch-bg);
+  border: 1px solid var(--hud-line);
   transition: background 0.18s, border-color 0.18s;
 }
 
@@ -159,18 +236,18 @@ body.dragging { cursor: grabbing; }
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: rgba(244, 239, 232, 0.82);
+  background: var(--hud-knob);
   transition: transform 0.18s, background 0.18s;
 }
 
 .hud-switch.on {
-  background: rgba(110, 193, 242, 0.28);
-  border-color: #6ec1f2;
+  background: var(--hud-switch-on);
+  border-color: var(--accent);
 }
 
 .hud-switch.on i {
   transform: translateX(22px);
-  background: #6ec1f2;
+  background: var(--accent);
 }
 
 .hud-acts {
@@ -185,16 +262,33 @@ body.dragging { cursor: grabbing; }
   cursor: pointer;
   font: inherit;
   font-size: 11.5px;
-  color: #f4efe8;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--hud-ink);
+  background: var(--hud-act-bg);
+  border: 1px solid var(--hud-act-line);
   transition: background 0.16s, border-color 0.16s, color 0.16s;
 }
 
 .hud-act:hover {
-  border-color: #6ec1f2;
-  color: #9ad6ff;
+  border-color: var(--accent);
+  color: var(--accent-hi);
 }
+
+/* ☾ / ☀ 深浅色切换（与主页同款）：右上角最上面一颗，下面是「⚙ 控制」 */
+.theme-toggle{
+  position:fixed;top:14px;right:14px;z-index:31;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:32px;border-radius:10px;cursor:pointer;padding:0;
+  color:var(--hud-ink);
+  background:var(--hud-bg);
+  border:1px solid var(--hud-line);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  transition:border-color .18s,color .18s,background .18s;
+}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+.theme-toggle .i-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .i-moon{display:none}
+:root[data-theme="dark"] .theme-toggle .i-sun{display:block}
 
 @media (max-width: 520px) {
   .hud-panel { width: 208px; }
@@ -213,15 +307,22 @@ body.dragging { cursor: grabbing; }
     display:inline-flex;align-items:center;gap:6px;
     padding:7px 13px;border-radius:12px;text-decoration:none;
     font:600 13px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-    letter-spacing:.02em;color:#f4efe8;background:rgba(9,14,24,.72);
-    border:1px solid rgba(255,255,255,.16);
+    letter-spacing:.02em;color:var(--hud-ink);background:var(--hud-bg);
+    border:1px solid var(--hud-line);
     -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-    opacity:.3;transition:opacity .25s ease,background .2s,color .2s,transform .2s;
+    opacity:.3;transition:opacity .25s ease,background .2s,color .2s,transform .2s,border-color .2s;
   }
-  #back-home:hover{opacity:1;background:rgba(20,30,46,.92);border-color:#6ec1f2;color:#fff;transform:translateY(-1px)}
+  #back-home:hover{opacity:1;background:var(--hud-bg-open);border-color:var(--accent);color:var(--hud-ink);transform:translateY(-1px)}
   @media (prefers-reduced-motion:reduce){#back-home{transition:none}}
 </style>
 <a id="back-home" href="../../index.html">← 返回主页</a>
+
+<!-- 深浅色切换：浅色时显示月亮（点了切深色），深色时显示太阳 -->
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+  <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
+  <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
+</button>
+
 <script>
   (function () {
     var b = document.getElementById('back-home');
@@ -4651,6 +4752,24 @@ void main() {
  * SPDX-License-Identifier: MIT
  */
 
+</script>
+
+<script>
+  // 深浅色切换：选择写进 localStorage 的 theme（和主页共用同一个键），刷新后记得住
+  (function () {
+    var themeToggle = document.getElementById('themeToggle');
+    var themeColorMeta = document.getElementById('themeColor');
+    function applyTheme(theme, persist) {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#e9f1f8');
+      if (persist) { try { localStorage.setItem('theme', theme); } catch (e) {} }
+    }
+    applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+    if (themeToggle) themeToggle.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next, true);
+    });
+  })();
 </script>
 </body>
 </html>

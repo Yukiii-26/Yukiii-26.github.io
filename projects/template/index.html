@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
 <meta charset="utf-8" />
 <!--
   ============================================================================
@@ -21,10 +22,9 @@
   【怎么改】搜「改这里」，一共 7 处。
   ============================================================================
 -->
-<html lang="zh-CN">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#0b1220" />
+<meta name="theme-color" id="themeColor" content="#e9f1f8" />
 
 <!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时的卡片文字 ↓↓↓ -->
 <title>项目名称 · Yukishiro</title>
@@ -41,34 +41,37 @@
     document.documentElement.classList.add('js');
     var saved = null;
     try { saved = localStorage.getItem('theme'); } catch (e) {}
-    var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', 'dark');  /* 与主页统一：固定深色 */
+    document.documentElement.setAttribute('data-theme', (saved === 'light' || saved === 'dark') ? saved : 'light');
   })();
 </script>
 
 <style>
-  /* 配色和主页完全一致，改这里就能换主题色（浅色 / 深色各一块） */
+  /* 配色和主页同一套：默认浅色 = 雾蓝白；深色 = 这页原来的夜空深蓝 + 天蓝强调色 */
   :root{
-    --paper:#faf8f4;
-    --surface:#ffffff;
-    --ink:#16130f;
-    --muted:#6f675c;
-    --line:#e2dbd0;
-    --accent:#c2410c;
-    --nav-bg:rgba(250,248,244,.92);
+    color-scheme:light;
+    --paper:#e9f1f8;
+    --surface:rgba(255,255,255,.74);
+    --ink:#101a24;
+    --muted:#4c5a68;
+    --line:rgba(16,26,36,.14);
+    --accent:#1d6fa5;
+    --accent-hi:#2a86c2;
+    --accent-ink:#ffffff;
+    --nav-bg:rgba(233,241,248,.82);
     --max:780px;
   }
   :root[data-theme="dark"]{
     color-scheme:dark;
-    --paper:#100e0d;
-    --surface:#1a1714;
-    --ink:#f0ece8;
-    --muted:#a29c95;
-    --line:rgba(255,255,255,.11);
-    --accent:#fb923c;
-    --nav-bg:rgba(16,14,13,.88);
+    --paper:#0b1220;
+    --surface:rgba(18,27,42,.78);
+    --ink:#f4efe8;
+    --muted:#bcb5ab;
+    --line:rgba(255,255,255,.14);
+    --accent:#6ec1f2;
+    --accent-hi:#9ad6ff;
+    --accent-ink:#06121e;
+    --nav-bg:rgba(9,14,24,.72);
   }
-  :root[data-theme="light"]{color-scheme:light}
 
   *,*::before,*::after{box-sizing:border-box}
   body{
@@ -108,9 +111,9 @@
 
   .theme-toggle{
     display:inline-flex;align-items:center;justify-content:center;
-    width:36px;height:32px;border-radius:2px;cursor:pointer;padding:0;
+    width:36px;height:32px;border-radius:10px;cursor:pointer;padding:0;
     background:transparent;border:1px solid var(--line);color:var(--ink);
-    transition:border-color .18s,color .18s;
+    transition:border-color .18s,color .18s,background .18s;
   }
   .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
   .theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
@@ -187,34 +190,23 @@
     .lead{font-size:16.5px}
   }
 
-/* ===================== 与主页统一的外观（2026-10-21） =====================
-   深色 + 天蓝强调色 + 圆弧角 + 同一张黄昏背景图。
-   亮色模式在这里被整块钉回深色，所以浏览器里存过 light 也不会突然变白。 */
-:root, :root[data-theme="dark"], :root[data-theme="light"]{
-  color-scheme:dark;
-  --paper:#0b1220;
-  --surface:rgba(18,27,42,.78);
-  --ink:#f4efe8;
-  --muted:#bcb5ab;
-  --line:rgba(255,255,255,.14);
-  --accent:#6ec1f2;
-  --accent-hi:#9ad6ff;
-  --accent-ink:#06121e;
-  --nav-bg:rgba(9,14,24,.72);
+/* ===================== 与主页统一的外观（2026-10-30 起：默认浅色） =====================
+   浅色 = 白背景图 + 雾蓝白纱；深色 = 原来的黄昏背景图 + 暗幕。
+   颜色统一由文件开头的 :root / :root[data-theme="dark"] 提供。 */
+.site-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background:var(--paper) url("../../assets/bg-light.jpg") center 40%/cover no-repeat}
+.site-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(233,241,248,.52) 0%,rgba(233,241,248,.72) 50%,rgba(233,241,248,.88) 100%)}
+:root[data-theme="dark"] .site-bg{background-position:center 42%;background-image:url("../../assets/bg-dusk.jpg")}
+:root[data-theme="dark"] .site-bg::after{background:linear-gradient(180deg,rgba(8,12,20,.90),rgba(8,12,20,.95))}
+@media (max-width:720px){
+  .site-bg{background-image:url("../../assets/bg-light-mobile.jpg");background-position:center top}
+  :root[data-theme="dark"] .site-bg{background-image:url("../../assets/bg-dusk-mobile.jpg")}
 }
-
-.site-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background:#0b1220 url("../../assets/bg-dusk.jpg") center 42%/cover no-repeat}
-.site-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,12,20,.90),rgba(8,12,20,.95))}
 .glow{display:none}
-.theme-toggle{display:none}
 .site-header{border-bottom:1px solid var(--line)}
 .tag-pill{border-radius:999px}
-.btn,.btn-mini,.panel,.map-frame,.readout,details.rules,input[type="text"],select{border-radius:14px}
+.btn{border-radius:14px}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn-primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);color:var(--accent-ink)}
-.seg button{border-radius:12px}
-.seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.seg button.on:hover{color:var(--accent-ink);border-color:var(--accent)}
 footer{border-top:1px solid var(--line)}
 </style>
 </head>
@@ -291,12 +283,16 @@ footer{border-top:1px solid var(--line)}
   document.getElementById('year').textContent = new Date().getFullYear();
 
   var themeToggle = document.getElementById('themeToggle');
-  var themeMeta = document.querySelector('meta[name="theme-color"]');
-  themeToggle.addEventListener('click', function () {
+  var themeColorMeta = document.getElementById('themeColor');
+  function applyTheme(theme, persist) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#e9f1f8');
+    if (persist) { try { localStorage.setItem('theme', theme); } catch (e) {} }
+  }
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+  if (themeToggle) themeToggle.addEventListener('click', function () {
     var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    try { localStorage.setItem('theme', next); } catch (e) {}
-    if (themeMeta) themeMeta.setAttribute('content', next === 'dark' ? '#100e0d' : '#faf8f4');
+    applyTheme(next, true);
   });
 </script>
 

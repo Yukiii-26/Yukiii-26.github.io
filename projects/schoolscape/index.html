@@ -1,9 +1,19 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0b1220" />
+<meta name="theme-color" id="themeColor" content="#e9f1f8" />
+
+<script>
+  // 默认浅色；和主页共用 localStorage 的 theme（用户切过深色就记住）
+  (function () {
+    document.documentElement.classList.add('js');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', (saved === 'light' || saved === 'dark') ? saved : 'light');
+  })();
+</script>
 <title>没有人举手 · No One Raised a Hand</title>
 <meta name="description" content="《没有人举手》网页体验版：第一章「后排的空位」。2D 像素校园剧情解谜，约 5 分钟，零依赖单文件。" />
 <meta property="og:title" content="没有人举手 · No One Raised a Hand" />
@@ -35,6 +45,20 @@
     --danger:#e88f8f;
     --max:1040px;
   }
+  /* 亮色（默认）：与主页同一套雾蓝白 */
+  :root[data-theme="light"]{
+    color-scheme:light;
+    --paper:#e9f1f8;
+    --surface:rgba(255,255,255,.74);
+    --ink:#101a24;
+    --muted:#4c5a68;
+    --line:rgba(16,26,36,.14);
+    --accent:#1d6fa5;
+    --accent-hi:#2a86c2;
+    --accent-ink:#ffffff;
+    --warm:#9a5b1a;
+    --danger:#b04a4a;
+  }
   *,*::before,*::after{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{
@@ -64,6 +88,19 @@
     transition:background .18s,border-color .18s,color .18s,transform .18s;
   }
   .back-home:hover{background:rgba(20,30,46,.92);border-color:var(--accent);color:#fff;transform:translateY(-1px)}
+
+  /* 深浅色切换（固定在页面右上角，不被标题页遮罩盖住） */
+  .theme-fixed{
+    position:fixed;top:14px;right:14px;z-index:50;
+    display:inline-flex;align-items:center;gap:6px;padding:7px 13px;
+    font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;cursor:pointer;
+    color:var(--ink);background:rgba(9,14,24,.72);border:1px solid rgba(255,255,255,.16);
+    border-radius:12px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+    transition:background .18s,border-color .18s,color .18s;
+  }
+  .theme-fixed:hover{border-color:var(--accent);color:var(--accent)}
+  :root[data-theme="light"] .theme-fixed{background:rgba(255,255,255,.88);border-color:rgba(16,26,36,.16)}
+  @media (max-width:820px){.theme-fixed{top:10px;right:10px;padding:6px 10px;font-size:12px}}
 
   /* ===================== 页头 ===================== */
   .page-head{padding:46px 0 12px;text-align:center}
@@ -486,12 +523,152 @@
   @media (hover:none) and (pointer:coarse){
     .touch{display:flex}
   }
+
+  /* ===================== 亮色主题（默认） =====================
+     只换「界面层」（页面背景、面板、文字、按钮、HUD），像素画面本身不变。
+     深色主题就是上面原来那套，没有改动。 */
+
+  :root[data-theme="light"]{color-scheme:light}
+
+  :root[data-theme="light"] .site-bg{
+    background-color:#e9f1f8;
+    background-image:url("../../assets/bg-light.jpg");
+    background-position:center 40%;
+  }
+  :root[data-theme="light"] .site-bg::after{
+    background:linear-gradient(180deg,rgba(233,241,248,.90),rgba(233,241,248,.96));
+  }
+
+  :root[data-theme="light"] .back-home{
+    color:var(--ink);background:rgba(255,255,255,.86);border-color:rgba(16,26,36,.16);
+  }
+  :root[data-theme="light"] .back-home:hover{background:#fff;border-color:var(--accent);color:var(--accent)}
+
+  :root[data-theme="light"] .chip{
+    color:var(--ink);background:rgba(255,255,255,.88);border-color:rgba(16,26,36,.16);
+  }
+  :root[data-theme="light"] button.chip:hover{border-color:var(--accent);color:var(--accent)}
+
+  :root[data-theme="light"] .goalbar{
+    color:var(--ink);background:rgba(255,255,255,.88);
+    border-color:rgba(16,26,36,.14);border-left-color:var(--accent);
+  }
+  :root[data-theme="light"] .hintbar{
+    color:var(--ink);background:rgba(255,255,255,.90);border-color:rgba(16,26,36,.14);
+  }
+  :root[data-theme="light"] .hintbar.near{
+    background:#fff;border-color:var(--accent);
+    box-shadow:0 10px 24px -18px rgba(16,26,36,.5);
+  }
+
+  :root[data-theme="light"] .dialog{
+    background:rgba(255,255,255,.97);border-color:rgba(29,111,165,.35);
+    box-shadow:0 16px 34px -20px rgba(16,26,36,.45);
+  }
+  :root[data-theme="light"] .choices button{
+    background:rgba(16,26,36,.05);border-color:rgba(16,26,36,.16);
+  }
+  :root[data-theme="light"] .choices button:hover,
+  :root[data-theme="light"] .choices button:focus-visible{
+    background:rgba(29,111,165,.12);border-color:var(--accent);
+  }
+
+  :root[data-theme="light"] .overlay{background:rgba(233,241,248,.93)}
+  :root[data-theme="light"] .title-screen{
+    background:linear-gradient(180deg,rgba(233,241,248,.84),rgba(233,241,248,.97));
+  }
+  :root[data-theme="light"] .title-warn{
+    color:#6b5537;background:rgba(226,177,120,.18);border-left-color:rgba(160,105,40,.55);
+  }
+  :root[data-theme="light"] .overlay::-webkit-scrollbar-thumb,
+  :root[data-theme="light"] .overlay .panel::-webkit-scrollbar-thumb{background:rgba(16,26,36,.18)}
+
+  :root[data-theme="light"] .btn{
+    background:rgba(16,26,36,.05);border-color:var(--line);
+  }
+  :root[data-theme="light"] .btn:hover{background:rgba(16,26,36,.10);border-color:rgba(16,26,36,.28)}
+  /* 主按钮在亮色下必须保持蓝底白字（上面的 .btn 规则会盖掉 .btn-primary 的背景） */
+  :root[data-theme="light"] .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  :root[data-theme="light"] .btn-primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);color:var(--accent-ink)}
+  :root[data-theme="light"] .btn-ghost{background:transparent}
+  :root[data-theme="light"] .title-keys kbd{
+    background:rgba(16,26,36,.07);border-color:rgba(16,26,36,.16);
+  }
+  :root[data-theme="light"] .xclose{
+    background:rgba(16,26,36,.05);border-color:rgba(16,26,36,.16);
+  }
+  :root[data-theme="light"] .xclose:hover{color:var(--accent);border-color:var(--accent)}
+
+  :root[data-theme="light"] .nb-row{
+    background:rgba(16,26,36,.035);border-color:rgba(16,26,36,.08);
+  }
+  :root[data-theme="light"] .nb-row.on{background:rgba(29,111,165,.08);border-color:rgba(29,111,165,.3)}
+  :root[data-theme="light"] .nb-clues ul{color:var(--muted)}
+  :root[data-theme="light"] .nb-goal{border-top-color:rgba(160,105,40,.3)}
+
+  :root[data-theme="light"] .lock-digit{
+    background:rgba(16,26,36,.06);border-color:rgba(29,111,165,.3);
+    box-shadow:inset 0 2px 8px rgba(16,26,36,.10);
+  }
+  :root[data-theme="light"] .lock-digit.blank{color:rgba(16,26,36,.2)}
+  :root[data-theme="light"] .keypad button{
+    background:rgba(16,26,36,.05);border-color:rgba(16,26,36,.14);
+  }
+  :root[data-theme="light"] .keypad button:hover,
+  :root[data-theme="light"] .keypad button:focus-visible{background:rgba(29,111,165,.12);border-color:var(--accent)}
+
+  :root[data-theme="light"] .cab-grid button{
+    background:rgba(16,26,36,.05);border-color:rgba(16,26,36,.14);
+  }
+  :root[data-theme="light"] .cab-grid button.blank{color:rgba(16,26,36,.25);background:rgba(16,26,36,.02)}
+  :root[data-theme="light"] .cab-grid button:hover,
+  :root[data-theme="light"] .cab-grid button:focus-visible{background:rgba(29,111,165,.12);border-color:var(--accent)}
+
+  :root[data-theme="light"] .cinema{background:#e9f1f8}
+  :root[data-theme="light"] .cinema .cine-line{color:var(--ink)}
+  :root[data-theme="light"] .cinema .cine-line .dim{color:var(--muted)}
+  :root[data-theme="light"] .cinema .cine-hint{color:rgba(16,26,36,.4)}
+  :root[data-theme="light"] .cinema .skip{color:rgba(16,26,36,.5);border-color:rgba(16,26,36,.18)}
+  :root[data-theme="light"] .cinema .skip:hover{color:var(--ink);border-color:rgba(16,26,36,.4)}
+
+  :root[data-theme="light"] .chapter{background:rgba(233,241,248,.95)}
+  :root[data-theme="light"] .chapter .ch-hint{color:rgba(16,26,36,.45)}
+
+  :root[data-theme="light"] .ending{background:rgba(233,241,248,.97)}
+  :root[data-theme="light"] .end-lines{color:var(--ink)}
+  :root[data-theme="light"] .end-after p{color:var(--muted)}
+
+  :root[data-theme="light"] .under .note{
+    background:rgba(255,255,255,.72);border-color:rgba(16,26,36,.10);
+  }
+  :root[data-theme="light"] .under .note .warnline{color:#8a5a2b}
+  :root[data-theme="light"] .under .ops kbd{
+    background:rgba(16,26,36,.06);border-color:rgba(16,26,36,.14);
+  }
+
+  :root[data-theme="light"] .dpad button{
+    background:rgba(255,255,255,.82);border-color:rgba(16,26,36,.18);
+  }
+  :root[data-theme="light"] .t-btns button{
+    background:rgba(29,111,165,.12);border-color:rgba(29,111,165,.42);
+  }
+  :root[data-theme="light"] footer{background:rgba(233,241,248,.82)}
+  :root[data-theme="light"] noscript .overlay{background:rgba(233,241,248,.97) !important}
+
+  @media (max-width:520px){
+    :root[data-theme="light"] .overlay{background:rgba(233,241,248,.95)}
+    :root[data-theme="light"] .title-screen .title-actions{
+      background:linear-gradient(180deg,rgba(233,241,248,0),rgba(233,241,248,.96) 42%);
+    }
+    :root[data-theme="light"] .nb-foot{background:rgba(233,241,248,.96)}
+  }
 </style>
 </head>
 
 <body>
 <div class="site-bg" aria-hidden="true"></div>
 <a class="back-home" href="../../index.html">← 返回主页</a>
+<button class="theme-fixed" id="themeToggle" type="button" title="切换深色 / 浅色" aria-label="切换深色 / 浅色">☾ 深色</button>
 
 <header class="page-head">
   <p class="kicker">No One Raised a Hand · Web</p>
@@ -5569,6 +5746,25 @@
   boot();
 })();
 
+</script>
+<script>
+  // 深浅色切换：默认浅色；和主页共用 localStorage 的 theme
+  (function () {
+    var btn = document.getElementById('themeToggle');
+    var meta = document.getElementById('themeColor');
+    function sync() {
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (btn) btn.textContent = dark ? '☀ 浅色' : '☾ 深色';
+      if (meta) meta.setAttribute('content', dark ? '#0b1220' : '#e9f1f8');
+    }
+    if (btn) btn.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+      sync();
+    });
+    sync();
+  })();
 </script>
 </body>
 </html>

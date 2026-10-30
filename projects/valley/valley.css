@@ -14,17 +14,17 @@
     --sky-bottom:#1b2638;
     --haze:rgba(12,18,30,.55);
   }
-  /* 亮色模式暂时隐藏：整块钉回深色，存过 light 也不会变白 */
+  /* 亮色（默认）：与主页同一套雾蓝白；3D 场景本身不变，只换页面界面层 */
   :root[data-theme="light"]{
-    color-scheme:dark;
-    --paper:#0b1220;
-    --surface:rgba(18,27,42,.72);
-    --ink:#f4efe8;
-    --muted:#bcb5ab;
-    --line:rgba(255,255,255,.14);
-    --accent:#6ec1f2;
-    --accent-hi:#9ad6ff;
-    --accent-ink:#06121e;
+    color-scheme:light;
+    --paper:#e9f1f8;
+    --surface:rgba(255,255,255,.74);
+    --ink:#101a24;
+    --muted:#4c5a68;
+    --line:rgba(16,26,36,.14);
+    --accent:#1d6fa5;
+    --accent-hi:#2a86c2;
+    --accent-ink:#ffffff;
     --sky-top:#0d1526;
     --sky-bottom:#1b2638;
     --haze:rgba(12,18,30,.55);
@@ -82,8 +82,7 @@
   }
   .chip:hover{background:rgba(20,30,46,.72);border-color:rgba(122,200,242,.55);color:#fff}
   .chip.on{background:rgba(110,193,242,.22);border-color:var(--accent);color:#fff}
-  /* 深浅色切换按钮：跟着主页一起隐藏（亮色版看不清） */
-  #themeBtn{display:none}
+  /* 深浅色切换按钮：恢复显示（右上角 chip 之一） */
 
   .caption{
     position:absolute;left:26px;bottom:120px;max-width:min(340px,42vw);
@@ -165,6 +164,46 @@
     .hint{display:none}
   }
   @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+
+/* ===================== 亮色界面层（默认） =====================
+   3D 舞台不动；只把悬浮按钮、说明文字、时间轴、下方说明区换成浅色 */
+
+:root[data-theme="light"] .site-bg{
+  background-color:#e9f1f8;
+  background-image:url("../../assets/bg-light.jpg");
+  background-position:center 40%;
+}
+:root[data-theme="light"] .site-bg::after{
+  background:linear-gradient(180deg,rgba(233,241,248,.90),rgba(233,241,248,.96));
+}
+
+:root[data-theme="light"] .brand{color:rgba(16,26,36,.78);text-shadow:0 1px 6px rgba(255,255,255,.45)}
+
+:root[data-theme="light"] .chip{color:var(--ink);background:rgba(255,255,255,.80);border-color:rgba(16,26,36,.18)}
+:root[data-theme="light"] .chip:hover{background:#fff;border-color:var(--accent);color:var(--accent)}
+:root[data-theme="light"] .chip.on{background:rgba(29,111,165,.16);border-color:var(--accent);color:var(--accent)}
+
+:root[data-theme="light"] .back-home{color:var(--ink);background:rgba(255,255,255,.82);border-color:rgba(16,26,36,.18)}
+:root[data-theme="light"] .back-home:hover{color:var(--accent);background:#fff;border-color:var(--accent)}
+
+:root[data-theme="light"] .caption{color:var(--ink);text-shadow:0 1px 10px rgba(255,255,255,.55)}
+:root[data-theme="light"] .caption::before{
+  background:radial-gradient(72% 92% at 18% 62%, rgba(233,241,248,.78), rgba(233,241,248,0) 76%);
+}
+:root[data-theme="light"] .track{background:rgba(16,26,36,.22)}
+:root[data-theme="light"] .stop{color:rgba(16,26,36,.82);text-shadow:0 1px 6px rgba(255,255,255,.55)}
+:root[data-theme="light"] .stop:hover{color:var(--ink)}
+:root[data-theme="light"] .stop.on{color:var(--accent)}
+:root[data-theme="light"] .hint{color:rgba(16,26,36,.72);text-shadow:0 1px 6px rgba(255,255,255,.55)}
+
+/* 3D 场景切到「夜间」时，压在场景上的文字回到白字，避免看不清 */
+body.is-night .brand{color:rgba(244,239,232,.82);text-shadow:0 1px 6px rgba(0,0,0,.35)}
+body.is-night .caption{color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.45)}
+body.is-night .caption::before{
+  background:radial-gradient(72% 92% at 18% 62%, rgba(8,12,20,.5), rgba(8,12,20,0) 76%);
+}
+body.is-night .stop{color:rgba(255,255,255,.82);text-shadow:0 1px 6px rgba(0,0,0,.45)}
+body.is-night .hint{color:rgba(255,255,255,.78);text-shadow:0 1px 6px rgba(0,0,0,.45)}
 
 body.is-night .stage{background:linear-gradient(180deg,#070c16,#141d2b)}
 body.is-night .grain{opacity:.05}

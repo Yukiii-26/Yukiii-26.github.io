@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#0b1220" />
+<meta name="theme-color" id="themeColor" content="#e9f1f8" />
 
 <title>岁月山谷 · Valley of Ages · Yukishiro</title>
 <meta name="description" content="一座山谷从史前到未来的七个时代：篝火与帐篷、农田与教堂、工厂与铁路、玻璃与公路。Three.js 真 3D 场景，可自由旋转视角。" />
 
 <script>
+  // 默认浅色；用户按过右上角切换按钮就记住他的选择（与主页共用 localStorage 的 theme）
   (function () {
-    try {
-      var saved = localStorage.getItem('theme');
-      var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', 'dark');  /* 与主页统一：固定深色 */
-    } catch (e) {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
+    document.documentElement.classList.add('js');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', (saved === 'light' || saved === 'dark') ? saved : 'light');
   })();
 </script>
 

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" id="themeColor" content="#e9f1f8" />
+
+<!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时显示的卡片文字 ↓↓↓ -->
+<title>其它小项目 · Yukishiro</title>
+<meta name="description" content="Yukishiro 的其它小项目：扫雷、岁月山谷、SCI-POOT 3000 放屁扩散模拟器、《没有人举手》网页体验版。" />
+<meta property="og:title" content="其它小项目 · Yukishiro" />
+<meta property="og:description" content="扫雷、岁月山谷、SCI-POOT 3000、《没有人举手》网页体验版。" />
+<meta property="og:type" content="website" />
+<!-- ↑↑↑ 改这里 ① ↑↑↑ -->
+
+<!-- 网站小图标（和主页同一个字母 Y） -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2316130f'/><text x='50' y='72' font-size='60' font-family='Georgia,serif' font-weight='700' fill='%23faf8f4' text-anchor='middle'>Y</text></svg>" />
+
+<script>
+  // 和主页共用同一个主题记忆：默认浅色，切换过就记住
+  (function () {
+    document.documentElement.classList.add('js');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    var theme = (saved === 'light' || saved === 'dark') ? saved : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+
+<style>
+  /* ===================== 配色（和主页同一套） ===================== */
+  :root{
+    color-scheme:dark;
+    --paper:#0b1220;
+    --surface:rgba(18,27,42,.60);
+    --ink:#f4efe8;
+    --muted:#bcb5ab;
+    --line:rgba(255,255,255,.14);
+    --accent:#6ec1f2;
+    --accent-hi:#9ad6ff;
+    --accent-ink:#06121e;
+    --nav-bg:rgba(9,14,24,.70);
+    --max:1080px;
+  }
+  :root[data-theme="light"]{
+    color-scheme:light;
+    --paper:#e9f1f8;
+    --surface:rgba(255,255,255,.74);
+    --ink:#101a24;
+    --muted:#4c5a68;
+    --line:rgba(16,26,36,.14);
+    --accent:#1d6fa5;
+    --accent-hi:#2a86c2;
+    --accent-ink:#ffffff;
+    --nav-bg:rgba(233,241,248,.82);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);line-height:1.8;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+    transition:background-color .35s ease,color .35s ease;
+  }
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{line-height:1.22;margin:0;letter-spacing:-.02em}
+  p{margin:0}
+  img{max-width:100%}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 26px}
+
+  /* ===================== 背景图（和主页同一套：浅色 / 深色各一张） ===================== */
+  .bg{
+    position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:var(--paper) url("../../assets/bg-dusk.jpg") center 42%/cover no-repeat;
+  }
+  .bg::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,
+      rgba(8,12,20,.45) 0%,
+      rgba(8,12,20,.56) 45%,
+      rgba(8,12,20,.64) 100%);
+  }
+  :root[data-theme="light"] .bg{
+    background-image:url("../../assets/bg-light.jpg");
+    background-position:center 40%;
+  }
+  :root[data-theme="light"] .bg::after{
+    background:linear-gradient(180deg,
+      rgba(233,241,248,.52) 0%,
+      rgba(233,241,248,.72) 50%,
+      rgba(233,241,248,.88) 100%);
+  }
+  @media (max-width:720px){
+    .bg{background-image:url("../../assets/bg-dusk-mobile.jpg");background-position:center top}
+    :root[data-theme="light"] .bg{background-image:url("../../assets/bg-light-mobile.jpg")}
+    .bg::after{
+      background:linear-gradient(180deg,
+        rgba(8,12,20,.60) 0%,
+        rgba(8,12,20,.78) 42%,
+        rgba(8,12,20,.88) 100%);
+    }
+    :root[data-theme="light"] .bg::after{
+      background:linear-gradient(180deg,
+        rgba(233,241,248,.62) 0%,
+        rgba(233,241,248,.82) 45%,
+        rgba(233,241,248,.92) 100%);
+    }
+    .section{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(9,14,24,.92)}
+    :root[data-theme="light"] .section{background:rgba(233,241,248,.96)}
+  }
+
+  /* ===================== 顶部导航 ===================== */
+  .site-header{
+    position:sticky;top:0;z-index:60;background:var(--nav-bg);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    transition:background-color .35s ease,border-color .35s ease;
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:var(--max);margin:0 auto;padding:15px 26px}
+  .brand{font-weight:800;font-size:16px;letter-spacing:-.01em}
+  .brand b{color:var(--accent)}
+  .nav-actions{display:flex;align-items:center;gap:12px}
+  .back-link{font-size:12.5px;font-weight:600;letter-spacing:.02em;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:2px;transition:color .18s,border-color .18s}
+  .back-link:hover{color:var(--accent);border-color:var(--accent)}
+
+  /* ☀ / ☾ 切换按钮（和主页一致） */
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:32px;border-radius:10px;cursor:pointer;padding:0;
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    transition:border-color .18s,color .18s,background .18s;
+  }
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+  .theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+  .theme-toggle .i-sun{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-moon{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-sun{display:block}
+
+  /* ===================== 首屏 ===================== */
+  .hero{position:relative;padding:86px 0 72px}
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+    background:linear-gradient(96deg,
+      rgba(8,12,20,.74) 0%,
+      rgba(8,12,20,.44) 38%,
+      rgba(8,12,20,.10) 56%,
+      rgba(8,12,20,0) 68%);
+  }
+  :root[data-theme="light"] .hero::before{
+    background:linear-gradient(96deg,
+      rgba(233,241,248,.90) 0%,
+      rgba(233,241,248,.58) 40%,
+      rgba(233,241,248,0) 66%);
+  }
+  .kicker{
+    display:flex;align-items:center;gap:14px;
+    font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:16px;
+  }
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+  .hero h1{font-size:clamp(36px,7.4vw,68px);font-weight:800;letter-spacing:-.044em;line-height:1.05}
+  .hero .lead{margin-top:22px;font-size:clamp(15px,1.6vw,17px);color:var(--muted);max-width:56ch}
+
+  /* ===================== 项目列表 ===================== */
+  .section{padding:66px 0;border-top:1px solid var(--line);background:rgba(9,14,24,.93)}
+  :root[data-theme="light"] .section{background:rgba(233,241,248,.95)}
+
+  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+  .card{
+    position:relative;display:flex;flex-direction:column;
+    border:1px solid var(--line);border-radius:22px;overflow:hidden;
+    background:var(--surface);
+    transition:transform .22s,border-color .22s,box-shadow .22s;
+  }
+  .card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 18px 40px -30px rgba(0,0,0,.8)}
+  .card .shot{display:block;overflow:hidden;border-bottom:1px solid var(--line)}
+  .card .shot img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;transition:transform .45s ease}
+  .card:hover .shot img{transform:scale(1.04)}
+  .card-body{padding:20px 22px 24px;display:flex;flex-direction:column;flex:1}
+  .card .num{
+    font-family:Georgia,"Times New Roman",serif;font-size:14px;font-weight:700;
+    color:var(--accent);letter-spacing:.08em;
+  }
+  .card h2{margin-top:6px;font-size:21px;font-weight:800;letter-spacing:-.02em}
+  .card h2 .badge{
+    display:inline-block;margin-left:10px;vertical-align:2px;
+    font-size:11px;font-weight:700;letter-spacing:.06em;
+    color:var(--accent);border:1px solid var(--accent);border-radius:999px;
+    padding:2px 9px;white-space:nowrap;
+  }
+  .card p{margin-top:10px;font-size:14.5px;color:var(--muted)}
+  .card .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .card .meta span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--surface)}
+  .card .go{
+    margin-top:auto;padding-top:18px;align-self:flex-start;
+    font-size:14px;font-weight:700;color:var(--ink);
+    border-bottom:1.5px solid var(--ink);padding-bottom:2px;
+    transition:color .2s,border-color .2s;
+  }
+  .card:hover .go{color:var(--accent);border-bottom-color:var(--accent)}
+  /* 整张卡片都能点（键盘仍然只停在文字链接上） */
+  .card .go::after{content:"";position:absolute;inset:0;z-index:1}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;color:var(--muted);font-size:12.5px;letter-spacing:.02em;background:rgba(9,14,24,.94)}
+  :root[data-theme="light"] footer{background:rgba(233,241,248,.96)}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+  footer a{border-bottom:1px solid var(--line);transition:color .18s,border-color .18s}
+  footer a:hover{color:var(--accent);border-color:var(--accent)}
+
+  @media (max-width:820px){
+    .cards{grid-template-columns:1fr}
+    .hero{padding:64px 0 54px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .card,.card .shot img{transition:none}
+  }
+</style>
+</head>
+
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="site-header">
+  <nav class="nav">
+    <a class="brand" href="../../index.html">Yuki<b>shiro</b></a>
+    <div class="nav-actions">
+      <a class="back-link" href="../../index.html">← 返回主页</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <p class="kicker">Archive · Others</p>
+      <h1>其它小项目</h1>
+      <p class="lead">主页的「作品与项目」只放最近在打磨的两个。更早做的、偏「做着玩」的，都收在这里：有的是小游戏，有的是可以逛的场景。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="cards">
+
+        <!-- ↓↓↓ 01 号：扫雷 ↓↓↓ -->
+        <article class="card">
+          <a class="shot" href="../minesweeper/index.html" tabindex="-1" aria-hidden="true"><img src="../../assets/thumb-minesweeper.jpg" alt="扫雷游戏界面：经典数字面板与已翻开的棋盘" width="800" height="500" loading="lazy" decoding="async"></a>
+          <div class="card-body">
+            <span class="num">01</span>
+            <h2>扫雷 Minesweeper</h2>
+            <p>HTML / CSS / JavaScript，零依赖。三种难度，第一下绝不会踩雷，右键（手机长按）插旗，空格键一键翻开周围已确定安全的格子。</p>
+            <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span></div>
+            <a class="go" href="../minesweeper/index.html">去玩 →</a>
+          </div>
+        </article>
+
+        <!-- ↓↓↓ 02 号：岁月山谷 ↓↓↓ -->
+        <article class="card">
+          <a class="shot" href="../valley/index.html" tabindex="-1" aria-hidden="true"><img src="../../assets/thumb-valley.jpg" alt="岁月山谷史前时代：河边帐篷营地与时间轴" width="800" height="500" loading="lazy" decoding="async"></a>
+          <div class="card-body">
+            <span class="num">02</span>
+            <h2>岁月山谷 Valley of Ages<span class="badge">打磨中</span></h2>
+            <p>一条河谷的七个时代：史前营地、农耕村落、中世纪城堡、文艺复兴城镇、工业城市、现代都市、未来聚落。建筑是 Blender 建模的低多边形模型，Three.js 实时渲染：屋檐、窗框、烟囱、阳台都在模型里。拖动时间轴看七个时代轮替，拖动画面绕谷地转一圈，滚轮拉近看细节。</p>
+            <div class="meta"><span>Three.js</span><span>Blender</span><span>WebGL</span><span>低多边形</span><span>真 3D · 自由视角</span></div>
+            <a class="go" href="../valley/index.html">去看看 →</a>
+          </div>
+        </article>
+
+        <!-- ↓↓↓ 03 号：SCI-POOT 3000（纯属搞怪）↓↓↓ -->
+        <article class="card">
+          <a class="shot" href="../fartsim/index.html" tabindex="-1" aria-hidden="true"><img src="../../assets/thumb-fartsim.jpg" alt="科幻仪表盘界面：绿色浓度云团在观测场上扩散，四周是一圈圈等浓度线和读数" width="800" height="500" loading="lazy" decoding="async"></a>
+          <div class="card-body">
+            <span class="num">03</span>
+            <h2>SCI-POOT 3000 · 放屁扩散模拟器<span class="badge">纯属搞怪</span></h2>
+            <p><b>先说清楚：这就是个抽象搞笑的玩具</b>，不是真科学，也不针对任何人或场景。它把一个「肠道气体边界层扩散观测平台」演得有模有样：拖三根滑块调排气功率、憋气时长、风速风向，点「执行排放」，看浓度云团在地图上扩散开，峰值、影响半径、波及人数一路往上跳，还会煞有介事地给你一份实验日志。声音也是现场合成的。</p>
+            <div class="meta"><span>HTML</span><span>Canvas</span><span>WebAudio</span><span>纯属娱乐</span><span>零依赖单文件</span></div>
+            <a class="go" href="../fartsim/index.html">去排放一次 →</a>
+          </div>
+        </article>
+
+        <!-- ↓↓↓ 04 号：没有人举手（网页版为第一章体验版）↓↓↓ -->
+        <article class="card">
+          <a class="shot" href="../schoolscape/index.html" tabindex="-1" aria-hidden="true"><img src="../../assets/thumb-schoolscape.jpg" alt="像素风教室里，最后一排靠窗的空课桌；旁边站着两个学生" width="800" height="500" loading="lazy" decoding="async"></a>
+          <div class="card-body">
+            <span class="num">04</span>
+            <h2>没有人举手 No One Raised a Hand<span class="badge">体验版 · 第一章</span></h2>
+            <p>2D 像素校园剧情解谜。网页上可以玩<b>第一章「后排的空位」</b>（约 5 分钟）：高三 7 班最后一排靠窗的位置空着，没人坐，也没人提。完整故事 —— 七份证词、一次不该进的潜入、两个结局 —— 还在做。</p>
+            <div class="meta"><span>HTML</span><span>Canvas</span><span>2D 像素</span><span>剧情解谜</span><span>体验版</span><span>零依赖单文件</span></div>
+            <a class="go" href="../schoolscape/index.html">去玩第一章 →</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year">2025</span> Yukishiro</span>
+    <a href="../../index.html">← 返回主页</a>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // 深浅色切换：和主页共用 localStorage 里的 theme，默认浅色
+  var themeToggle = document.getElementById('themeToggle');
+  var themeColorMeta = document.getElementById('themeColor');
+  function applyTheme(theme, persist) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#e9f1f8');
+    if (persist) { try { localStorage.setItem('theme', theme); } catch (e) {} }
+  }
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next, true);
+    });
+  }
+</script>
+</body>
+</html>

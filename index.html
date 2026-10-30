@@ -1,27 +1,18 @@
 <!DOCTYPE html>
-<meta charset="utf-8" />
-<!--
-  ============================================================================
-  Yukishiro 的个人主页  ·  index.html   「极简杂志风 + 深色模式」
-  ============================================================================
-  【怎么改内容】整份网站就这一个文件，用记事本 / VS Code 打开，搜「改这里」
-  就能找到所有需要你替换的文字（共 10 处）。改完保存，双击本文件即可预览。
-
-  【深色 / 浅色】现在只有深色（亮色版压在照片上看不清，先隐藏了）。
-  浅色的样式整块留在 :root[data-theme="light"] 里，恢复方法见 README。
-
-  【背景图】assets/bg-dusk.jpg（电脑）与 assets/bg-dusk-mobile.jpg（手机）。
-  换图用同名文件覆盖即可，不用改这里；想调暗/调亮，搜 .bg::after 与 .section。
-
-  【想改配色】往下找到 :root 那块（现在只有深色生效），改颜色代码即可。
-
-  【注意】不要删除 <style> 和 <script> 这两块，它们是排版、主题切换和动画。
-  ============================================================================
--->
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
+<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#0b1220" />
+<!--
+  Yukishiro 的个人主页 · index.html 「杂志风 + 浅色 / 深色双主题」
+
+  【改内容】用记事本 / VS Code 打开，搜「改这里」（共 11 处），改完保存双击预览。
+  【主题】默认浅色，右上角 ☾ / ☀ 切换，会记住选择；改默认色搜 saved : 'light'。
+  【背景图】浅色 bg-light*.jpg、深色 bg-dusk*.jpg（在 assets/），同名覆盖即可。
+  【配色】:root 是深色，:root[data-theme="light"] 是浅色；others 页也各有一份。
+  【注意】不要删 <style> 与 <script>，它们管排版、主题切换和动画。
+-->
+<meta name="theme-color" id="themeColor" content="#e9f1f8" />
 
 <!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时显示的卡片文字 ↓↓↓ -->
 <title>Yukishiro · 个人主页</title>
@@ -35,13 +26,14 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2316130f'/><text x='50' y='72' font-size='60' font-family='Georgia,serif' font-weight='700' fill='%23faf8f4' text-anchor='middle'>Y</text></svg>" />
 
 <script>
-  // 这段要在页面画出来之前跑，否则会先闪一下白底再变深色
+  // 这段要在页面画出来之前跑，否则会先闪一下别的底色
   (function () {
     document.documentElement.classList.add('js');
-    // 目前只保留深色模式（亮色版看不清，先隐藏）。
-    // 旧版存过 'light' 的浏览器也强制回深色，等以后要恢复浅色再去掉这一行。
-    try { localStorage.removeItem('theme'); } catch (e) {}
-    document.documentElement.setAttribute('data-theme', 'dark');
+    // 默认浅色；用户按过右上角的切换按钮，就记住他的选择（light / dark）
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    var theme = (saved === 'light' || saved === 'dark') ? saved : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
   })();
 </script>
 
@@ -61,18 +53,18 @@
     --max:1080px;
   }
 
-  /* ===================== 亮色（暂时隐藏，样式保留随时能恢复） ===================== */
+  /* ===================== 亮色（默认）：配「白」背景图，冷一点的雾蓝白 ===================== */
   :root[data-theme="light"]{
     color-scheme:light;
-    --paper:#f6f1e8;
-    --surface:rgba(255,255,255,.76);
-    --ink:#1a1510;
-    --muted:#5f574c;
-    --line:rgba(26,21,16,.14);
+    --paper:#e9f1f8;
+    --surface:rgba(255,255,255,.74);
+    --ink:#101a24;
+    --muted:#4c5a68;
+    --line:rgba(16,26,36,.14);
     --accent:#1d6fa5;
     --accent-hi:#2a86c2;
     --accent-ink:#ffffff;
-    --nav-bg:rgba(246,241,232,.80);
+    --nav-bg:rgba(233,241,248,.82);
   }
 
   *,*::before,*::after{box-sizing:border-box}
@@ -103,17 +95,21 @@
       rgba(8,12,20,.56) 45%,
       rgba(8,12,20,.64) 100%);
   }
-  /* 亮色：同一张图，换成一层米白纱，字改深色 */
-  :root[data-theme="light"] .bg{filter:brightness(1.05) saturate(.72)}
+  /* 亮色：换成「白」背景图，再压一层雾蓝白纱，字改深色 */
+  :root[data-theme="light"] .bg{
+    background-image:url("assets/bg-light.jpg");
+    background-position:center 40%;
+  }
   :root[data-theme="light"] .bg::after{
     background:linear-gradient(180deg,
-      rgba(246,241,232,.84) 0%,
-      rgba(246,241,232,.90) 50%,
-      rgba(246,241,232,.95) 100%);
+      rgba(233,241,248,.52) 0%,
+      rgba(233,241,248,.72) 50%,
+      rgba(233,241,248,.88) 100%);
   }
-  /* 手机：换成竖构图（保住画面右侧的人物），并从顶部对齐 */
+  /* 手机：换成竖构图（保住画面中间的人物），并从顶部对齐 */
   @media (max-width:720px){
     .bg{background-image:url("assets/bg-dusk-mobile.jpg");background-position:center top}
+    :root[data-theme="light"] .bg{background-image:url("assets/bg-light-mobile.jpg")}
     /* 手机上人物更大，暗幕再压重一点，保证白字压在她的头发/外套上也清楚 */
     .bg::after{
       background:linear-gradient(180deg,
@@ -123,13 +119,13 @@
     }
     :root[data-theme="light"] .bg::after{
       background:linear-gradient(180deg,
-        rgba(246,241,232,.88) 0%,
-        rgba(246,241,232,.93) 45%,
-        rgba(246,241,232,.96) 100%);
+        rgba(233,241,248,.62) 0%,
+        rgba(233,241,248,.82) 45%,
+        rgba(233,241,248,.92) 100%);
     }
     /* 手机上关掉大面积的背景模糊，省电、滚动更跟手 */
     .section{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(9,14,24,.92)}
-    :root[data-theme="light"] .section{background:rgba(246,241,232,.95)}
+    :root[data-theme="light"] .section{background:rgba(233,241,248,.96)}
   }
 
   /* ===================== 顶部导航（底部一道粗墨线，杂志刊头的感觉） ===================== */
@@ -184,9 +180,9 @@
   }
   :root[data-theme="light"] .hero::before{
     background:linear-gradient(96deg,
-      rgba(246,241,232,.88) 0%,
-      rgba(246,241,232,.55) 40%,
-      rgba(246,241,232,0) 66%);
+      rgba(233,241,248,.90) 0%,
+      rgba(233,241,248,.58) 40%,
+      rgba(233,241,248,0) 66%);
   }
   .avatar{
     position:relative;width:76px;height:76px;border-radius:14px;overflow:hidden;
@@ -220,7 +216,7 @@
     padding:70px 0;border-top:1px solid var(--line);
     background:rgba(9,14,24,.93);
   }
-  :root[data-theme="light"] .section{background:rgba(246,241,232,.95)}
+  :root[data-theme="light"] .section{background:rgba(233,241,248,.95)}
   /* 小标签 + 一条贯穿的细线，杂志里的栏目标题 */
   .kicker{
     display:flex;align-items:center;gap:14px;
@@ -230,6 +226,15 @@
   .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
   .section h2{font-size:clamp(25px,3.6vw,38px);font-weight:800;letter-spacing:-.03em}
   .section .lead{margin-top:18px;color:var(--muted);max-width:62ch}
+  /* 板块标题右边那行小字（例如「其它小项目 →」） */
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:8px 20px;flex-wrap:wrap}
+  .more-link{
+    font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;
+    border-bottom:1px solid var(--line);padding-bottom:2px;
+    transition:color .18s,border-color .18s;
+  }
+  .more-link:hover{color:var(--accent);border-color:var(--accent)}
+  @media (max-width:520px){.section-head{align-items:flex-start;flex-direction:column;gap:10px}}
 
   /* 关于我：左文右小档案 */
   .about-grid{display:grid;grid-template-columns:1.75fr 1fr;gap:52px;margin-top:26px}
@@ -300,7 +305,7 @@
   /* ===================== 其他单独项目 ===================== */
   /* 比普通板块更"跳"：顶部一道天蓝光，卡片是渐变描边 + 右上角像素网格装饰 */
   .featured{padding:64px 0;background:linear-gradient(180deg,rgba(110,193,242,.10),rgba(9,14,24,.93) 58%)}
-  :root[data-theme="light"] .featured{background:linear-gradient(180deg,rgba(29,111,165,.10),rgba(246,241,232,.95) 58%)}
+  :root[data-theme="light"] .featured{background:linear-gradient(180deg,rgba(29,111,165,.10),rgba(233,241,248,.95) 58%)}
   .feature-card{
     position:relative;margin-top:26px;display:grid;gap:34px;overflow:hidden;
     grid-template-columns:minmax(0,1.4fr) minmax(0,.6fr);
@@ -356,7 +361,7 @@
   .contact .actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:30px}
 
   footer{border-top:1px solid var(--line);padding:26px 0;color:var(--muted);font-size:12.5px;letter-spacing:.02em;background:rgba(9,14,24,.94)}
-  :root[data-theme="light"] footer{background:rgba(246,241,232,.96)}
+  :root[data-theme="light"] footer{background:rgba(233,241,248,.96)}
   footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
 
   /* 回到顶部 */
@@ -430,13 +435,11 @@
       <a href="#contact">联系</a>
     </div>
     <div class="nav-actions">
-      <!-- 深色 / 浅色切换按钮暂时隐藏（亮色版在背景图上不够清楚）。
-           想恢复：把下面这段的注释去掉，并把 <script> 里强制 'dark' 那行删掉即可。
+      <!-- 深色 / 浅色切换按钮：默认浅色，点一下切深色，选择会记住 -->
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
       </button>
-      -->
       <button class="nav-toggle" id="navToggle" type="button" aria-label="打开菜单" aria-expanded="false"><span></span></button>
     </div>
   </nav>
@@ -483,11 +486,7 @@
             我是 Yukishiro，17 岁，高三在读。
           </p>
           <p class="lead">
-            站上现在有四个能直接玩的小项目（最新的是《没有人举手》—— 网页上是第一章体验版；还有一个纯属搞怪的放屁模拟器）。代码大部分都是 AI 帮忙写的。
-          </p>
-          <p class="lead">
-            明年要高考，所以现在的主线任务其实是复习，搞这些小东西算是偷出来的时间 —— 但偷得
-            挺开心。以后想做的事还很多，先把手上的一个个做完。
+            站上现在有五个能直接玩的小项目。代码大部分都是 AI 帮忙写的。
           </p>
         </div>
         <!-- ↑↑↑ 改这里 ④ ↑↑↑ -->
@@ -531,7 +530,11 @@
   <section class="section" id="work">
     <div class="wrap reveal">
       <p class="kicker">Work</p>
-      <h2>作品与项目</h2>
+      <div class="section-head">
+        <h2>作品与项目</h2>
+        <!-- ↓↓↓ 右边这行小字指向「其它小项目」页面（projects/others/index.html）↓↓↓ -->
+        <a class="more-link" href="projects/others/index.html">其它小项目 →</a>
+      </div>
       <p class="lead">做过的和正在做的小东西，都放在这里。点进去就能玩。</p>
 
       <div class="cards">
@@ -566,33 +569,11 @@
              传到线上就是 404。文件名统一用小写最省事。
         -->
 
-        <!-- ↓↓↓ 01 号：没有人举手 / No One Raised a Hand（网页版为第一章体验版）↓↓↓ -->
-        <article class="card">
-          <span class="num">01</span>
-          <div class="shot"><img src="assets/thumb-schoolscape.jpg" alt="像素风教室里，最后一排靠窗的空课桌；旁边站着两个学生" width="800" height="500" loading="lazy" decoding="async"></div>
-          <h3>没有人举手 No One Raised a Hand<span class="badge">体验版 · 第一章</span></h3>
-          <p>2D 像素校园剧情解谜。网页上可以玩<b>第一章「后排的空位」</b>（约 5 分钟）：高三 7 班最后一排靠窗的位置空着，没人坐，也没人提。完整故事 —— 七份证词、一次不该进的潜入、两个结局 —— 还在做。</p>
-          <div class="meta"><span>HTML</span><span>Canvas</span><span>2D 像素</span><span>剧情解谜</span><span>体验版</span><span>零依赖单文件</span></div>
-          <a class="go" href="projects/schoolscape/index.html">去玩第一章 →</a>
-        </article>
-
-        <!-- 原 01 号「扫雷 Minesweeper」2026-10-24 从首页隐藏（用户要求：第一栏换成《没有人举手》）。
-             页面文件还在 projects/minesweeper/，直接访问网址仍然能打开，只是首页没有入口。
-             想恢复：把下面这段注释放开，再把恢复出来的扫雷卡编号改成 05 即可（《没有人举手》保持 01、SCI-POOT 保持 04）。
+        <!-- 《没有人举手》《扫雷》《岁月山谷》和 SCI-POOT 3000 2026-10-30 移到「其它小项目」页面：
+             projects/others/index.html（入口在本节标题右边），首页只留下面两个。 -->
 
         <article class="card">
           <span class="num">01</span>
-          <div class="shot"><img src="assets/thumb-minesweeper.jpg" alt="扫雷游戏界面：经典数字面板与已翻开的棋盘" width="800" height="500" loading="lazy" decoding="async"></div>
-          <h3>扫雷 Minesweeper</h3>
-          <p>HTML / CSS / JavaScript，零依赖。三种难度，第一下绝不会踩雷，右键（手机长按）插旗，空格键一键翻开周围已确定安全的格子。</p>
-          <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span></div>
-          <a class="go" href="projects/minesweeper/index.html">去玩 →</a>
-        </article>
-
-        -->
-
-        <article class="card">
-          <span class="num">02</span>
           <div class="shot"><img src="assets/thumb-konbini.jpg" alt="雨夜便利店街角：亮着灯的日式便利店与湿漉漉的斑马线" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>雨夜便利店 · Rainy Night Konbini</h3>
           <p>一个可以拖动、旋转、缩放的雨夜街角小场景：日式便利店、发光的冷柜、自动贩卖机、自行车、斑马线和一直下着的雨。右上角的小面板能开关自动门、切换下雨、重播组装动画。三渲二卡通渲染，开场时零件从地面逐件升起，组装成这个街角。使用 DeepSeek-v4.1-Flash-1017 生成。</p>
@@ -601,7 +582,7 @@
         </article>
 
         <article class="card">
-          <span class="num">03</span>
+          <span class="num">02</span>
           <div class="shot"><img src="assets/thumb-mapgen.jpg" alt="架空世界地图：四周环海的大陆与山脉、河流" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>架空世界地图生成器</h3>
           <p>生成一个四面环海的完整世界版图：山脉沿板块碰撞带隆起，沙漠落在副热带高压下，雨林长在赤道，河流从分水岭汇进海里。可换种子、调陆地占比和环海宽度，还能切换气温、降水、板块等图层。</p>
@@ -609,33 +590,9 @@
           <a class="go" href="projects/mapgen/index.html">去看看 →</a>
         </article>
 
-        <!-- 04 号「岁月山谷 Valley of Ages」2026-10-24 从首页隐藏（用户要求）：
-             页面文件还在 projects/valley/，直接访问网址仍然能打开，只是不再从首页链过去。
-             想恢复：把下面这段注释放开即可（整张卡片原样保留）。
-
-        <article class="card">
-          <span class="num">04</span>
-          <div class="shot"><img src="assets/thumb-valley.jpg" alt="岁月山谷史前时代：河边帐篷营地与时间轴" width="800" height="500" loading="lazy" decoding="async"></div>
-          <h3>岁月山谷 Valley of Ages<span class="badge">打磨中</span></h3>
-          <p>一条河谷的七个时代：史前营地、农耕村落、中世纪城堡、文艺复兴城镇、工业城市、现代都市、未来聚落。建筑是 Blender 建模的低多边形模型，Three.js 实时渲染：屋檐、窗框、烟囱、阳台都在模型里。拖动时间轴看七个时代轮替，拖动画面绕谷地转一圈，滚轮拉近看细节。</p>
-          <div class="meta"><span>Three.js</span><span>Blender</span><span>WebGL</span><span>低多边形</span><span>真 3D · 自由视角</span></div>
-          <a class="go" href="projects/valley/index.html">去看看 →</a>
-        </article>
-
-        -->
-
-        <!-- ↓↓↓ 04 号：SCI-POOT 3000 放屁扩散模拟器（2026-10-25 从「零碎任务」移植过来；纯属搞怪）↓↓↓ -->
-        <article class="card">
-          <span class="num">04</span>
-          <div class="shot"><img src="assets/thumb-fartsim.jpg" alt="科幻仪表盘界面：绿色浓度云团在观测场上扩散，四周是一圈圈等浓度线和读数" width="800" height="500" loading="lazy" decoding="async"></div>
-          <h3>SCI-POOT 3000 · 放屁扩散模拟器<span class="badge">纯属搞怪</span></h3>
-          <p><b>先说清楚：这就是个抽象搞笑的玩具</b>，不是真科学，也不针对任何人或场景。它把一个「肠道气体边界层扩散观测平台」演得有模有样：拖三根滑块调排气功率、憋气时长、风速风向，点「执行排放」，看浓度云团在地图上扩散开，峰值、影响半径、波及人数一路往上跳，还会煞有介事地给你一份实验日志。声音也是现场合成的。</p>
-          <div class="meta"><span>HTML</span><span>Canvas</span><span>WebAudio</span><span>纯属娱乐</span><span>零依赖单文件</span></div>
-          <a class="go" href="projects/fartsim/index.html">去排放一次 →</a>
-        </article>
-
-        <!-- 想做第 5 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
-             改掉编号 05、标题、说明和链接；截图放到 assets/ 里（16:10，800×500 左右最省流量）。 -->
+        <!-- 想做第 3 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
+             改掉编号 03、标题、说明和链接；截图放到 assets/ 里（16:10，800×500 左右最省流量）。
+             更早的作品（扫雷 / 岁月山谷 / SCI-POOT / 没有人举手）都在「其它小项目」页面。 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
       </div>
@@ -706,9 +663,21 @@
   // 年份自动更新
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // 主题切换暂时下线：目前固定深色，等以后要恢复浅色时把这段和按钮一起放回来
-  // var themeToggle = document.getElementById('themeToggle');
-  // ...
+  // 深浅色切换：默认浅色，点按钮切换并记住选择；浏览器标签栏的颜色跟着变
+  var themeToggle = document.getElementById('themeToggle');
+  var themeColorMeta = document.getElementById('themeColor');
+  function applyTheme(theme, persist) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#e9f1f8');
+    if (persist) { try { localStorage.setItem('theme', theme); } catch (e) {} }
+  }
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next, true);
+    });
+  }
 
   // 滚动到哪一块，文字就轻轻浮上来
   var items = document.querySelectorAll('.reveal');

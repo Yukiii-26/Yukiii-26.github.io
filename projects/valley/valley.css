@@ -158,9 +158,13 @@
   @media (max-width:640px){
     .caption{bottom:132px;left:18px;max-width:70vw}
     .era-desc{display:none}
-    .brand{left:18px}
+    /* 手机上顶部有 5 个胶囊，会占满一行：隐藏品牌小字、缩小胶囊，避免互相压住 */
+    .brand{display:none}
     .back-home{display:none}
-    .stop{font-size:9px;letter-spacing:.1em}
+    .top-actions{top:12px;right:10px;left:10px;gap:6px}
+    .chip{padding:6px 9px;font-size:10px;letter-spacing:.08em}
+    /* 七个时代标签在窄屏容易挤出屏幕，收紧字号与字距 */
+    .stop{font-size:7.5px;letter-spacing:0}
     .hint{display:none}
   }
   @media (prefers-reduced-motion:reduce){ *{transition:none !important} }

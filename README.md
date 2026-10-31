@@ -14,16 +14,17 @@
 | `avatar.jpg` | 头像照片（和 `index.html` 放在同一层） |
 | `README.md` | 这份说明。⚠️ 仓库是公开的，它在 <https://yukiii-26.github.io/README.md> 也能被任何人直接打开 |
 | `projects/` | 放作品用的文件夹（一个项目一个子文件夹） |
+| `projects/tokyo-obscura/` | 東京暗箱 · Tokyo Obscura（零美术、文字驱动的地点推理游戏，12 案，2026-10-31 从本机另一个工作区整体搬进来，原样没改排版和主题）。**主页作品区第 01 张卡**。网址 <https://yukiii-26.github.io/projects/tokyo-obscura/> |
 | `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（网页**体验版**：第一章「后排的空位」，约 5 分钟、单文件零依赖）。入口在「其它小项目」合集页。网址 <https://yukiii-26.github.io/projects/schoolscape/> |
 | `projects/minesweeper/` | 扫雷小游戏。**2026-10-30 起不在主页作品区**，入口在「其它小项目」合集页（`projects/others/index.html`） |
-| `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。**主页作品区第 01 张卡**。网址 <https://yukiii-26.github.io/projects/konbini/> |
+| `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。**主页作品区第 02 张卡**。网址 <https://yukiii-26.github.io/projects/konbini/> |
 | `projects/konbini/_dev/` | 上面那个单文件的**开发源码**（src / vendor / 打包脚本）。下划线开头，GitHub Pages 不会发布它，只在本地用 |
-| `projects/forest-cabin/` | 林深见灯 · A Cabin in the Woods（Three.js 低多边形森林小屋微缩景，**不是单文件**：`index.html` + `styles.css` + `src/main.js` + `vendor/` 里的 Three.js 本地副本）。**主页作品区第 02 张卡**。网址 <https://yukiii-26.github.io/projects/forest-cabin/> |
-| `projects/mapgen/` | 作品三：架空世界地图生成器。**主页作品区第 03 张卡**。网址 <https://yukiii-26.github.io/projects/mapgen/> |
-| `projects/genshin-wish/` | 原神抽卡概率计算器（原是本机「零碎任务」里的独立页面，2026-10-31 搬进站里，改成和全站同一套深浅色主题）。**主页作品区第 04 张卡**。网址 <https://yukiii-26.github.io/projects/genshin-wish/> |
+| `projects/forest-cabin/` | 林深见灯 · A Cabin in the Woods（Three.js 低多边形森林小屋微缩景，**不是单文件**：`index.html` + `styles.css` + `src/main.js` + `vendor/` 里的 Three.js 本地副本）。**主页作品区第 03 张卡**。网址 <https://yukiii-26.github.io/projects/forest-cabin/> |
+| `projects/mapgen/` | 作品三：架空世界地图生成器。**主页作品区第 04 张卡**。网址 <https://yukiii-26.github.io/projects/mapgen/> |
+| `projects/genshin-wish/` | 原神抽卡概率计算器（原是本机「零碎任务」里的独立页面，2026-10-31 搬进站里，改成和全站同一套深浅色主题）。**主页作品区第 05 张卡**。网址 <https://yukiii-26.github.io/projects/genshin-wish/> |
 | `projects/fartsim/` | SCI-POOT 3000 放屁扩散模拟器。**纯属搞怪**——一个抽象搞笑的玩具，不是真科学。入口在「其它小项目」合集页。网址 <https://yukiii-26.github.io/projects/fartsim/> |
 | `projects/valley/` | 岁月山谷 Valley of Ages。**2026-10-30 起不在主页作品区**，入口在「其它小项目」合集页 |
-| `assets/` | 主页用到的图片：作品缩略图 `thumb-*.jpg`（16:10、800×500）、背景图 `bg-dusk.jpg` / `bg-dusk-mobile.jpg`（深色）、`bg-light.jpg` / `bg-light-mobile.jpg`（浅色，默认）、分享封面 `og-cover.jpg`（1200×630）、ILVES 卡右栏截图 `ilves-keyart.jpg`（1000×750） |
+| `assets/` | 主页用到的图片：作品缩略图 `thumb-*.jpg`（16:10、800×500；東京暗箱那张 `thumb-tokyo-obscura.jpg` 取自游戏内的卷宗 + 东京地图界面）、背景图 `bg-dusk.jpg` / `bg-dusk-mobile.jpg`（深色）、`bg-light.jpg` / `bg-light-mobile.jpg`（浅色，默认）、分享封面 `og-cover.jpg`（1200×630）、ILVES 卡右栏截图 `ilves-keyart.jpg`（1000×750） |
 | `projects/others/index.html` | **「其它小项目」合集页**：扫雷、岁月山谷、SCI-POOT 3000、没有人举手（网页体验版）都在这里。从主页「作品与项目」标题右边的「其它小项目 →」进入 |
 | `projects/template/` | 「项目详情页」模板。复制一份改个名就是新项目，见下面「怎么加一个新作品」 |
 | `egg/` | 彩蛋页。**没有任何导航链接指向它**，只能在主页上敲秘技进去 |
@@ -35,17 +36,17 @@
 
 - **单文件、零依赖** —— 不加载任何外部字体或第三方库，国内访问也不用额外等待（背景图是本仓库自己的文件）
 - **两张背景图，深浅各一张** —— 首屏铺满一张雨夜街景插画；浅色用「白」那张（明亮的雾雨天），深色用黄昏那张。往下滚动的内容区自动压上对应颜色的面板，字始终看得清
-- **深浅两套主题，默认浅色** —— **全站所有页面**（主页、其它小项目、7 个作品页、彩蛋页、模板页）进站都是浅色，右上角有 ☾ / ☀ 按钮可切深色；选过的会记住（所有页面共用同一个「主题记忆」）
+- **深浅两套主题，默认浅色** —— **全站所有页面**（主页、其它小项目、8 个作品页、彩蛋页、模板页）进站都是浅色，右上角有 ☾ / ☀ 按钮可切深色；选过的会记住（所有页面共用同一个「主题记忆」）
 - **自适应手机** —— 小屏幕上导航收成折叠菜单，作品列表从「编号行」改成上下排列，背景换成竖构图的另一张图
 - **其他单独项目** —— 作品区下面单独留了一块，专门放「代码主要不在本站」的项目。**现在放的是《ILVES · 猞猁小队》**（独立仓库、DEMO 版，按钮跳转到它的项目页）；加新项目时用 `index.html` 里的 `<template id="tpl-featured-card">` 结构
-- **全站同一套外观** —— 作品页（《没有人举手》、便利店、林深见灯、地图、原神抽卡计算器、扫雷、山谷）和彩蛋页、模板页都是同一套设计：浅色雾蓝白 / 深色夜空蓝、同一批背景图、圆弧角；点进去不会像跳到了另一个网站
+- **全站同一套外观** —— 作品页（《没有人举手》、便利店、林深见灯、地图、原神抽卡计算器、扫雷、山谷）和彩蛋页、模板页都是同一套设计：浅色雾蓝白 / 深色夜空蓝、同一批背景图、圆弧角；点进去不会像跳到了另一个网站。**唯一例外是東京暗箱 `projects/tokyo-obscura/`**——它搬进来时保留了原本的杂志式排版和「跟随系统」的深浅色，没改成站内那套
 - **关掉 JS 也不会白屏** —— 进场动画只在 JavaScript 可用时才启用
 
 ---
 
 ## 《没有人举手》网页体验版
 
-作品区第一张卡片（`projects/schoolscape/index.html`）是**第一章「后排的空位」的体验版**：约 5 分钟，从一间教室的空座位开始，问出一些没人愿意提的事。单文件、零依赖、无外部请求，手机和电脑都能玩，进度自动保存在浏览器里。
+「其它小项目」页面里的《没有人举手》（`projects/schoolscape/index.html`）是**第一章「后排的空位」的体验版**：约 5 分钟，从一间教室的空座位开始，问出一些没人愿意提的事。单文件、零依赖、无外部请求，手机和电脑都能玩，进度自动保存在浏览器里。
 
 - **为什么只有第一章**：完整故事（七份证词、档案室、天台上的选择、两个结局）后面还在做，暂时没有公开；网页版先放第一章，让人不用下载就能看看。
 - **后面章节没有删**：场景、对话、谜题、结局全都还在 `index.html` 里，只是被一个开关挡着 —— 在 `preview/schoolscape2/src/00-core.js` 里把 `var DEMO = true;` 改成 `false`，再跑 `node preview/schoolscape2/build.js`，网页版就把全部章节都放出来（我们自己留的开关，页面上没有入口）。
@@ -70,6 +71,20 @@
 - **它只是为了抽象搞笑**：把一个「肠道气体边界层扩散观测平台」演得很像回事——拖三根滑块调排气功率 / 憋气时长 / 风速风向，点「执行排放」，看浓度云团在观测场上扩散开，峰值、影响半径、波及人数一路往上跳。
 - **不是真科学**：模型是简化高斯气团 + 平流，参数是「目测标定」的，所有读数都不可用于任何真实安全或职业卫生评估，也不针对任何人或场景。页面上（顶部的「纯属搞怪 · JUST FOR FUN」标记、左下角说明）都写清楚了。
 - 技术上：单文件、零依赖、无外部请求。画面是 Canvas 画的，声音（排气音、警报）是 WebAudio 现场合成的，没有音频文件。手机竖屏会把控制面板排到观测区下面。
+
+---
+
+## 東京暗箱 · Tokyo Obscura
+
+作品区第 01 张卡（`projects/tokyo-obscura/index.html`）是 2026-10-31 从本机另一个工作区（`D:\DeepSeek_工作区\GitHub-2\tokyo-obscura`）**整体搬进来**的游戏，排版、字体、主题都**原样保留，一个字没改**。
+
+- **是什么**：零美术、文字驱动的地点推理游戏。十二个案子，案发现场都在 2031 年的东京。每案给你一叠材料（现场简报、尸检摘要、影像卡、档案、证词）：把可疑的行钉成「疑点」，拿两条对出矛盾，再在地图上把图钉拖到机位、转罗盘对准镜头朝向；矛盾够了、位置也准了，才能写结案陈词。
+- **怎么玩**：主界面「开始游戏」选一个存档槽就能进；「章节选择」可以直接跳到任一案。
+- **存档 / 深浅色**：存档写在访客自己的浏览器里（localStorage，不上传）。深浅色**跟随系统**，右上角圆钮可以手动切，但刷新（重新进入）会重置回跟随系统 —— 和站内其它页「记住选择」的做法不一样。
+- **⚠️ 它和站内其它页不是同一套**：这页保留了自己的杂志式排版、自带字体（`vendor/fonts/TokyoSerif.woff2`，按游戏文案子集化的思源宋体）和自己的深浅色逻辑。以后真要把它改成站内那套「默认浅色 + `localStorage.theme`」的契约，得单独做一次改造，**不能照抄别的作品页**。
+- **地图瓦片**：来自日本国土地理院，需要联网才能显示底图。
+- **想改文案 / 加案子**：案子在 `js/cases-*.js`，界面流程在 `js/app.js`，样式在 `css/style.css`；目录里那份 `README.md` 是游戏自己的说明。
+- **返回主页**：主界面的「返回主页」指向站内首页（`href="../../index.html"`）——原来那个链接是留空的占位，搬进来时接上了。
 
 ---
 

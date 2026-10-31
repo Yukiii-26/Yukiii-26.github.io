@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>東京暗箱 · Tokyo Obscura</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ═══════════ 主界面 ═══════════ -->
+<section class="screen screen-title is-on" id="screenTitle">
+  <div class="title-grid">
+
+    <div class="title-left">
+      <p class="eyebrow">東京 · 2031</p>
+      <h1 class="logo">東京暗箱</h1>
+      <p class="logo-en">TOKYO OBSCURA</p>
+      <p class="tagline">照片不会说谎，但拍照的人会。</p>
+
+      <nav class="menu">
+        <button class="menu-item" data-act="new"><span>开始游戏</span><em>New</em></button>
+        <button class="menu-item" data-act="continue"><span>继续游戏</span><em>Continue</em></button>
+        <button class="menu-item" data-act="load"><span>加载游戏</span><em>Load</em></button>
+        <button class="menu-item" data-act="chapter"><span>章节选择</span><em>Chapters</em></button>
+        <button class="menu-item" data-act="intro"><span>基本介绍</span><em>About</em></button>
+        <a class="menu-item menu-link" id="btnHome" href="../../index.html"><span>返回主页</span><em>Home</em></a>
+      </nav>
+
+      <p class="build-note">v0.3 · 全十二章</p>
+    </div>
+
+    <div class="title-right">
+      <p class="file-index-head">卷宗 · FILES</p>
+      <div class="file-list" id="fileList"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ 基本介绍 ═══════════ -->
+<section class="screen screen-intro" id="screenIntro">
+  <div class="intro-wrap">
+    <button class="back-link" data-act="title">← 回到主界面</button>
+
+    <h2 class="intro-h1">基本介绍</h2>
+    <p class="intro-lead">你是一名影像修复师。有人正在用照片杀人。</p>
+
+    <div class="intro-cols">
+      <div>
+        <h3 class="intro-h3">这是什么游戏</h3>
+        <p>2031 年，东京的公共影像档案开放了第十年。你在神保町的三楼开了一家影像事务所，替人修老照片、拍证件照、找走丢的猫。</p>
+        <p>每天早上，信箱里都会多一个牛皮纸信封。里面是一张影像卡——上面写着画面里有什么。而画面里，总有一样东西不该在那里。</p>
+        <p>你不需要打斗，也不需要跑动。<strong>你只需要读，然后指出哪里不对。</strong></p>
+
+        <h3 class="intro-h3 intro-h3-gap">存档</h3>
+        <p>进度保存在<strong>你自己浏览器的本地存储</strong>里，不上传服务器。换设备、换浏览器、清缓存都会丢。</p>
+        <p>三个手动槽位 + 一个自动存档。推理过程中会自动覆盖当前槽位。</p>
+        <p>担心换浏览器丢进度？主界面有<strong>章节选择</strong>，可以从任意一案直接开始。</p>
+      </div>
+      <div>
+        <h3 class="intro-h3">怎么玩</h3>
+        <ol class="intro-steps">
+          <li><b>读卷宗</b>　点开材料：影像卡、尸检、证词、档案。</li>
+          <li><b>钉疑点</b>　带 ◇ 的行都能点。觉得不对，就点它。</li>
+          <li><b>做对照</b>　把一条疑点拿去和另一份材料对。</li>
+          <li><b>去定位</b>　把照片放回东京地图，定机位、定朝向。</li>
+          <li><b>结案</b>　矛盾齐了、位置准了，指认那个人，出示一件证据。</li>
+        </ol>
+        <p class="intro-tip">判定不看眼力，只看你有没有把两份材料读到一起去。</p>
+
+        <h3 class="intro-h3 intro-h3-gap">关于</h3>
+        <p>全十二章，四章一轮：从神保町的一桩旧案，走到十二个机位汇合的巷口。</p>
+        <p>零美术：没有一张插画，只有文字、线稿示意图和一张真实地图。地图瓦片来自日本国土地理院。</p>
+      </div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 游戏 ═══════════ -->
+<section class="screen screen-game" id="screenGame">
+  <div class="app">
+
+    <aside class="dossier">
+      <header class="brand">
+        <div class="brand-mark">東京暗箱 <span>TOKYO OBSCURA</span></div>
+        <div class="brand-row">
+          <button class="back-link tiny" data-act="title">← 主界面</button>
+          <span class="brand-tools">
+            <button class="tiny-btn" id="btnTutorial" type="button">提示</button>
+            <span class="brand-en" id="caseCode">FILE 01</span>
+          </span>
+        </div>
+        <h1 class="brand-title" id="caseTitle">—</h1>
+        <p class="brand-sub" id="caseSub">—</p>
+      </header>
+
+      <div class="cards" id="cards"></div>
+
+      <div class="doubts" id="doubtsBox" hidden>
+        <div class="doubts-head">
+          <span>疑点 <b id="doubtCount">0</b></span>
+          <span class="doubts-sub">点「对照」和另一份材料对上</span>
+        </div>
+        <div class="doubts-list" id="doubtsList"></div>
+      </div>
+
+      <div class="contra" id="contraBox" hidden>
+        <div class="doubts-head">
+          <span>矛盾 <b id="contraCount">0</b></span>
+          <span class="doubts-sub">成立的推理节点</span>
+        </div>
+        <div class="contra-list" id="contraList"></div>
+      </div>
+    </aside>
+
+    <main class="mapwrap">
+      <div id="map"></div>
+
+
+      <div class="locate-ui" id="locateUI" hidden>
+        <div class="locate-title">设想你正站在拍摄点</div>
+        <div class="locate-row">
+          <div class="compass">
+            <svg viewBox="0 0 64 64" aria-hidden="true">
+              <circle cx="32" cy="32" r="30" fill="none" stroke="#e8e8e8"/>
+              <circle cx="32" cy="32" r="23" fill="none" stroke="#f1f1f1"/>
+              <path id="needle" d="M32 8 L37 32 L32 28 L27 32 Z" fill="#b3352b"/>
+              <circle cx="32" cy="32" r="2.4" fill="#141414"/>
+            </svg>
+            <div class="compass-deg"><b id="degVal">000</b>°</div>
+          </div>
+          <div class="locate-controls">
+            <label class="field-label">镜头朝向</label>
+            <input id="headingRange" type="range" min="0" max="359" value="0" step="5">
+            <p class="locate-tip">把图钉拖到机位，再定朝向。</p>
+            <div class="locate-actions">
+              <button class="btn btn-ghost" id="btnCancelLocate">取消</button>
+              <button class="btn btn-primary" id="btnConfirmLocate">确认定位</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-toast" id="mapToast" hidden></div>
+    </main>
+
+    <footer class="statusbar">
+      <div class="status-left">
+        <span class="hint" id="hintText">先读卷宗。带 ◇ 的行都可以点选。</span>
+      </div>
+      <div class="status-right">
+        <button class="stat stat-btn" data-panel="doubts"><b id="statDoubt">0</b> 疑点</button>
+        <button class="stat stat-btn" data-panel="contra"><b id="statContra">0</b> 矛盾</button>
+        <button class="stat stat-btn" id="statLoc" data-panel="loc">未定位</button>
+        <button class="link" id="btnLocate" disabled>影像定位</button>
+        <button class="btn btn-primary btn-sm" id="btnClose" disabled>结案陈词</button>
+      </div>
+    </footer>
+
+  </div>
+</section>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card" id="modalCard"></div>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色">
+  <span class="i-moon" aria-hidden="true">☾</span>
+  <span class="i-sun" aria-hidden="true">☀</span>
+</button>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="js/cases-01-03.js"></script>
+<script src="js/cases-04-06.js"></script>
+<script src="js/cases-07-09.js"></script>
+<script src="js/cases-10-12.js"></script>
+<script src="js/save.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -16,11 +16,11 @@
 
 <!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时显示的卡片文字 ↓↓↓ -->
 <title>Yukishiro · 个人主页</title>
-<meta name="description" content="Yukishiro 的个人主页 —— 关于我、技能，和七个能直接在浏览器里玩的小作品。" />
+<meta name="description" content="Yukishiro 的个人主页 —— 关于我、技能，和八个能直接在浏览器里玩的小作品。" />
 <link rel="canonical" href="https://yukiii-26.github.io/" />
 
 <meta property="og:title" content="Yukishiro · 个人主页" />
-<meta property="og:description" content="Yukishiro 的个人主页 —— 关于我、技能，和七个能直接在浏览器里玩的小作品。" />
+<meta property="og:description" content="Yukishiro 的个人主页 —— 关于我、技能，和八个能直接在浏览器里玩的小作品。" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Yukishiro 的个人主页" />
 <meta property="og:url" content="https://yukiii-26.github.io/" />
@@ -33,7 +33,7 @@
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Yukishiro · 个人主页" />
-<meta name="twitter:description" content="Yukishiro 的个人主页 —— 关于我、技能，和七个能直接在浏览器里玩的小作品。" />
+<meta name="twitter:description" content="Yukishiro 的个人主页 —— 关于我、技能，和八个能直接在浏览器里玩的小作品。" />
 <meta name="twitter:image" content="https://yukiii-26.github.io/assets/og-cover.jpg" />
 <!-- ↑↑↑ 改这里 ① ↑↑↑ -->
 
@@ -524,7 +524,7 @@
             我是 Yukishiro，17 岁。
           </p>
           <p class="lead">
-            站上现在有七个能直接在浏览器里玩的小项目：几个小游戏、两个 3D 微缩场景，还有一个架空世界地图生成器。都不用下载，点进去就能玩。
+            站上现在有八个能直接在浏览器里玩的小项目：几个小游戏、两个 3D 微缩场景、一个架空世界地图生成器，还有一个在东京地图上查案的地点推理游戏。都不用下载，点进去就能玩。
           </p>
           <p class="lead">
             喜欢空闲时间搞点好玩的东西，程序大部分都是 AI 帮忙写的，正在学习 HTML / CSS / JavaScript 等。
@@ -628,10 +628,19 @@
         -->
 
         <!-- 《没有人举手》《扫雷》《岁月山谷》和 SCI-POOT 3000 2026-10-30 移到「其它小项目」页面：
-             projects/others/index.html（入口在本节标题右边），首页只留下面四个。 -->
+             projects/others/index.html（入口在本节标题右边），首页只留下面五个。 -->
 
         <article class="card">
           <span class="num">01</span>
+          <div class="shot"><img src="assets/thumb-tokyo-obscura.jpg" alt="東京暗箱的游戏画面：左边是本案的卷宗材料，右边是东京神保町一带的地图" width="800" height="500" loading="lazy" decoding="async"></div>
+          <h3>東京暗箱 · Tokyo Obscura</h3>
+          <p>一款零美术、文字驱动的地点推理游戏，十二个案子的现场都在 2031 年的东京。每案给你一叠材料：现场简报、尸检摘要、影像卡、档案、证词。把可疑的那几行钉成「疑点」，拿两条对出矛盾，再在地图上把图钉拖到机位、转动罗盘对准镜头朝向。矛盾够了、位置也准了，才能写结案陈词。存档存在你自己的浏览器里。</p>
+          <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Leaflet</span><span>地图推理</span></div>
+          <a class="go" href="projects/tokyo-obscura/index.html">去看看 →</a>
+        </article>
+
+        <article class="card">
+          <span class="num">02</span>
           <div class="shot"><img src="assets/thumb-konbini.jpg" alt="雨夜便利店街角：亮着灯的日式便利店与湿漉漉的斑马线" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>雨夜便利店 · Rainy Night Konbini</h3>
           <p>一个可以拖动、旋转、缩放的雨夜街角小场景：日式便利店、发光的冷柜、自动贩卖机、自行车、斑马线和一直下着的雨。右上角的小面板能开关自动门、切换下雨、重播组装动画。三渲二卡通渲染，开场时零件从地面逐件升起，组装成这个街角。使用 DeepSeek-v4.1-Flash-1017 生成。</p>
@@ -640,7 +649,7 @@
         </article>
 
         <article class="card">
-          <span class="num">02</span>
+          <span class="num">03</span>
           <div class="shot"><img src="assets/thumb-forest-cabin.jpg" alt="低多边形森林小屋：林间空地上一座亮着暖光的小木屋，门口点着篝火" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>林深见灯 · A Cabin in the Woods</h3>
           <p>一座漂浮在林间的低多边形微缩小屋：原木墙、木瓦屋顶、冒着炊烟的石头烟囱，门口点着篝火，池塘边有兔子和萤火虫。可以拖动旋转、滚轮缩放，顶栏切换白天 / 黄昏 / 夜晚，底栏一键飞到大景、小屋、篝火和林间。所有几何、纹理、天空与火光都是程序生成的，没有一张外部图片。</p>
@@ -649,7 +658,7 @@
         </article>
 
         <article class="card">
-          <span class="num">03</span>
+          <span class="num">04</span>
           <div class="shot"><img src="assets/thumb-mapgen.jpg" alt="架空世界地图：四周环海的大陆与山脉、河流" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>架空世界地图生成器</h3>
           <p>生成一个四面环海的完整世界版图：山脉沿板块碰撞带隆起，沙漠落在副热带高压下，雨林长在赤道，河流从分水岭汇进海里。可换种子、调陆地占比和环海宽度，还能切换气温、降水、板块等图层。</p>
@@ -658,7 +667,7 @@
         </article>
 
         <article class="card">
-          <span class="num">04</span>
+          <span class="num">05</span>
           <div class="shot"><img src="assets/thumb-genshin.jpg" alt="原神抽卡概率计算器界面：左边是卡池、垫抽、目标和预算设置，右边是概率统计与累计达成曲线" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>原神抽卡概率计算器</h3>
           <p>不算模拟，直接按卡池规则推精确概率：保底、捕获明光、武器定轨都算在里面。填上已经垫了多少抽、想要几个 UP 五星，它会给出期望抽数、中位数、90% 把握需要多少抽，以及「这些预算能拿到的概率」，另外还有逐抽明细和平均成本表。全部在浏览器里算，不上传任何数据。</p>
@@ -666,9 +675,9 @@
           <a class="go" href="projects/genshin-wish/index.html">去看看 →</a>
         </article>
 
-        <!-- 想做第 5 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
-             改掉编号 05、标题、说明和链接；截图放到 assets/ 里（16:10，800×500 左右最省流量）。
-             首页放最近在打磨的四个（01 便利店 / 02 林深见灯 / 03 地图生成器 / 04 抽卡计算器），
+        <!-- 想做第 6 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
+             改掉编号 06、标题、说明和链接；截图放到 assets/ 里（16:10，800×500 左右最省流量）。
+             首页放最近在打磨的五个（01 東京暗箱 / 02 便利店 / 03 林深见灯 / 04 地图生成器 / 05 抽卡计算器），
              更早的作品（扫雷 / 岁月山谷 / SCI-POOT / 没有人举手）都在「其它小项目」页面。 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->

@@ -25,7 +25,8 @@
   ============================================================================
   没有人举手 / No One Raised a Hand
   projects/schoolscape/index.html　版本 v2.3.0（2026-10-25 · 网页体验版）
-  单文件、零依赖、无外部请求；场景 Canvas 桌面 400×225 / 手机 320×180，界面是普通 HTML。
+  单文件、零依赖；场景 Canvas 桌面 400×225 / 手机 320×180，界面是普通 HTML。
+  唯一的站外请求是站内自托管的思源宋体（../../assets/fonts/serif.css），全站统一字体用。
   内容边界：含学生死亡与校园霸凌题材，不描写具体方式与细节；
   开场有内容提示，结尾附现实求助信息。
   ============================================================================
@@ -663,6 +664,7 @@
     :root[data-theme="light"] .nb-foot{background:rgba(233,241,248,.96)}
   }
 </style>
+<link rel="stylesheet" href="../../assets/fonts/serif.css">
 </head>
 
 <body>
@@ -908,7 +910,7 @@
 <footer>
   <div class="wrap">
     <span>© <span id="year">2026</span> Yukishiro · 没有人举手</span>
-    <span>零依赖单文件 · 无外部请求</span>
+    <span>零依赖单文件 · 字体自托管在站内</span>
   </div>
 </footer>
 

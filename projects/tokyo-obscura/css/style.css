@@ -150,7 +150,7 @@ a { text-decoration: none; }
 .menu-item:hover { padding-left: 10px; }
 .menu-item:hover em { opacity: 1; }
 .menu-item:hover span { color: var(--red); }
-.menu-link { color: var(--ink-3); }
+.menu-link { color: var(--ink); }
 
 .build-note {
   margin: 40px 0 0;

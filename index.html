@@ -398,6 +398,9 @@
   footer{border-top:1px solid var(--line);padding:26px 0;color:var(--muted);font-size:12.5px;letter-spacing:.02em;background:rgba(9,14,24,.94)}
   :root[data-theme="light"] footer{background:rgba(233,241,248,.96)}
   footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+  footer .credit{justify-content:flex-start;margin-top:8px;font-size:11.5px;line-height:1.85}
+  footer .credit a{color:var(--muted);text-decoration:underline;text-underline-offset:2px;transition:color .18s ease}
+  footer .credit a:hover{color:var(--accent)}
 
   /* 回到顶部 */
   .to-top{
@@ -498,8 +501,7 @@
       <!-- ↓↓↓ 改这里 ③：你的名字 和 一句话介绍 ↓↓↓ -->
       <h1>你好，我是 Yukishiro。</h1>
       <p class="tag">
-        高三在读中，喜欢空闲时间搞点好玩的东西，程序大部分都是 AI 帮忙写的，正在学习
-        HTML / CSS / JavaScript 等。
+        高三在读中。
       </p>
       <!-- ↑↑↑ 改这里 ③ ↑↑↑ -->
 
@@ -519,10 +521,13 @@
         <!-- ↓↓↓ 改这里 ④：关于我正文（写 2～3 段最合适） ↓↓↓ -->
         <div>
           <p class="lead">
-            我是 Yukishiro，17 岁，高三在读。空下来的时候喜欢折腾这个网站，把一些想法一点点变成能点开、能上手玩的东西。
+            我是 Yukishiro，17 岁。
           </p>
           <p class="lead">
             站上现在有七个能直接在浏览器里玩的小项目：几个小游戏、两个 3D 微缩场景，还有一个架空世界地图生成器。都不用下载，点进去就能玩。
+          </p>
+          <p class="lead">
+            喜欢空闲时间搞点好玩的东西，程序大部分都是 AI 帮忙写的，正在学习 HTML / CSS / JavaScript 等。
           </p>
         </div>
         <!-- ↑↑↑ 改这里 ④ ↑↑↑ -->
@@ -739,6 +744,10 @@
     <span>© <span id="year">2025</span> Yukishiro</span>
     <span>托管在 GitHub Pages</span>
     <!-- ↑↑↑ 改这里 ⑨ ↑↑↑ -->
+  </div>
+  <!-- 背景图来源声明：换了背景图就改这里（链接 + 作者名） -->
+  <div class="wrap credit">
+    <span>背景图来源：浅色 <a href="https://www.pixiv.net/artworks/61879076" target="_blank" rel="noopener noreferrer">しおん</a> · 深色 <a href="https://www.pixiv.net/artworks/138497108" target="_blank" rel="noopener noreferrer">-y枫l</a>；图片版权归原作者所有。</span>
   </div>
 </footer>
 

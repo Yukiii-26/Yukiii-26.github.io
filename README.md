@@ -22,7 +22,7 @@
 | `projects/mapgen/` | 作品三：架空世界地图生成器。**主页作品区第 03 张卡**。网址 <https://yukiii-26.github.io/projects/mapgen/> |
 | `projects/fartsim/` | 作品四：SCI-POOT 3000 放屁扩散模拟器。**纯属搞怪**——一个抽象搞笑的玩具，不是真科学。网址 <https://yukiii-26.github.io/projects/fartsim/> |
 | `projects/valley/` | 岁月山谷 Valley of Ages。**2026-10-30 起不在主页作品区**，入口在「其它小项目」合集页 |
-| `assets/` | 主页用到的图片：作品缩略图 `thumb-*.jpg`（16:10、800×500）与背景图 `bg-dusk.jpg` / `bg-dusk-mobile.jpg`（深色）、`bg-light.jpg` / `bg-light-mobile.jpg`（浅色，默认） |
+| `assets/` | 主页用到的图片：作品缩略图 `thumb-*.jpg`（16:10、800×500）、背景图 `bg-dusk.jpg` / `bg-dusk-mobile.jpg`（深色）、`bg-light.jpg` / `bg-light-mobile.jpg`（浅色，默认）、分享封面 `og-cover.jpg`（1200×630）、ILVES 卡右栏截图 `ilves-keyart.jpg`（1000×750） |
 | `projects/others/index.html` | **「其它小项目」合集页**：扫雷、岁月山谷、SCI-POOT 3000、没有人举手（网页体验版）都在这里。从主页「作品与项目」标题右边的「其它小项目 →」进入 |
 | `projects/template/` | 「项目详情页」模板。复制一份改个名就是新项目，见下面「怎么加一个新作品」 |
 | `egg/` | 彩蛋页。**没有任何导航链接指向它**，只能在主页上敲秘技进去 |
@@ -80,6 +80,7 @@
 - **在哪**：项目页 <https://github.com/Yukiii-26/ILVES>（独立仓库）。卡片上的「前往项目页 ↗」按钮就链到这里。
 - **现在是什么状态**：**DEMO 版**，Windows 上可以玩。页面上按约定**只写「DEMO 版」，不写具体版本号**。
 - **想改这段介绍**：在 `index.html` 里搜 `ILVES`，文字都夹在 `↓↓↓ ILVES` 与 `↑↑↑ ILVES ↑↑↑` 注释之间。
+- **右边那张图**：用的是官方 key art（`assets/ilves-keyart.jpg`，1000×750）。想换画面就替换同名文件，HTML 不用动；图片按卡片高度裁切显示（`object-fit: cover`），底部那行 `KARELIAN TAIGA · DEMO` 是 `figcaption` 里的字。
 
 ---
 
@@ -98,9 +99,9 @@
 | ① | 浏览器标签页标题、分享给别人时的卡片文字 |
 | ② | 左上角导航栏里你的名字 |
 | ③ | 首屏的「你好，我是谁」+ 一句话自我介绍 |
-| ④ | 「关于我」正文两段 |
+| ④ | 「关于我」正文三段 |
 | ⑤ | 右侧小档案（身份 / 城市 / 正在学 / 状态） |
-| ⑥ | 技能标签 |
+| ⑥ | 技能标签（分「正在学 / 用过一点 / 写代码时的帮手」三组） |
 | ⑦ | 作品列表（一个项目 = 一个 `<article class="card">` 块，复制一块就多一项） |
 | ⑧ | 邮箱和 GitHub 链接 |
 | ⑨ | 页脚文字 |
@@ -262,6 +263,22 @@ https://yukiii-26.github.io/projects/snake/
 - `loading="lazy"` 让图片滚到附近才下载，首屏更快
 - 想重新截图：用浏览器打开作品页，按 `F12` → `Ctrl + Shift + P` → 输入 `screenshot` 选
   「Capture screenshot」，或者直接截屏后按 16:10 裁切
+- **「其他单独项目」卡右边的大图**（现在是 ILVES 的 key art）走另一套规则：它是 `<figure class="feature-shot">` 里的 `<img>`，宽高写 1000×750，卡片里按高度裁切显示（`object-fit: cover`）
+
+### 二·六、分享出去时显示的那张封面图
+
+微信 / QQ / X（Twitter）这类平台，发链接时会自动抓一张缩略卡。这些信息全在 `index.html` 开头的 `<meta>` 里（**改这里 ①** 那一块），默认是这样：
+
+```html
+<meta property="og:image" content="https://yukiii-26.github.io/assets/og-cover.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+```
+
+- 封面图是 `assets/og-cover.jpg`，**1200×630**（各平台通用的 1.91:1）。换图就替换同名文件，保持这个尺寸最稳。
+- 想改标题和描述，改同一块里的 `og:title` / `og:description`；它们和浏览器标签页标题是分开的两行，可以写得不一样。
+- ⚠️ 这里的网址**必须写完整的 `https://yukiii-26.github.io/...`**，不能写 `assets/og-cover.jpg` —— 抓封面的机器人不在你的页面里，它看不懂相对路径。
+- ⚠️ 平台会缓存封面。换图后旧链接可能还显示老图，等一会儿或用平台的调试工具刷新一下就好。
 
 ### 三、怎么上传
 

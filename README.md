@@ -18,7 +18,8 @@
 | `projects/minesweeper/` | 扫雷小游戏。**2026-10-30 起不在主页作品区**，入口在「其它小项目」合集页（`projects/others/index.html`） |
 | `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。**主页作品区第 01 张卡**。网址 <https://yukiii-26.github.io/projects/konbini/> |
 | `projects/konbini/_dev/` | 上面那个单文件的**开发源码**（src / vendor / 打包脚本）。下划线开头，GitHub Pages 不会发布它，只在本地用 |
-| `projects/mapgen/` | 作品三：架空世界地图生成器。**主页作品区第 02 张卡**。网址 <https://yukiii-26.github.io/projects/mapgen/> |
+| `projects/forest-cabin/` | 林深见灯 · A Cabin in the Woods（Three.js 低多边形森林小屋微缩景，**不是单文件**：`index.html` + `styles.css` + `src/main.js` + `vendor/` 里的 Three.js 本地副本）。**主页作品区第 02 张卡**。网址 <https://yukiii-26.github.io/projects/forest-cabin/> |
+| `projects/mapgen/` | 作品三：架空世界地图生成器。**主页作品区第 03 张卡**。网址 <https://yukiii-26.github.io/projects/mapgen/> |
 | `projects/fartsim/` | 作品四：SCI-POOT 3000 放屁扩散模拟器。**纯属搞怪**——一个抽象搞笑的玩具，不是真科学。网址 <https://yukiii-26.github.io/projects/fartsim/> |
 | `projects/valley/` | 岁月山谷 Valley of Ages。**2026-10-30 起不在主页作品区**，入口在「其它小项目」合集页 |
 | `assets/` | 主页用到的图片：作品缩略图 `thumb-*.jpg`（16:10、800×500）与背景图 `bg-dusk.jpg` / `bg-dusk-mobile.jpg`（深色）、`bg-light.jpg` / `bg-light-mobile.jpg`（浅色，默认） |
@@ -33,10 +34,10 @@
 
 - **单文件、零依赖** —— 不加载任何外部字体或第三方库，国内访问也不用额外等待（背景图是本仓库自己的文件）
 - **两张背景图，深浅各一张** —— 首屏铺满一张雨夜街景插画；浅色用「白」那张（明亮的雾雨天），深色用黄昏那张。往下滚动的内容区自动压上对应颜色的面板，字始终看得清
-- **深浅两套主题，默认浅色** —— **全站所有页面**（主页、其它小项目、5 个作品页、彩蛋页、模板页）进站都是浅色，右上角有 ☾ / ☀ 按钮可切深色；选过的会记住（所有页面共用同一个「主题记忆」）
+- **深浅两套主题，默认浅色** —— **全站所有页面**（主页、其它小项目、6 个作品页、彩蛋页、模板页）进站都是浅色，右上角有 ☾ / ☀ 按钮可切深色；选过的会记住（所有页面共用同一个「主题记忆」）
 - **自适应手机** —— 小屏幕上导航收成折叠菜单，作品列表从「编号行」改成上下排列，背景换成竖构图的另一张图
 - **其他单独项目** —— 作品区下面单独留了一块，专门放「代码主要不在本站」的项目。**现在放的是《ILVES · 猞猁小队》**（独立仓库、DEMO 版，按钮跳转到它的项目页）；加新项目时用 `index.html` 里的 `<template id="tpl-featured-card">` 结构
-- **全站同一套外观** —— 作品页（《没有人举手》、便利店、地图、扫雷、山谷）和彩蛋页、模板页都是同一套设计：浅色雾蓝白 / 深色夜空蓝、同一批背景图、圆弧角；点进去不会像跳到了另一个网站
+- **全站同一套外观** —— 作品页（《没有人举手》、便利店、林深见灯、地图、扫雷、山谷）和彩蛋页、模板页都是同一套设计：浅色雾蓝白 / 深色夜空蓝、同一批背景图、圆弧角；点进去不会像跳到了另一个网站
 - **关掉 JS 也不会白屏** —— 进场动画只在 JavaScript 可用时才启用
 
 ---
@@ -63,7 +64,7 @@
 
 ## 纯属搞怪：SCI-POOT 3000 放屁扩散模拟器
 
-作品区第 4 张卡片（`projects/fartsim/index.html`）本来是本机「零碎任务」里做着玩的一个**搞怪页面**，2026-10-25 原样搬进了站里。
+「其它小项目」里的 `projects/fartsim/index.html` 本来是本机「零碎任务」里做着玩的一个**搞怪页面**，2026-10-25 原样搬进了站里。
 
 - **它只是为了抽象搞笑**：把一个「肠道气体边界层扩散观测平台」演得很像回事——拖三根滑块调排气功率 / 憋气时长 / 风速风向，点「执行排放」，看浓度云团在观测场上扩散开，峰值、影响半径、波及人数一路往上跳。
 - **不是真科学**：模型是简化高斯气团 + 平流，参数是「目测标定」的，所有读数都不可用于任何真实安全或职业卫生评估，也不针对任何人或场景。页面上（顶部的「纯属搞怪 · JUST FOR FUN」标记、左下角说明）都写清楚了。
@@ -141,6 +142,7 @@
 | 主页 | `index.html` | |
 | 其它小项目 | `projects/others/index.html` | |
 | 雨夜便利店 | `projects/konbini/index.html` | 只改 HUD/界面层，3D 场景本身不变 |
+| 林深见灯 | `projects/forest-cabin/styles.css` | 主题变量和 HUD 样式在 `styles.css`（页面结构在 `index.html`，3D 场景在 `src/main.js`，一般不用动） |
 | 地图生成器 | `projects/mapgen/index.html` | |
 | 扫雷 | `projects/minesweeper/index.html` | 棋盘配色是经典 Windows 灰，两种主题下都不变 |
 | 岁月山谷 | `projects/valley/valley.css` | 只改界面层，3D 场景不变 |
@@ -315,7 +317,7 @@ https://yukiii-26.github.io/projects/snake/
 
 现在作品分成两处：
 
-- **主页「作品与项目」**（`index.html`，搜「改这里 ⑦」）：只有雨夜便利店、架空世界地图生成器两张卡。
+- **主页「作品与项目」**（`index.html`，搜「改这里 ⑦」）：三张卡 —— 雨夜便利店、林深见灯、架空世界地图生成器。
 - **「其它小项目」页**（`projects/others/index.html`）：扫雷、岁月山谷、SCI-POOT 3000、没有人举手（体验版）四张卡。
 
 想暂时不展示某个作品，**不用删文件** —— 在对应页面把那张 `<article class="card"> … </article>` 整块用 `<!--` 和 `-->` 包起来：

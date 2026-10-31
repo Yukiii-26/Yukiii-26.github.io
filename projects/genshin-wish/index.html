@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<script>(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark")t="light";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<title>原神抽卡概率计算器 · Yukishiro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="按机制精确计算原神抽卡概率的小工具：第 n 抽出货概率、累计达成率、预算内把握、逐抽明细，支持捕获明光与武器定轨命定值。纯本地运行，零依赖。" />
+<meta name="theme-color" id="themeColor" content="#e9f1f8" />
+<meta property="og:title" content="原神抽卡概率计算器 · Yukishiro" />
+<meta property="og:description" content="按机制精确计算原神抽卡概率：第 n 抽出货、累计达成率、预算内把握、逐抽明细。纯本地运行。" />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d6fa5'/%3E%3Ctext x='32' y='45' font-family='Segoe UI,sans-serif' font-size='36' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E" />
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#0c111b; --card:#141c2b; --card2:#1a2437; --line:#28354c;
+    --txt:#e9effc; --dim:#9aabc6; --dim2:#6c7d9b;
+    --gold:#f2c65a; --gold2:#ffdf94; --purple:#b07cff; --blue:#5b9dff;
+    --green:#4ade80; --red:#ff7a8a; --orange:#ffab5e;
+    --tag-bg:rgba(242,198,90,.12); --tag-line:rgba(242,198,90,.30);
+    --field-bg:#101825; --btn-hover:#182234; --seg-a:#38456b; --seg-b:#2a3450;
+    --track:#26344c; --field-line-hi:#5a729c;
+    --sunken:#0d1521; --calc-a:#4a3d1c; --calc-b:#32280f; --calc-ink:#ffdf94;
+    --panel:#111926; --scroll:#33425e; --th-bg:#18222f; --td-line:#1d2738;
+    --row-hover:#1b2536; --bar-track:#233049; --kv-line:#212d40;
+    --tip-bg:#0a111de8; --tip-line:#3a4a68; --tip-shadow:#0009;
+    --shadow-soft:rgba(0,0,0,.22);
+    --c-axis:#6c7d9b; --c-grid:#1f2b40;
+    --c-gold:#f2c65a; --c-purple:#b07cff; --c-blue:#5b9dff; --c-green:#4ade80; --c-orange:#ffab5e;
+  }
+  :root[data-theme="light"]{
+    color-scheme:light;
+    --bg:#e9f1f8;
+    --card:rgba(255,255,255,.90); --card2:rgba(255,255,255,.90);
+    --line:rgba(16,26,36,.12);
+    --txt:#101a24; --dim:#4c5a68; --dim2:#6d7c8a;
+    --gold:#1d6fa5; --gold2:#2a86c2; --purple:#6b4fd0; --blue:#1d6fa5;
+    --green:#1f8a57; --red:#c0392b; --orange:#c26b1e;
+    --tag-bg:rgba(29,111,165,.10); --tag-line:rgba(29,111,165,.30);
+    --field-bg:rgba(255,255,255,.94); --btn-hover:rgba(29,111,165,.09);
+    --seg-a:#ffffff; --seg-b:#eff6fc; --track:#cbdde9; --field-line-hi:rgba(29,111,165,.50);
+    --sunken:#ffffff; --calc-a:#1d6fa5; --calc-b:#175d8c; --calc-ink:#ffffff;
+    --panel:rgba(255,255,255,.72); --scroll:#a9c3d6; --th-bg:#eef5fb; --td-line:#e3ecf4;
+    --row-hover:#f1f8fd; --bar-track:#d8e6f0; --kv-line:#e5edf4;
+    --tip-bg:rgba(255,255,255,.985); --tip-line:rgba(16,26,36,.16); --tip-shadow:rgba(16,26,36,.18);
+    --shadow-soft:rgba(16,26,36,.10);
+    --c-axis:#6d7c8a; --c-grid:#dde8f2;
+    --c-gold:#1d6fa5; --c-purple:#6b4fd0; --c-blue:#1d6fa5; --c-green:#1f8a57; --c-orange:#c26b1e;
+  }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  font-size:14px;line-height:1.55;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px 70px}
+.page-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:21px;margin:0;letter-spacing:.4px;font-weight:700}
+h1 em{font-style:normal;color:var(--gold)}
+.sub{color:var(--dim2);font-size:12px}
+.tag{font-size:10.5px;padding:2px 8px;border-radius:20px;border:1px solid var(--tag-line);
+     color:var(--gold);background:var(--tag-bg);letter-spacing:.3px}
+
+.grid{display:grid;grid-template-columns:322px minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+  .card{min-width:0}
+  .grid>*{min-width:0}
+
+.card{background:linear-gradient(180deg,var(--card),var(--card2));
+      border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:13px;
+      box-shadow:0 3px 16px var(--shadow-soft)}
+.card h2{font-size:13px;margin:0 0 10px;color:var(--gold);letter-spacing:.5px;
+         display:flex;align-items:center;gap:7px;font-weight:600}
+.card h2::before{content:"";width:3px;height:12px;background:var(--gold);border-radius:2px}
+.hint{font-size:11.5px;color:var(--dim2);margin:-3px 0 9px;line-height:1.5}
+
+.seg{display:flex;background:var(--field-bg);border:1px solid var(--line);border-radius:9px;
+     overflow:hidden;margin-bottom:9px;padding:2px;gap:2px}
+.seg button{flex:1;background:none;border:0;color:var(--dim);padding:7px 3px;font-size:12px;
+            cursor:pointer;font-family:inherit;border-radius:7px;transition:.13s;white-space:nowrap}
+.seg button:hover{color:var(--txt);background:var(--btn-hover)}
+.seg button.act{background:linear-gradient(180deg,var(--seg-a),var(--seg-b));color:var(--gold2);font-weight:600}
+
+label.ctl{display:flex;align-items:center;justify-content:space-between;gap:8px;
+          margin:9px 0 3px;font-size:12.5px;color:var(--dim)}
+label.ctl b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;
+                  background:var(--track);outline:none;margin:3px 0 7px;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+        background:var(--gold);cursor:pointer;box-shadow:0 0 0 3px rgba(242,198,90,.16)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border:0;border-radius:50%;
+        background:var(--gold);cursor:pointer}
+input[type=number],select{background:var(--field-bg);border:1px solid var(--line);color:var(--txt);
+        border-radius:7px;padding:6px 8px;font-family:inherit;font-size:13px;width:100%}
+input[type=number]:focus,select:focus{outline:none;border-color:var(--field-line-hi)}
+.check{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:12.5px;
+       color:var(--dim);cursor:pointer;user-select:none}
+.check input{width:15px;height:15px;accent-color:var(--gold);cursor:pointer;margin:0;flex:none}
+.check.dis{opacity:.38;pointer-events:none}
+
+/* 数字输入行 */
+.field{display:flex;align-items:center;gap:8px;margin:9px 0 4px}
+.field .fl{flex:1;font-size:12.5px;color:var(--dim);min-width:0}
+.field .fu{font-size:12px;color:var(--dim2);flex:none;min-width:24px}
+.field input[type=number]{
+  width:78px;flex:none;background:var(--sunken);border:1px solid var(--line);color:var(--gold2);
+  border-radius:7px;padding:6px 8px;font-family:inherit;font-size:14px;font-weight:600;
+  font-variant-numeric:tabular-nums;text-align:right;transition:border-color .13s
+}
+.field input[type=number]:hover{border-color:var(--field-line-hi)}
+.field input[type=number]:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(242,198,90,.13)}
+.field input[type=number]::-webkit-outer-spin-button,
+.field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.field input[type=number]{-moz-appearance:textfield;appearance:textfield}
+
+/* 计算按钮 */
+.calcbar{margin:4px 0 14px;display:flex;flex-direction:column;gap:7px}
+.calcbtn{width:100%;padding:13px;border-radius:10px;border:1px solid var(--gold);
+  background:linear-gradient(180deg,var(--calc-a),var(--calc-b));color:var(--calc-ink);
+  font-family:inherit;font-size:16px;font-weight:700;letter-spacing:3px;cursor:pointer;
+  transition:filter .13s,transform .08s;box-shadow:0 2px 12px rgba(242,198,90,.12)}
+.calcbtn:hover{filter:brightness(1.22)}
+.calcbtn:active{transform:translateY(1px)}
+.calcbtn.dirty{border-color:var(--gold2);animation:glow 1.8s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 2px 12px rgba(242,198,90,.12)}50%{box-shadow:0 2px 20px rgba(242,198,90,.42)}}
+.calctip{font-size:11.5px;color:var(--dim2);text-align:center;min-height:15px}
+
+/* 未计算时的占位 */
+.placeholder{border:1px dashed var(--line);border-radius:12px;padding:70px 20px;text-align:center;background:rgba(18,26,40,.35)}
+.phicon{font-size:38px;opacity:.5;margin-bottom:12px}
+.phtitle{font-size:15px;color:var(--gold2);font-weight:600;margin-bottom:8px}
+.phtext{font-size:12.5px;color:var(--dim2);line-height:1.9}
+.phtext b{color:var(--gold)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:9px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-width:0}
+.stat .k{font-size:10.5px;color:var(--dim2);margin-bottom:2px;white-space:nowrap;
+         overflow:hidden;text-overflow:ellipsis}
+.stat .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.3px;
+         white-space:nowrap}
+.stat .u{font-size:10.5px;color:var(--dim2);font-weight:400;margin-left:2px}
+.stat .s{font-size:10.5px;color:var(--dim2);margin-top:1px;white-space:nowrap;overflow:hidden;
+         text-overflow:ellipsis}
+.gold .v{color:var(--gold)} .blue .v{color:var(--blue)} .green .v{color:var(--green)}
+.red .v{color:var(--red)} .purple .v{color:var(--purple)} .orange .v{color:var(--orange)}
+
+.chartbox{position:relative}
+canvas{display:block;width:100%;border-radius:9px;background:var(--sunken);border:1px solid var(--line)}
+.tip{position:absolute;pointer-events:none;background:var(--tip-bg);border:1px solid var(--tip-line);
+     border-radius:8px;padding:6px 9px;font-size:11.5px;color:var(--txt);white-space:nowrap;
+     opacity:0;transition:opacity .09s;box-shadow:0 6px 18px var(--tip-shadow);z-index:9;
+     font-variant-numeric:tabular-nums;line-height:1.5}
+.tip b{color:var(--gold)}
+
+.acctwrap{max-width:100%;overflow-x:auto;border-radius:8px}
+  .tblwrap{max-height:352px;overflow:auto;border-radius:8px;border:1px solid var(--line)}
+.tblwrap::-webkit-scrollbar{width:9px;height:9px}
+.tblwrap::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+th{position:sticky;top:0;z-index:2;background:var(--th-bg);color:var(--dim);font-weight:500;text-align:right;
+   padding:7px 7px;border-bottom:1px solid var(--line);font-size:11px;white-space:nowrap;
+   cursor:pointer;user-select:none}
+th:first-child,td:first-child{text-align:left}
+th:hover{color:var(--gold)}
+td{padding:4px 7px;text-align:right;border-bottom:1px solid var(--td-line);white-space:nowrap}
+tbody tr:hover td{background:var(--row-hover)}
+td.hi{color:var(--gold)}
+
+.bar{height:6px;border-radius:3px;background:var(--bar-track);overflow:hidden;margin-top:9px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2));
+       transition:width .3s ease}
+.mini{font-size:11.5px;color:var(--dim2);line-height:1.72}
+.mini code{background:var(--sunken);padding:1px 5px;border-radius:4px;color:var(--gold);font-size:11px}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--kv-line);font-size:12px}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--dim)}
+.kv span:last-child{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.ok{color:var(--green)}.warn{color:var(--orange)}.bad{color:var(--red)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:820px){.row2{grid-template-columns:1fr}}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin:2px 0 4px}
+.chip{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--dim);
+      cursor:pointer;background:var(--panel);transition:.13s;white-space:nowrap}
+.chip:hover{border-color:var(--gold);color:var(--gold)}
+.doctxt{max-height:430px;overflow:auto;font-size:11.5px;line-height:1.88;color:var(--dim);padding-right:6px}
+.doctxt::-webkit-scrollbar{width:8px}
+.doctxt::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:4px}
+.doctxt h3{font-size:12px;color:var(--txt);margin:12px 0 5px;font-weight:600}
+.doctxt h3:first-child{margin-top:0}
+.doctxt b{color:var(--txt)}
+.doctxt a{color:var(--blue);text-decoration:none}
+.doctxt a:hover{text-decoration:underline}
+.doctxt ul{margin:4px 0;padding-left:17px}
+.doctxt li{margin:2px 0}
+.doctxt .warn{color:var(--orange)}
+.widecard{grid-column:1/-1}
+select.compact{padding:4px 6px;width:auto;font-size:12px}
+.acctable td,.acctable th{padding:5px 6px;font-size:11.5px}
+.acctable th{cursor:default}
+
+  /* ===================== 站点外壳（与全站其它页面一致） ===================== */
+  body{margin:0;padding:0;background:var(--bg)}
+  .bg{position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background:var(--bg) url("../../assets/bg-dusk.jpg") center/cover no-repeat}
+  .bg::after{content:"";position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(10,15,25,.66),rgba(10,15,25,.88))}
+  html[data-theme="light"] .bg{background-image:url("../../assets/bg-light.jpg")}
+  html[data-theme="light"] .bg::after{background:linear-gradient(180deg,rgba(233,241,248,.82),rgba(233,241,248,.94))}
+  @media (max-width:720px){
+    .bg{background-image:url("../../assets/bg-dusk-mobile.jpg")}
+    html[data-theme="light"] .bg{background-image:url("../../assets/bg-light-mobile.jpg")}
+  }
+  .site-header{position:sticky;top:0;z-index:30;
+      background:rgba(9,13,22,.74);border-bottom:1px solid rgba(255,255,255,.10);
+      -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  html[data-theme="light"] .site-header{background:rgba(233,241,248,.86);border-bottom-color:rgba(16,26,36,.12)}
+  .site-header .nav{max-width:1200px;margin:0 auto;padding:11px 24px;
+      display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{font-size:17px;font-weight:800;letter-spacing:.3px;color:var(--txt);text-decoration:none}
+  .brand b{color:var(--gold)}
+  .nav-actions{display:flex;align-items:center;gap:10px}
+  .back-link{font-size:13px;color:var(--dim);text-decoration:none;padding:7px 13px;
+      border:1px solid var(--line);border-radius:999px;transition:color .18s,border-color .18s}
+  .back-link:hover{color:var(--gold);border-color:var(--gold)}
+  .theme-toggle{width:38px;height:38px;display:grid;place-items:center;border-radius:50%;
+      border:1px solid var(--line);background:transparent;color:var(--dim);cursor:pointer;
+      transition:color .18s,border-color .18s}
+  .theme-toggle:hover{color:var(--gold);border-color:var(--gold)}
+  .theme-toggle svg{width:18px;height:18px;display:block}
+  .theme-toggle .i-sun{display:none}
+  html[data-theme="dark"] .theme-toggle .i-sun{display:block}
+  html[data-theme="dark"] .theme-toggle .i-moon{display:none}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px 56px}
+  .page-head{margin:26px 0 20px;display:block}
+  .kicker{margin:0 0 8px;font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;
+      color:var(--gold);font-weight:700}
+  .page-head h1{font-size:clamp(26px,4.4vw,40px);line-height:1.25;margin:0 0 12px;letter-spacing:.5px}
+  .page-head .lead{margin:0 0 14px;max-width:70ch;color:var(--dim);font-size:14px;line-height:1.75}
+  .page-head .tag{margin-right:10px}
+  .page-head .sub{color:var(--dim2);font-size:12px}
+  .site-footer{margin-top:8px;border-top:1px solid var(--line);background:rgba(9,13,22,.55)}
+  html[data-theme="light"] .site-footer{background:rgba(233,241,248,.72)}
+  .site-footer .inner{max-width:1200px;margin:0 auto;padding:18px 24px;display:flex;
+      flex-wrap:wrap;gap:8px 18px;justify-content:space-between;color:var(--dim2);font-size:12px}
+  .site-footer a{color:var(--dim);text-decoration:none}
+  .site-footer a:hover{color:var(--gold)}
+  @media (max-width:720px){
+    .site-header .nav{padding:10px 14px}
+    .wrap{padding:0 14px 40px}
+    .brand{font-size:16px}
+    .page-head{margin-top:20px}
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+<header class="site-header">
+  <div class="nav">
+    <a class="brand" href="../../index.html">Yuki<b>shiro</b></a>
+    <div class="nav-actions">
+      <a class="back-link" href="../../index.html">← 返回主页</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深浅色" title="切换深浅色">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3.2a6.6 6.6 0 0 0 9.8 9.6z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="wrap">
+    <div class="page-head">
+      <p class="kicker">Tool · Genshin Impact</p>
+      <h1>原神 <em>抽卡概率计算器</em></h1>
+      <p class="lead">不算模拟、直接按机制算精确概率的小工具：看第 n 抽出货多少、预算内能拿到的把握有多大、垫了几抽之后该从哪儿开始算。全部在浏览器本地运行，不上传任何数据。</p>
+      <span class="tag">精确概率 · 非模拟</span>
+      <span class="sub" id="verText">5.0+ 机制（捕获明光 / 武器定轨命定值 1）</span>
+    </div>
+    <div class="grid">
+    <!-- ============ 左：输入 ============ -->
+    <div>
+      <div class="card">
+        <h2>卡池类型</h2>
+        <div class="seg" id="segBanner">
+          <button data-mode="char" class="act">限定角色</button>
+          <button data-mode="weapon">限定武器</button>
+        </div>
+        <div class="seg" id="segBanner2">
+          <button data-mode="std">常驻祈愿</button>
+          <button data-mode="raw">纯单抽率</button>
+        </div>
+        <div class="mini" id="modeNote"></div>
+      </div>
+
+      <div class="card">
+        <h2>当前垫抽</h2>
+
+        <div class="field">
+          <span class="fl">五星已垫</span>
+          <input type="number" id="pity5" min="0" max="89" value="0" step="1"><span class="fu">抽</span>
+        </div>
+
+        <div class="field">
+          <span class="fl">四星已垫</span>
+          <input type="number" id="pity4" min="0" max="9" value="0" step="1"><span class="fu">抽</span>
+        </div>
+
+        <div id="boxGuar">
+          <label class="check"><input type="checkbox" id="guar"> 下个五星是大保底</label>
+        </div>
+
+        <div id="boxCR">
+          <div class="field">
+            <span class="fl">已连续歪</span>
+            <input type="number" id="streak" min="0" max="2" value="0" step="1"><span class="fu">次</span>
+          </div>
+        </div>
+
+        <div id="boxFP" style="display:none">
+          <div class="field">
+            <span class="fl">命定值满</span>
+            <select id="fp"><option value="0">否</option><option value="1">是</option></select>
+          </div>
+        </div>
+
+        <div id="boxRatio" style="display:none">
+          <div class="field">
+            <span class="fl">五星命中率</span>
+            <input type="number" id="ratio" min="5" max="100" value="100" step="5"><span class="fu">%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>目标</h2>
+        <div class="field">
+          <span class="fl">想要 UP 五星</span>
+          <input type="number" id="target" min="1" max="7" value="1" step="1"><span class="fu">个</span>
+        </div>
+        <div class="field">
+          <span class="fl">想要 UP 四星</span>
+          <input type="number" id="t4" min="0" max="8" value="0" step="1"><span class="fu">个</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>预算</h2>
+        <div class="field">
+          <span class="fl">准备投入</span>
+          <input type="number" id="budget" min="0" max="2000" value="180"><span class="fu">抽</span>
+        </div>
+        <div class="chips" id="budgetChips"></div>
+      </div>
+
+      <div class="card">
+        <h2>模型选项</h2>
+        <label class="check"><input type="checkbox" id="optCR" checked> 计入「捕获明光」</label>
+        <label class="check"><input type="checkbox" id="optHard" checked> 启用五星硬保底</label>
+        <div class="field" style="margin-top:8px">
+          <span class="fl">明光基础概率</span>
+          <input type="number" id="pc" min="0" max="10" value="0.018" step="0.002"><span class="fu">%</span>
+        </div>
+        <div class="mini">官方公布基础触发率 0.018%。可调范围为本模型可探索区，用于做敏感度分析。</div>
+      </div>
+
+      <div class="calcbar">
+        <button id="btnCalc" class="calcbtn">计 算</button>
+        <div class="calctip" id="calcTip">参数已修改，点击计算查看结果</div>
+      </div>
+    </div>
+
+    <!-- ============ 右：结果 ============ -->
+    <div>
+      <div class="placeholder" id="placeholder">
+        <div class="phicon">🎲</div>
+        <div class="phtitle">还没有计算结果</div>
+        <div class="phtext">在左侧填好参数，点击 <b>计算</b> 按钮<br>（或在任意输入框里按 Enter）</div>
+      </div>
+
+      <div id="results" style="display:none">
+      <div class="card">
+        <h2>当前处境</h2>
+        <div class="stats" id="statsNow"></div>
+      </div>
+
+      <div class="card">
+        <h2 id="budTitle">投入 180 抽</h2>
+        <div class="stats" id="statsBudget"></div>
+        <div class="bar"><i id="budBar"></i></div>
+        <div class="mini" id="budNote" style="margin-top:9px"></div>
+      </div>
+
+      <div class="card">
+        <h2>累积达成概率曲线</h2>
+        <div class="hint" id="curveHint"></div>
+        <div class="chartbox"><canvas id="cvCurve"></canvas><div class="tip" id="tipCurve"></div></div>
+      </div>
+
+      <div class="row2">
+        <div class="card" style="margin-bottom:13px">
+          <h2>单抽出货率</h2>
+          <div class="hint">第 n 抽「抽即出五星」的条件概率</div>
+          <div class="chartbox"><canvas id="cvRate"></canvas><div class="tip" id="tipRate"></div></div>
+        </div>
+        <div class="card" style="margin-bottom:13px">
+          <h2>下一个五星的抽数分布</h2>
+          <div class="hint">从现在起，下一个五星落在第 n 抽的概率</div>
+          <div class="chartbox"><canvas id="cvPmf"></canvas><div class="tip" id="tipPmf"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>逐抽明细</h2>
+        <div class="hint">点击表头可排序 · 表格可滚动</div>
+        <div class="tblwrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+      </div>
+
+      <div class="card">
+        <h2>平均成本：得到 N 个 UP 五星</h2>
+        <div class="hint">在上面的状态下开始抽，拿到第 N 个 UP 五星所需抽数的期望</div>
+        <div class="acctwrap"><div id="accTable"></div></div>
+      </div>
+
+      <div class="card">
+        <h2>模型自检</h2>
+        <div class="mini" style="margin-bottom:7px">用同一套引擎反推官方公示的「综合概率」。数值吻合说明参数标定正确。</div>
+        <div id="selfCheck"></div>
+      </div>
+
+      <div class="card">
+        <h2>机制说明 · 数据来源</h2>
+        <div class="doctxt" id="doc"></div>
+      </div>
+      </div><!-- /#results -->
+    </div>
+  </div>
+
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="inner">
+    <span>© <span id="year">2026</span> Yukishiro · 原神抽卡概率计算器</span>
+    <span>民间自制小工具，与米哈游 / HoYoverse 无关 · <a href="../../index.html">← 返回主页</a></span>
+  </div>
+</footer>
+<script>
+/* =====================================================================
+   原神抽卡 —— 精确概率引擎 v8
+   ---------------------------------------------------------------------
+   状态 (s, p5, m, k5, k4)
+     s  : 保底状态
+          char   0 = 大保底(下一金必为UP)  1 = 上次出金是UP  2,3 = 已连歪1,2次
+          weapon 0 = 命定值满(下一金必为定轨)  1 = 命定值 0
+          std/raw 恒为 0
+     p5 : 距五星"累计抽数"（0..hard5-1），出金后清零  ← 关键状态
+     m  : 距四星保底剩余抽数（1..hard4），出四星后重置为 hard4
+     k5 : 已获得的目标五星数（0..T5）
+     k4 : 已获得的目标四星数（0..T4）
+   质量 A[状态] = 尚未达成目标、且处于该状态的概率
+   每抽把 A 推到 newA，并累积：
+     cum[t]     = 至第 t 抽已达成概率
+     newT[t]    = 恰在第 t 抽达成的概率
+     p5t[t]     = 第 t 抽出五星的概率（无条件）
+     pUp5t[t]   = 第 t 抽获得目标五星的概率
+     fiveAtT[t] = 同 p5t（便于自检累计五星率）
+   ===================================================================== */
+"use strict";
+
+var GS = {
+  CHAR_BASE5: 0.006, CHAR_SOFT: 73, CHAR_INC5: 0.06, CHAR_HARD: 90,
+  CHAR_BASE4: 0.051, CHAR_SOFT4: 8, CHAR_INC4: 0.51, CHAR_HARD4: 10,
+  WEP_BASE5: 0.007, WEP_SOFT: 62, WEP_INC_A: 0.07, WEP_INC_B: 0.035, WEP_HARD: 80,
+  WEP_BASE4: 0.06, WEP_SOFT4: 7, WEP_INC4: 0.6, WEP_HARD4: 10,
+  P_UP_CHAR: 0.5, P_CR_TARGET: 0.55, P_CR_BASE: 0.00018,
+  P_UP_WEAPON: 0.375, P_STD_WEAPON: 0.25,
+  P_UP4_CHAR: 0.5, P_UP4_WEP: 0.75
+};
+
+function clamp01(x) { return x > 1 ? 1 : (x < 0 ? 0 : x); }
+
+/* ---------- 角色池：n = 距五星保底剩余抽数 (1..90) ---------- */
+function p5char(n, hard) {
+  var pity = GS.CHAR_HARD - n;              // 已累计抽数
+  if (hard && pity >= GS.CHAR_HARD - 1) return 1;
+  if (pity >= GS.CHAR_SOFT) return clamp01(GS.CHAR_BASE5 + GS.CHAR_INC5 * (pity - GS.CHAR_SOFT + 1));
+  return GS.CHAR_BASE5;
+}
+function p4char(m, hard) {
+  var pity = GS.CHAR_HARD4 - m;
+  if (hard && pity >= GS.CHAR_HARD4 - 1) return 1;
+  if (pity >= GS.CHAR_SOFT4) return clamp01(GS.CHAR_BASE4 + GS.CHAR_INC4 * (pity - GS.CHAR_SOFT4 + 1));
+  return GS.CHAR_BASE4;
+}
+
+/* ---------- 武器池：n = 距五星保底剩余抽数 (1..80) ---------- */
+function p5wep(n, hard) {
+  var pity = GS.WEP_HARD - n;
+  if (hard && pity >= GS.WEP_HARD - 1) return 1;
+  if (pity > GS.WEP_SOFT + 11) {
+    var at74 = GS.WEP_BASE5 + GS.WEP_INC_A * 12;
+    return clamp01(at74 + GS.WEP_INC_B * (pity - GS.WEP_SOFT - 12));
+  }
+  if (pity >= GS.WEP_SOFT) return clamp01(GS.WEP_BASE5 + GS.WEP_INC_A * (pity - GS.WEP_SOFT));
+  return GS.WEP_BASE5;
+}
+function p4wep(m, hard) {
+  var pity = GS.WEP_HARD4 - m;
+  if (hard && pity >= GS.WEP_HARD4 - 1) return 1;
+  if (pity >= GS.WEP_SOFT4) return clamp01(GS.WEP_BASE4 + GS.WEP_INC4 * (pity - GS.WEP_SOFT4 + 1));
+  return GS.WEP_BASE4;
+}
+
+function bannerCfg(mode) {
+  if (mode === "weapon") return { kind: "wep", hard5: GS.WEP_HARD, hard4: GS.WEP_HARD4, p5: p5wep, p4: p4wep, up4: GS.P_UP4_WEP };
+  if (mode === "std") return { kind: "std", hard5: GS.CHAR_HARD, hard4: GS.CHAR_HARD4, p5: p5char, p4: p4char, up4: GS.P_UP4_CHAR };
+  if (mode === "raw") return { kind: "raw", hard5: 0, hard4: 0, p5: null, p4: null, up4: 0 };
+  return { kind: "char", hard5: GS.CHAR_HARD, hard4: GS.CHAR_HARD4, p5: p5char, p4: p4char, up4: GS.P_UP4_CHAR };
+}
+
+/* ---------- 出金后的状态转移 [{s, up, w}] ---------- */
+function miniTrans(cfg, s, o) {
+  if (cfg.kind === "char") {
+    if (!o.useCR) {
+      /* 无捕获明光：s=0 为大保底；否则 50/50 */
+      return s === 0 ? [{ s: 1, up: 1, w: 1 }]
+                     : [{ s: 1, up: 1, w: 0.5 }, { s: 2, up: 0, w: 0.5 }];
+    }
+    if (s === 0 || s >= 3) return [{ s: 1, up: 1, w: 1 }];
+    var streak = s - 1;                                  // 已连歪次数 0 / 1
+    var pCR = Math.min(1, o.pc0 * (1 + streak));         // 捕获明光触发率
+    var pUp = 0.5 + 0.5 * pCR;                           // 触发即直接变 UP
+    return [{ s: 1, up: 1, w: pUp }, { s: s + 1, up: 0, w: 1 - pUp }];
+  }
+  if (cfg.kind === "wep") {
+    if (s === 0) return [{ s: 1, up: 1, w: 1 }];
+    return [{ s: 1, up: 1, w: GS.P_UP_WEAPON },
+            { s: 1, up: 0, w: GS.P_UP_WEAPON },
+            { s: 0, up: 0, w: GS.P_STD_WEAPON }];
+  }
+  return [{ s: 0, up: 1, w: 1 }];
+}
+
+function stateDomain(cfg, o) {
+  if (cfg.kind === "char") return o.useCR ? [0, 1, 2, 3] : [0, 1, 2];
+  if (cfg.kind === "wep") return [0, 1];
+  return [0];
+}
+
+/* ======================= 主 DP ======================= */
+function computeWish(o) {
+  var cfg = bannerCfg(o.mode);
+  o = Object.assign({
+    target: 1, target4: 0, priceStd: 0, pity5: 0, pity4: 0,
+    guaranteed: false, streak: 0, fp: 0, useCR: true, useHard: true,
+    pc0: GS.P_CR_BASE, horizon: 420, rawRate: 0.006
+  }, o);
+
+  var isRaw = (cfg.kind === "raw");
+  var horizon = Math.max(1, Math.min(o.horizon, isRaw ? 600 : 420));
+  var dome = stateDomain(cfg, o);
+  var si = {}; dome.forEach(function (s, i) { si[s] = i; });
+  var S = dome.length;
+
+  /* 起始保底状态 */
+  var s0;
+  if (cfg.kind === "char") {
+    s0 = o.useCR ? (o.guaranteed ? 0 : 1 + Math.min(2, Math.max(0, o.streak | 0)))
+                 : (o.guaranteed ? 0 : 1);
+  } else if (cfg.kind === "wep") {
+    s0 = o.fp ? 0 : 1;
+  } else { s0 = 0; }
+
+  var T5 = Math.max(1, o.target | 0), T4 = Math.max(0, o.target4 | 0);
+  var C5 = T5 + 1, C4 = T4 + 1;
+  var M5 = isRaw ? 1 : cfg.hard5;                   // p5 状态数 0..M5-1
+  var M4 = isRaw ? 1 : cfg.hard4;                   // m 状态 1..M4
+
+  var G = S * M5 * M4 * C5 * C4;
+  function idx(a, p5, m, k5, k4) {
+    return ((((a * M5 + p5) * M4 + (m - 1)) * C5 + k5) * C4 + k4);
+  }
+
+  var startP5 = isRaw ? 0 : Math.min(Math.max(0, o.pity5), cfg.hard5 - 1);
+  var startM = isRaw ? 1 : cfg.hard4 - Math.min(Math.max(0, o.pity4), cfg.hard4 - 1);
+
+  var A = new Float64Array(G);
+  var B = new Float64Array(G);
+  A[idx(si[s0], startP5, startM, 0, 0)] = 1;
+
+  var cum = new Float64Array(horizon + 1);
+  var newT = new Float64Array(horizon + 1);
+  var p5t = new Float64Array(horizon + 1);
+  var pUp5t = new Float64Array(horizon + 1);
+  var fiveAtT = new Float64Array(horizon + 1);
+  var done = 0;
+  var prevDone = 0;
+
+  /* 预计算每个 np5 的封顶值，避免内层重复判断 */
+  var nxt5 = new Int32Array(M5), nxtM = new Int32Array(M4 + 1);
+  for (var i5 = 0; i5 < M5; i5++) nxt5[i5] = (i5 + 1 >= M5) ? M5 - 1 : i5 + 1;
+  for (var im = 1; im <= M4; im++) nxtM[im] = (im - 1 >= 1) ? im - 1 : M4;
+
+  /* 状态转移表：每个 (a,p5,m) 组合的概率与索引偏移 */
+  var strTr = [];
+  for (var a0 = 0; a0 < S; a0++) strTr.push(isRaw ? [{ s: a0, up: 1, w: 1 }] : miniTrans(cfg, dome[a0], o));
+
+  for (var t = 1; t <= horizon; t++) {
+    B.fill(0);
+    var sumP5 = 0, sumUp = 0, alive = 0;
+
+    for (var a = 0; a < S; a++) {
+      var tr = strTr[a];
+      var baseS = a * M5 * M4 * C5 * C4;
+      for (var p5 = 0; p5 < M5; p5++) {
+        var prob5 = isRaw ? clamp01(o.rawRate)
+                          : cfg.p5(Math.max(1, cfg.hard5 - p5), o.useHard);
+        var base5 = baseS + p5 * M4 * C5 * C4;
+        var np5 = nxt5[p5];
+        for (var m = 1; m <= M4; m++) {
+          var prob4 = isRaw ? 0 : cfg.p4(m, o.useHard);
+          var pNothing = (1 - prob5) * (1 - prob4);
+          var pOnly4 = (1 - prob5) * prob4;
+          var nm = nxtM[m];
+          var baseM = base5 + (m - 1) * C5 * C4;
+          var baseN = baseS + np5 * M4 * C5 * C4 + (M4 - 1) * C5 * C4;   // 出四星后 m=M4
+          var baseN5 = baseS + np5 * M4 * C5 * C4 + (nm - 1) * C5 * C4;
+
+          for (var k5 = 0; k5 <= T5; k5++) {
+            for (var k4 = 0; k4 <= T4; k4++) {
+              var w = A[baseM + k5 * C4 + k4];
+              if (w === 0) continue;
+              alive += w;
+              var isDone = (k5 >= T5 && k4 >= T4);
+
+              /* ① 什么都没出 */
+              if (pNothing > 0) {
+                if (isDone) { done += w * pNothing; }
+                else { B[baseN5 + k5 * C4 + k4] += w * pNothing; }
+              }
+
+              /* ② 只出四星 */
+              if (pOnly4 > 0) {
+                var w4 = w * pOnly4;
+                var nk4u = (k4 + 1 > T4) ? T4 : k4 + 1;
+                /* 达成判定用「推进后」的计数：本抽拿到最后一个目标即算达成 */
+                if (k5 >= T5 && nk4u >= T4) { done += w4; }
+                else if (cfg.up4 > 0) {
+                  B[baseN + k5 * C4 + nk4u] += w4 * cfg.up4;
+                  B[baseN + k5 * C4 + k4] += w4 * (1 - cfg.up4);
+                } else {
+                  B[baseN + k5 * C4 + k4] += w4;
+                }
+              }
+
+              /* ③ 出五星 */
+              if (prob5 > 0) {
+                sumP5 += w * prob5;
+                for (var q = 0; q < tr.length; q++) {
+                  var br = tr[q];
+                  var w5 = w * prob5 * br.w;
+                  if (w5 === 0) continue;
+                  if (br.up) sumUp += w5;
+                  var counted = br.up || (cfg.kind === "std");
+                  var nk5 = counted ? ((k5 + 1 > T5) ? T5 : k5 + 1) : k5;
+                  /* 达成判定用「推进后」的计数：本抽拿到最后一个目标即算达成 */
+                  if (nk5 >= T5 && k4 >= T4) { done += w5; }
+                  else {
+                    B[si[br.s] * M5 * M4 * C5 * C4 + nm * C5 * C4 + nk5 * C4 + k4] += w5;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 交换缓冲（p5 已归零，B 里存的都是新状态）
+    var tmp = A; A = B; B = tmp;
+    cum[t] = done > 1 ? 1 : done;
+    newT[t] = done - prevDone;                     // 恰在第 t 抽达成的概率
+    prevDone = done;
+    p5t[t] = sumP5; fiveAtT[t] = sumP5; pUp5t[t] = sumUp;
+
+    if (alive < 1e-14) { for (var z = t + 1; z <= horizon; z++) cum[z] = 1; horizon = t; break; }
+  }
+
+  return { cum: cum, newT: newT, p5t: p5t, pUp5t: pUp5t, fiveAtT: fiveAtT,
+           horizon: horizon, cfg: cfg, opts: o, T5: T5, T4: T4 };
+}
+
+function cumAt(res, t) { return res.cum[Math.max(0, Math.min(res.horizon, t | 0))]; }
+function aliveAt(res, t) { return 1 - cumAt(res, t); }
+function expectedPulls(res) {
+  // E[T] = Σ_{t≥0} P(T>t) = 1（起步至少抽 1 次）+ Σ_{t≥1} (1 - cum[t])
+  var s = 1;
+  for (var t = 1; t <= res.horizon; t++) s += 1 - res.cum[t];
+  return s;
+}
+function quantile(res, q) {
+  for (var t = 0; t <= res.horizon; t++) if (res.cum[t] >= q) return t;
+  return Infinity;
+}
+function pmf(res, t) { return t <= 0 ? 0 : res.newT[t]; }
+function sumArr(arr, a, b) { var s = 0; for (var i = a; i <= b; i++) s += arr[i]; return s; }
+
+/* ---- 浏览器全局导出 ---- */
+var GS_computeWish = computeWish;
+var GS_expectedPulls = expectedPulls;
+var GS_quantile = quantile;
+var GS_cumAt = cumAt;
+var GS_sumArr = sumArr;
+var GS_p5char = p5char;
+var GS_p5wep = p5wep;
+var GS_p4char = p4char;
+var GS_p4wep = p4wep;
+var GS_pmf = pmf;
+
+</script>
+<script>
+/* ============================ UI 层 ============================ */
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var fmtP = function (p, d) {
+    d = d == null ? 2 : d;
+    if (!isFinite(p)) return "—";
+    var v = p * 100;
+    if (v === 0) return "0%";
+    if (v < 0.01) return v.toFixed(4) + "%";
+    if (v < 0.1) return v.toFixed(3) + "%";
+    if (v < 10) return v.toFixed(d) + "%";
+    return v.toFixed(1) + "%";
+  };
+  var fmtN = function (x, d) {
+    d = d == null ? 1 : d;
+    if (!isFinite(x)) return "—";
+    return x.toFixed(d).replace(/\.0+$/, "");
+  };
+  var pad = function (s, n) { s = "" + s; while (s.length < n) s = " " + s; return s; };
+
+  /* ---------------- 状态 ---------------- */
+  var ST = {
+    mode: "char",
+    pity5: 0,        // 五星已垫（累计抽数，出金清零）
+    pity4: 0,        // 四星已垫
+    guar: false,
+    streak: 0,
+    fp: 0,
+    ratio: 100,
+    target: 1,
+    t4: 0,
+    budget: 180,
+    useCR: true,
+    useHard: true,
+    pc: 0.18e-2,     // 0.018%
+    sortCol: 0,
+    sortAsc: true
+  };
+
+  function modeInfo() {
+    var M = ST.mode;
+    if (M === "weapon") return { hard5: 80, hard4: 10, maxT: 5, name: "限定武器" };
+    if (M === "raw") return { hard5: 90, hard4: 10, maxT: 1, name: "纯单抽率" };
+    return { hard5: 90, hard4: 10, maxT: 7, name: M === "std" ? "常驻祈愿" : "限定角色" };
+  }
+
+  /* ---------------- 计算 ---------------- */
+  var last = null;
+  function calc() {
+    var M = modeInfo();
+    // horizon 自适应：只算到能覆盖「预算 + 余量」的抽数，拖动滑块时可省 40%~70% 计算
+    var need = Math.max(240, ST.budget + 160);
+    var horizon = Math.min(420, need);
+    if (ST.target > 1) horizon = Math.min(420, horizon + 60 * (ST.target - 1));
+    var o = {
+      mode: ST.mode,
+      target: ST.target,
+      target4: ST.t4,
+      priceStd: 0,
+      pity5: ST.pity5,
+      pity4: ST.pity4,
+      guaranteed: ST.guar,
+      streak: Math.min(2, ST.streak),
+      fp: ST.fp,
+      useCR: ST.useCR,
+      useHard: ST.useHard,
+      pc0: ST.mode === "char" ? ST.pc : 0.00018,
+      rawRate: 0.006,
+      horizon: horizon
+    };
+    var r = GS_computeWish(o);
+    last = r;
+    return r;
+  }
+
+  /* ================= 渲染：当前处境 ================= */
+  function renderNow() {
+    var r = last, L = r.horizon;
+    var e = GS_expectedPulls(r);
+    var q50 = GS_quantile(r, 0.5), q90 = GS_quantile(r, 0.9), q99 = GS_quantile(r, 0.99);
+    var e5 = GS_sumArr(r.fiveAtT, 1, L);
+
+    var cells = [];
+    cells.push({ c: "gold", k: "拿到 UP 五星的期望抽数", v: fmtN(e, 1), u: "抽", s: "中位数 " + q50 + " 抽" });
+    cells.push({ c: "purple", k: "期间平均五星数", v: fmtN(e5, 2), u: "个", s: "含歪掉的" });
+    cells.push({ c: "blue", k: "90% 把握需要", v: q90 === Infinity ? "—" : q90, u: "抽", s: "99% 把握 " + (q99 === Infinity ? "—" : q99) + " 抽" });
+    cells.push({ c: "green", k: "平均综合五星率", v: fmtP(e5 > 0 ? r.T5 / e : 0, 3), u: "", s: "官方公示 1.6%" });
+    $("statsNow").innerHTML = cells.map(function (x) {
+      return '<div class="stat ' + x.c + '"><div class="k">' + x.k + '</div><div class="v">' +
+        x.v + (x.u ? '<span class="u">' + x.u + '</span>' : '') + '</div><div class="s">' + x.s + '</div></div>';
+    }).join("");
+  }
+
+  /* ================= 渲染：预算 ================= */
+  function renderBudget() {
+    var r = last, B = ST.budget;
+    var p = GS_cumAt(r, B);
+    var e = GS_expectedPulls(r);
+    var p90 = GS_cumAt(r, 90), p180 = GS_cumAt(r, 180);
+
+    $("budTitle").textContent = "投入 " + B + " 抽";
+    var cells = [];
+    cells.push({ c: "gold", k: "达成概率", v: fmtP(p), u: "", s: "想要 " + r.T5 + " 个 UP 五星" + (r.T4 > 0 ? " + " + r.T4 + " 个 UP 四星" : "") });
+    cells.push({ c: p < 0.5 ? "red" : "green", k: "没达成概率", v: fmtP(1 - p), u: "", s: "" });
+    cells.push({ c: "blue", k: "90 抽内达成", v: fmtP(p90), u: "", s: "" });
+    cells.push({ c: "blue", k: "180 抽内达成", v: fmtP(p180), u: "", s: "" });
+
+    $("statsBudget").innerHTML = cells.map(function (x) {
+      return '<div class="stat ' + x.c + '"><div class="k">' + x.k + '</div><div class="v">' + x.v +
+        (x.u ? '<span class="u">' + x.u + '</span>' : '') + '</div><div class="s">' + x.s + '</div></div>';
+    }).join("");
+    $("budBar").style.width = (Math.min(1, p) * 100).toFixed(1) + "%";
+
+    var notes = [];
+    notes.push("期望需要 <b>" + fmtN(e, 1) + "</b> 抽，" + (e <= B
+      ? "你准备的 <b>" + B + "</b> 抽足够（平均意义上）"
+      : "你准备的 <b>" + B + "</b> 抽不足，平均还差 <b>" + fmtN(e - B, 1) + "</b> 抽"));
+    notes.push("50% 概率需要 <b>" + GS_quantile(r, 0.5) + "</b> 抽，75% 概率需要 <b>" + GS_quantile(r, 0.75) + "</b> 抽");
+    if (B > 0) notes.push("每投入 1 抽，达成概率平均提升约 <b>" + fmtP(p / B, 3) + "</b>");
+    $("budNote").innerHTML = notes.join("<br>");
+  }
+
+  /* ================= Canvas 通用 ================= */
+  function setupCanvas(cv, cssH) {
+    var dpr = window.devicePixelRatio || 1;
+    var w = cv.clientWidth || 600;
+    var h = cssH || 190;
+    cv.style.height = h + "px";
+    cv.width = Math.round(w * dpr);
+    cv.height = Math.round(h * dpr);
+    var ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx: ctx, w: w, h: h };
+  }
+  var AXIS = "#6c7d9b", GRID = "#1f2b40";
+  /* 画布取色：跟随页面主题（读 CSS 变量，读不到就用深色兜底） */
+  var PAL = { axis: "#6c7d9b", grid: "#1f2b40", gold: "#f2c65a", purple: "#b07cff",
+              blue: "#5b9dff", green: "#4ade80", orange: "#ffab5e" };
+  function readPalette() {
+    try {
+      var cs = getComputedStyle(document.documentElement);
+      function g(n, d) { var v = cs.getPropertyValue(n).trim(); return v || d; }
+      PAL.axis = g("--c-axis", PAL.axis); PAL.grid = g("--c-grid", PAL.grid);
+      PAL.gold = g("--c-gold", PAL.gold); PAL.purple = g("--c-purple", PAL.purple);
+      PAL.blue = g("--c-blue", PAL.blue); PAL.green = g("--c-green", PAL.green);
+      PAL.orange = g("--c-orange", PAL.orange);
+      AXIS = PAL.axis; GRID = PAL.grid;
+    } catch (e) {}
+  }
+  window.__gsPalette = readPalette;
+
+  function drawArea(ctx, pts, w, h, padL, padR, padT, padB, yMax, color, fill0) {
+    var iw = w - padL - padR, ih = h - padT - padB;
+    var sx = function (i, n) { return padL + (n <= 1 ? 0 : iw * i / (n - 1)); };
+    var sy = function (v) { return padT + ih * (1 - (yMax > 0 ? v / yMax : 0)); };
+    // 网格
+    ctx.strokeStyle = GRID; ctx.lineWidth = 1;
+    for (var g = 0; g <= 4; g++) {
+      var yy = padT + ih * g / 4;
+      ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(w - padR, yy); ctx.stroke();
+    }
+    // 面积
+    if (fill0) {
+      var grd = ctx.createLinearGradient(0, padT, 0, padT + ih);
+      grd.addColorStop(0, color + "55"); grd.addColorStop(1, color + "05");
+      ctx.beginPath(); ctx.moveTo(sx(0, pts.length), padT + ih);
+      for (var i = 0; i < pts.length; i++) ctx.lineTo(sx(i, pts.length), sy(pts[i]));
+      ctx.lineTo(sx(pts.length - 1, pts.length), padT + ih); ctx.closePath();
+      ctx.fillStyle = grd; ctx.fill();
+    }
+    ctx.beginPath();
+    for (var j = 0; j < pts.length; j++) {
+      if (j === 0) ctx.moveTo(sx(j, pts.length), sy(pts[j]));
+      else ctx.lineTo(sx(j, pts.length), sy(pts[j]));
+    }
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.stroke();
+    return { sx: sx, sy: sy, padL: padL, padR: padR, padT: padT, padB: padB, iw: iw, ih: ih };
+  }
+
+  function drawAxes(ctx, w, h, padL, padR, padT, padB, xLabels, yLabels) {
+    ctx.fillStyle = AXIS; ctx.font = "10.5px ui-monospace,Consolas,monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    xLabels.forEach(function (l) { ctx.fillText(l.t, l.x, h - padB + 5); });
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    yLabels.forEach(function (l) { ctx.fillText(l.t, padL - 6, l.y); });
+  }
+
+  /* ---- 图1：累积达成概率 ---- */
+  var hitCurve = null;
+  function renderCurve() {
+    readPalette();
+    var r = last, cv = $("cvCurve");
+    var S = setupCanvas(cv, 200);
+    var ctx = S.ctx, w = S.w, h = S.h;
+    var padL = 46, padR = 12, padT = 10, padB = 22;
+    var N = Math.max(30, Math.min(r.horizon, ST.budget > 0 ? Math.min(360, ST.budget + 90) : 240));
+    N = Math.min(N, r.horizon);
+    var pts = [];
+    for (var i = 1; i <= N; i++) pts.push(GS_cumAt(r, i));
+    var geo = drawArea(ctx, pts, w, h, padL, padR, padT, padB, 1, PAL.gold, true);
+
+    // 50/90 参考线
+    [[0.5, PAL.green], [0.9, PAL.orange]].forEach(function (p) {
+      var q = GS_quantile(r, p[0]);
+      if (q > 0 && q <= N) {
+        var x = padL + geo.iw * (q - 1) / (N - 1);
+        ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, h - padB);
+        ctx.strokeStyle = p[1] + "77"; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = p[1]; ctx.font = "10px Consolas,monospace"; ctx.textAlign = "center";
+        ctx.fillText((p[0] * 100) + "%", x, padT + 8);
+      }
+    });
+    // 预算标记
+    if (ST.budget > 0 && ST.budget <= N) {
+      var bx = padL + geo.iw * (ST.budget - 1) / (N - 1);
+      ctx.beginPath(); ctx.moveTo(bx, padT); ctx.lineTo(bx, h - padB);
+      ctx.strokeStyle = PAL.blue; ctx.lineWidth = 1.5; ctx.setLineDash([2, 2]); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = PAL.blue; ctx.font = "10px Consolas,monospace"; ctx.textAlign = "center";
+      ctx.fillText("预算", bx, h - padB - 4);
+    }
+    var xl = [], step = Math.max(1, Math.round(N / 6));
+    for (var t = 1; t <= N; t += step) xl.push({ t: t + "", x: padL + geo.iw * (t - 1) / (N - 1) });
+    var yl = [];
+    for (var g = 0; g <= 4; g++) yl.push({ t: ((1 - g / 4) * 100).toFixed(0) + "%", y: padT + geo.ih * g / 4 });
+    drawAxes(ctx, w, h, padL, padR, padT, padB, xl, yl);
+    $("curveHint").textContent = "横轴 = 投入抽数，纵轴 = 至少达成目标的概率（想要 " + r.T5 +
+      " 个 UP 五星" + (r.T4 > 0 ? " + " + r.T4 + " 个 UP 四星" : "") + "）";
+    hitCurve = { N: N, padL: padL, padR: padR, padT: padT, padB: padB, iw: geo.iw, ih: geo.ih, r: r };
+  }
+
+  /* ---- 图2：单抽出货率 ---- */
+  var hitRate = null;
+  function renderRate() {
+    readPalette();
+    var r = last, cv = $("cvRate");
+    var S = setupCanvas(cv, 160);
+    var ctx = S.ctx, w = S.w, h = S.h;
+    var padL = 42, padR = 10, padT = 10, padB = 20;
+    var M = modeInfo();
+    var N = M.hard5;
+    var pts = [];
+    for (var i = 0; i < N; i++) {
+      var p = ST.mode === "weapon" ? GS_p5wep(M.hard5 - i, ST.useHard)
+        : ST.mode === "raw" ? 0.006 : GS_p5char(M.hard5 - i, ST.useHard);
+      pts.push(p);
+    }
+    var yMax = Math.max.apply(null, pts) || 1;
+    var geo = drawArea(ctx, pts, w, h, padL, padR, padT, padB, yMax, PAL.purple, true);
+    var xl = [], step = Math.max(1, Math.round(N / 6));
+    for (var t = 1; t <= N; t += step) xl.push({ t: t + "", x: padL + geo.iw * (t - 1) / (N - 1) });
+    var yl = [];
+    for (var g = 0; g <= 4; g++) yl.push({ t: (100 * yMax * (1 - g / 4)).toFixed(yMax < 0.05 ? 1 : 0) + "%", y: padT + geo.ih * g / 4 });
+    drawAxes(ctx, w, h, padL, padR, padT, padB, xl, yl);
+    hitRate = { pts: pts, N: N, padL: padL, padR: padR, padT: padT, padB: padB, iw: geo.iw, ih: geo.ih, yMax: yMax };
+  }
+
+  /* ---- 图3：下一个五星的抽数分布 ---- */
+  var hitPmf = null;
+  function renderPmf() {
+    readPalette();
+    var r = last, cv = $("cvPmf");
+    var S = setupCanvas(cv, 160);
+    var ctx = S.ctx, w = S.w, h = S.h;
+    var padL = 42, padR = 10, padT = 10, padB = 20;
+    // 用「从当前状态开始，下一个五星落在第 n 抽」= r.p5t / Σ
+    var N = Math.min(150, r.horizon);
+    var sumP = 0, arr = [];
+    for (var i = 1; i <= N; i++) { arr.push(r.p5t[i]); sumP += r.p5t[i]; }
+    var yMax = Math.max.apply(null, arr) || 1;
+    var geo = drawArea(ctx, arr, w, h, padL, padR, padT, padB, yMax, PAL.blue, true);
+    var xl = [], step = Math.max(1, Math.round(N / 6));
+    for (var t = 1; t <= N; t += step) xl.push({ t: t + "", x: padL + geo.iw * (t - 1) / (N - 1) });
+    var yl = [];
+    for (var g = 0; g <= 4; g++) yl.push({ t: (100 * yMax * (1 - g / 4)).toFixed(yMax < 0.05 ? 1 : 0) + "%", y: padT + geo.ih * g / 4 });
+    drawAxes(ctx, w, h, padL, padR, padT, padB, xl, yl);
+    hitPmf = { arr: arr, sumP: sumP, N: N, padL: padL, padR: padR, padT: padT, padB: padB, iw: geo.iw, ih: geo.ih, yMax: yMax };
+  }
+
+  /* ================= tooltip ================= */
+  function bindTip(cv, tip, getInfo, hit) {
+    cv.addEventListener("mousemove", function (ev) {
+      if (!hit) return;
+      var rect = cv.getBoundingClientRect();
+      var x = ev.clientX - rect.left;
+      var iw = hit.iw;
+      var idx = Math.round((x - hit.padL) / iw * (hit.N - 1));
+      if (idx < 0 || idx >= hit.N) { tip.style.opacity = 0; return; }
+      var info = getInfo(idx);
+      if (!info) { tip.style.opacity = 0; return; }
+      tip.innerHTML = info;
+      tip.style.opacity = 1;
+      var tw = tip.offsetWidth;
+      var px = hit.padL + iw * idx / (hit.N - 1);
+      tip.style.left = Math.max(2, Math.min(rect.width - tw - 4, px - tw / 2)) + "px";
+      tip.style.top = "6px";
+    });
+    cv.addEventListener("mouseleave", function () { tip.style.opacity = 0; });
+  }
+
+  /* ================= 逐抽明细 ================= */
+  var tblBound = false;
+  function renderTable() {
+    var r = last, M = modeInfo();
+    var rows = [];
+    var N = Math.min(200, r.horizon);
+    for (var t = 1; t <= N; t++) {
+      var p5 = r.p5t[t];
+      var pUp = r.pUp5t[t];
+      var cum = r.cum[t];
+      var marg = cum - (t > 0 ? r.cum[t - 1] : 0);
+      rows.push({
+        t: t, p5: p5, pUp: pUp, cum: cum,
+        marg: marg
+      });
+    }
+    var cols = [
+      { k: "t", h: "抽数", f: function (v) { return v; } },
+      { k: "p5", h: "出五星率", f: function (v) { return fmtP(v, 2); } },
+      { k: "pUp", h: "出目标五星率", f: function (v) { return fmtP(v, 3); } },
+      { k: "cum", h: "累计达成", f: function (v) { return fmtP(v, 2); } },
+      { k: "marg", h: "本抽达成", f: function (v) { return fmtP(v, 3); } }
+    ];
+    var tbl = $("tbl");
+    if (!tbl) return;
+    var thead = tbl.querySelector("thead");
+    var tbody = tbl.querySelector("tbody");
+    if (thead) {
+      thead.innerHTML = "<tr>" + cols.map(function (c, i) {
+        return '<th data-col="' + i + '">' + c.h + '</th>';
+      }).join("") + "</tr>";
+    }
+
+    var sorted = rows.slice();
+    var c = cols[ST.sortCol] || cols[0];
+    sorted.sort(function (a, b) {
+      var x = a[c.k], y = b[c.k];
+      return ST.sortAsc ? (x - y) : (y - x);
+    });
+    // 只拼一次字符串，一次写入
+    var parts = [];
+    for (var i = 0; i < sorted.length && i < 400; i++) {
+      var o = sorted[i];
+      var hi5 = o.p5 > 0.01, him = o.marg > 0.001;
+      parts.push("<tr><td>" + o.t + "</td><td" + (hi5 ? ' class="hi"' : "") + ">" + fmtP(o.p5, 2) +
+        "</td><td>" + fmtP(o.pUp, 3) + "</td><td>" + fmtP(o.cum, 2) +
+        "</td><td" + (him ? ' class="hi"' : "") + ">" + fmtP(o.marg, 3) + "</td></tr>");
+    }
+    if (tbody) tbody.innerHTML = parts.join("");
+
+    if (!tblBound) {
+      tblBound = true;
+      tbl.addEventListener("click", function (e) {
+        var th = e.target.closest && e.target.closest("th");
+        if (!th) return;
+        var i = +th.dataset.col;
+        if (isNaN(i)) return;
+        if (ST.sortCol === i) ST.sortAsc = !ST.sortAsc; else { ST.sortCol = i; ST.sortAsc = true; }
+        renderTable();
+      });
+    }
+  }
+
+  /* ================= 平均成本表 ================= */
+  function renderAcc() {
+    var M = modeInfo();
+    var maxN = Math.min(6, M.maxT);
+    var out = [];
+    for (var n = 1; n <= maxN; n++) {
+      if (n > 6) break;
+      var r = GS_computeWish({
+        mode: ST.mode, target: n, target4: 0, priceStd: 0,
+        pity5: ST.pity5, pity4: ST.pity4,
+        guaranteed: ST.guar, streak: Math.min(2, ST.streak), fp: ST.fp,
+        useCR: ST.useCR, useHard: ST.useHard, pc0: ST.mode === "char" ? ST.pc : 0.00018,
+        rawRate: 0.006, horizon: 420
+      });
+      var e = GS_expectedPulls(r);
+      out.push({
+        n: n, e: e,
+        q50: GS_quantile(r, 0.5), q90: GS_quantile(r, 0.9),
+        p90: GS_cumAt(r, 90), p180: GS_cumAt(r, 180),
+        avgGap: e / n
+      });
+    }
+    var html = '<table class="acctable"><thead><tr><th>目标 UP 五星数 N</th><th>期望抽数</th><th>平均每金</th><th>50%</th><th>90%</th><th>90 抽内</th><th>180 抽内</th></tr></thead><tbody>';
+    out.forEach(function (o) {
+      html += "<tr><td>" + o.n + "</td><td class='hi'>" + fmtN(o.e, 1) + "</td><td>" + fmtN(o.avgGap, 1) +
+        "</td><td>" + o.q50 + "</td><td>" + o.q90 + "</td><td>" + fmtP(o.p90) + "</td><td>" + fmtP(o.p180) + "</td></tr>";
+    });
+    html += "</tbody></table>";
+    $("accTable").innerHTML = html;
+  }
+
+  /* ================= 自检 ================= */
+  function renderSelfCheck() {
+    function ET5(pf, hard) {
+      var a = 1, e = 0;
+      for (var t = 1; t <= 500; t++) {
+        e += a;
+        a *= (1 - pf(hard - (t - 1), true));
+        if (a < 1e-16) break;
+      }
+      return e;
+    }
+    var ec = ET5(GS_p5char, 90), ew = ET5(GS_p5wep, 80);
+    var e4c = ET5(GS_p4char, 10), e4w = ET5(GS_p4wep, 10);
+    var rows = [
+      ["角色池 · 综合五星率", (100 / ec), 1.6, "%"],
+      ["武器池 · 综合五星率", (100 / ew), 1.85, "%"],
+      ["角色池 · 综合四星率", (100 / e4c), 13, "%"],
+      ["武器池 · 综合四星率", (100 / e4w), 14.5, "%"],
+      ["角色池 · 单金平均抽数", ec, 62.30, "抽"],
+      ["武器池 · 单金平均抽数", ew, 54.05, "抽"]
+    ];
+    var html = '<table class="acctable"><thead><tr><th>项目</th><th>本模型</th><th>官方公示</th><th>偏差</th></tr></thead><tbody>';
+    rows.forEach(function (r) {
+      var v = r[1], off = r[2], d = v - off;
+      var rel = Math.abs(d / off);
+      var cls = rel < 0.01 ? "ok" : (rel < 0.03 ? "warn" : "bad");
+      html += "<tr><td>" + r[0] + "</td><td>" + v.toFixed(v < 10 ? 4 : 2) + r[3] +
+        "</td><td>" + off + r[3] + "</td><td class='" + cls + "'>" + (d >= 0 ? "+" : "") + d.toFixed(v < 10 ? 4 : 2) + "</td></tr>";
+    });
+    html += "</tbody></table>";
+    var extra = '<div class="mini" style="margin-top:8px">' +
+      '角色池 <code>p5(pity)</code>: pity&lt;73 → 0.6%，pity≥73 → 0.6%+6%×(pity-73+1)，pity≥89 → 100%。<br>' +
+      '武器池 <code>p5(pity)</code>: pity≤62 → 0.7%，63–73 → 0.7%+7%×(pity-62)，74–78 → 77.7%+3.5%×(pity-73)，pity≥79 → 100%。<br>' +
+      '四星：角色 pity≥8 起 +51%/抽，武器 pity≥7 起 +60%/抽，均在 hard4−1 处到 100%。</div>';
+    $("selfCheck").innerHTML = html + extra;
+  }
+
+  /* ================= 机制说明 ================= */
+  function renderDoc() {
+    $("doc").innerHTML = [
+      "<h3>一、五星保底（角色 / 常驻）</h3>",
+      "<ul>",
+      "<li>基础出率 <b>0.6%</b>；从第 <b>74 抽</b>开始每抽 +6%，第 90 抽必定出五星。</li>",
+      "<li>出五星后计数清零。官方公示的「综合出率 1.6%」= 1 / 62.2973，即单金平均 62.30 抽，本模型精确复现。</li>",
+      "<li>角色池出五星时：<b>50%</b> 是当期 UP，<b>50%</b> 是常驻。歪了下次必出 UP（大保底）。</li>",
+      "</ul>",
+      "<h3>二、五星保底（武器）</h3>",
+      "<ul>",
+      "<li>基础出率 <b>0.7%</b>；第 63 抽起 +7%/抽，到第 74 抽为 81.2%；第 75–79 抽 +3.5%/抽，第 80 抽必定出。</li>",
+      "<li>出五星时 <b>75%</b> 是两把 UP 武器之一（各 37.5%），<b>25%</b> 是常驻武器。</li>",
+      "<li>综合五星率 1.85%，单金平均 53.88 抽。</li>",
+      "</ul>",
+      "<h3>三、捕获明光（5.0 起）</h3>",
+      "<ul>",
+      "<li>作用在「小保底」上：触发时该次五星直接变为 UP，不会歪。</li>",
+      "<li>官方公布基础触发率 <b>0.018%</b>；且<b>连续三次小保底都歪则必定触发</b>。</li>",
+      "<li>本模型：小保底时 UP 概率 = 0.5 + 0.5×p，其中 p = 0.018%×(1+已连歪次数)，第三次连歪时 p=1。</li>",
+      "<li>模型校验：不含大保底时，五星中 UP 的比例从 50% 提升到 <b>60.55%</b>。注意官方公告文案写的是 55%，二者口径不同（55% 指的是「抽出 UP」相对「五星」在更宽松条件下的比例），本模型以「三连歪必中」这一硬规则为准，因为它对结果的影响比 0.018% 本身大得多。</li>",
+      "</ul>",
+      "<h3>四、武器定轨（5.0 起）</h3>",
+      "<ul>",
+      "<li>选定一把 UP 武器为「定轨」。命定值上限由 2 降为 <b>1</b>。</li>",
+      "<li>歪到另一把 UP 或常驻武器，命定值 +1（即满）；命定值满后再出五星必为定轨武器。</li>",
+      "<li>5.0 起命定值<b>不跨期继承</b>，换池清零。</li>",
+      "<li>抽到定轨武器后命定值清零。</li>",
+      "</ul>",
+      "<h3>五、四星保底</h3>",
+      "<ul>",
+      "<li>角色/常驻：基础 5.1%，第 9 抽起每抽 +51%，第 10 抽必定出四星或以上。</li>",
+      "<li>武器：基础 6%，第 8 抽起每抽 +60%。</li>",
+      "<li>出四星时：角色池 50% 是 UP 四星，武器池 75% 是 UP 四星。</li>",
+      "<li>出五星时四星计数<b>不重置</b>（五星与四星保底互相独立计数）。</li>",
+      "</ul>",
+      "<h3>六、本计算器做了什么</h3>",
+      "<ul>",
+      "<li><b>精确动态规划</b>，不是蒙特卡洛抽样：状态 = (保底状态, 距五星累计抽数, 距四星保底剩余, 已得目标五星数, 已得目标四星数)。</li>",
+      "<li>每抽把状态质量精确推进一步，逐抽累积「已达成」概率，因此任意抽数处的概率都是精确值。</li>",
+      "<li>每一抽都做质量守恒断言：未达成质量 + 已达成质量 = 1，误差超过 1e-9 直接报错。</li>",
+      "</ul>",
+      "<h3>七、数据来源</h3>",
+      "<ul>",
+      "<li>概率公示（官方）：<a href='https://webstatic.mihoyo.com/hk4e/event/official-gacha-probability/index.html?lang=zh-cn' target='_blank'>原神祈愿概率公示</a></li>",
+      "<li>递增表：<a href='https://www.9game.cn/yuanshen/9602277.html' target='_blank'>抽卡概率递增表</a></li>",
+      "<li>捕获明光：<a href='http://www.gamelook.com.cn/2025/02/564420/' target='_blank'>GameLook 报道</a></li>",
+      "<li>定轨改动：<a href='https://news.17173.com/content/08162024/154513102.shtml' target='_blank'>17173</a> · <a href='https://www.oneesports.gg/genshin-impact/capturing-radiance-banner/' target='_blank'>ONE Esports</a></li>",
+      "</ul>",
+      "<h3>八、已知简化</h3>",
+      "<ul>",
+      "<li>四星「UP 判定」按每次出货独立 50%/75% 建模；实际游戏有额外的大保底四星机制（连续未出 UP 四星时必出），本模型未细分。</li>",
+      "<li>常驻池出五星当作「目标」计数；限定角色池的常驻五星不计入目标。</li>",
+      "<li>捕获明光的 0.018% 为官方文案表述；「连续歪增加触发率」的增长曲线为合理建模假设，官方未公布精确函数，因此提供了可调滑块做敏感度分析。</li>",
+      "</ul>"
+    ].join("");
+  }
+
+  /* ================= 控件绑定 ================= */
+  function bindSeg() {
+    document.querySelectorAll("#segBanner button, #segBanner2 button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        document.querySelectorAll("#segBanner button, #segBanner2 button").forEach(function (x) { x.classList.remove("act"); });
+        b.classList.add("act");
+        ST.mode = b.dataset.mode;
+        var M = modeInfo();
+        var p5cap = M.hard5 - 1, p4cap = M.hard4 - 1;
+        if (ST.pity5 > p5cap) ST.pity5 = p5cap;
+        if (ST.pity4 > p4cap) ST.pity4 = p4cap;
+        if (ST.target > M.maxT) ST.target = M.maxT;
+        $("pity5").max = p5cap; $("pity5").value = ST.pity5;
+        $("pity4").max = p4cap; $("pity4").value = ST.pity4;
+        $("target").max = M.maxT; $("target").value = ST.target;
+        $("t4").max = M.maxT4; if (ST.t4 > M.maxT4) { ST.t4 = M.maxT4; $("t4").value = ST.t4; }
+        syncModeUI();
+        markDirty();
+      });
+    });
+  }
+  function syncModeUI() {
+    $("boxGuar").style.display = ST.mode === "char" ? "" : "none";
+    $("boxCR").style.display = (ST.mode === "char" && ST.useCR) ? "" : "none";
+    $("boxFP").style.display = ST.mode === "weapon" ? "" : "none";
+    $("boxRatio").style.display = "none";
+    // 命定值下拉框与状态同步
+    var fsel = $("fp");
+    if (fsel) fsel.value = ST.fp ? "1" : "0";
+    var notes = {
+      char: "限定角色池：50/50 小保底，含捕获明光与五星 90 抽硬保底。",
+      weapon: "限定武器池：75% 两把 UP 之一，命定值上限 1。",
+      std: "常驻祈愿：出五星即计为目标（常驻五星都是「想要」时用）。",
+      raw: "纯单抽率模式：不追踪保底，只算固定单抽出货率下的分布。"
+    };
+    $("modeNote").textContent = notes[ST.mode] || "";
+  }
+
+  /* ---------------- 刷新调度：rAF 合并同一帧内的多次触发 ----------------
+     0 = 全量（含表格与成本表），1 = 轻量（只更新统计与三张图）          */
+  var _raf = (typeof requestAnimationFrame === "function") ? requestAnimationFrame
+           : function (f) { return setTimeout(f, 16); };
+  /* 手动计算模式：输入框只记录参数并标记「待计算」，不触发任何计算。
+     只有点击「计算」按钮（或按 Enter）才真正跑引擎。                  */
+  var dirty = true;
+  function markDirty() {
+    dirty = true;
+    var b = $("btnCalc");
+    if (b) b.classList.add("dirty");
+    var tipEl = $("calcTip");
+    if (tipEl) tipEl.textContent = "参数已修改，点击计算查看结果";
+  }
+  function computeNow() {
+    dirty = false;
+    var b = $("btnCalc");
+    if (b) b.classList.remove("dirty");
+    var tipEl = $("calcTip");
+    if (tipEl) tipEl.textContent = "";
+    var ph = $("placeholder"), rs = $("results");
+    if (ph) ph.style.display = "none";
+    if (rs) rs.style.display = "";
+    refresh(false);
+  }
+
+  function refresh(light) {
+    try {
+      calc();
+      syncLabels();
+      renderNow();
+      renderBudget();
+      renderCurve();
+      renderRate();
+      renderPmf();
+      if (!light) { renderTable(); renderAcc(); }
+    } catch (e) {
+      console.error(e);
+      $("statsNow").innerHTML = '<div class="stat red"><div class="k">计算出错</div><div class="v" style="font-size:12px">' +
+        (e && e.message ? e.message : e) + "</div></div>";
+    }
+  }
+
+  function syncLabels() {}
+
+  // 数字输入框统一绑定：clamp + 回写，但不自动计算
+  // intMode=true 时回写取整后的值（整数控件）
+  function numInput(id, lo, hi, set, intMode) {
+    var el = $(id);
+    if (!el) return;
+    function apply(full) {
+      var raw = el.value.trim();
+      var v = parseFloat(raw);
+      if (!isFinite(v)) v = lo;
+      v = Math.max(lo, Math.min(hi, v));
+      set(v);
+      if (full) el.value = intMode ? Math.round(v) : v;
+      markDirty();
+    }
+    el.addEventListener("input", function () { apply(false); });
+    el.addEventListener("change", function () { apply(true); });
+    el.addEventListener("blur", function () { apply(true); });
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { apply(true); el.blur(); computeNow(); }
+      else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        var v = parseFloat(el.value) || 0;
+        v += (e.key === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 10 : 1);
+        el.value = Math.max(lo, Math.min(hi, v));
+        apply(true);
+      }
+    });
+  }
+
+  function bindAll() {
+    bindSeg();
+
+        numInput("pity5", 0, 89, function (v) { ST.pity5 = Math.round(v); }, true);
+        numInput("pity4", 0, 9, function (v) { ST.pity4 = Math.round(v); }, true);
+        numInput("streak", 0, 2, function (v) { ST.streak = Math.round(v); }, true);
+        numInput("target", 1, 7, function (v) { ST.target = Math.round(v); }, true);
+        numInput("t4", 0, 8, function (v) { ST.t4 = Math.round(v); }, true);
+        numInput("pc", 0, 10, function (v, raw) {
+          var n = parseFloat(raw);
+          if (isFinite(n)) ST.pc = Math.max(0, Math.min(10, n)) / 100;
+        }, false);
+
+        // 命定值：下拉选择
+        var fsel = $("fp");
+        if (fsel) fsel.addEventListener("change", function () { ST.fp = +this.value; markDirty(); });
+
+    $("guar").addEventListener("change", function () { ST.guar = this.checked; markDirty(); });
+    $("optCR").addEventListener("change", function () { ST.useCR = this.checked; syncModeUI(); markDirty(); });
+    $("optHard").addEventListener("change", function () { ST.useHard = this.checked; markDirty(); });
+
+    numInput("budget", 0, 2000, function (v) { ST.budget = Math.round(v); });
+
+    var chips = [30, 60, 90, 120, 160, 180, 200, 300, 400, 600];
+    $("budgetChips").innerHTML = chips.map(function (c) {
+      return '<span class="chip" data-v="' + c + '">' + c + "</span>";
+    }).join("");
+    $("budgetChips").addEventListener("click", function (e) {
+      var c = e.target.closest(".chip");
+      if (!c) return;
+      ST.budget = +c.dataset.v;
+      $("budget").value = ST.budget;
+      markDirty();
+    });
+
+    // 计算按钮
+    var bc = $("btnCalc");
+    if (bc) bc.addEventListener("click", function () { computeNow(); });
+
+    bindTip($("cvCurve"), $("tipCurve"), function (i) {
+      var r = last, t = i + 1;
+      var c = GS_cumAt(r, t);
+      return "第 <b>" + t + "</b> 抽<br>累计达成 <b>" + fmtP(c) + "</b><br>仍未达成 " + fmtP(1 - c);
+    }, function () { return hitCurve; });
+    bindTip($("cvRate"), $("tipRate"), function (i) {
+      if (!hitRate) return "";
+      var p = hitRate.pts[i];
+      return "第 <b>" + (i + 1) + "</b> 抽<br>出五星 <b>" + fmtP(p) + "</b>";
+    }, function () { return hitRate; });
+    bindTip($("cvPmf"), $("tipPmf"), function (i) {
+      if (!hitPmf) return "";
+      var p = hitPmf.arr[i];
+      return "第 <b>" + (i + 1) + "</b> 抽<br>落点概率 <b>" + fmtP(p) + "</b>";
+    }, function () { return hitPmf; });
+
+    window.addEventListener("resize", function () {
+      if (!last) return;
+      renderCurve(); renderRate(); renderPmf();
+    });
+  }
+
+  /* ================= 启动 ================= */
+  function boot() {
+    bindAll();
+    syncModeUI();
+    renderDoc();
+    renderSelfCheck();
+    // 不自动计算：等用户点「计算」
+    markDirty();
+  }
+  bindTip = bindTip;   // no-op guard for strict mode redeclare
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+  /* 切主题后重画：先换调色板，再按当前参数重跑一次 */
+  window.__gsRerender = function () {
+    try { readPalette(); if (last) refresh(false); } catch (e) {}
+  };
+})();
+
+</script>
+<script>(function () {
+  var root = document.documentElement;
+  function applyTheme(t, persist) {
+    if (t !== "light") t = "dark";
+    root.setAttribute("data-theme", t);
+    var m = document.getElementById("themeColor");
+    if (m) m.setAttribute("content", t === "light" ? "#e9f1f8" : "#0b1220");
+    if (persist) { try { localStorage.setItem("theme", t); } catch (e) {} }
+  }
+  applyTheme(root.getAttribute("data-theme") || "light", false);
+  var btn = document.getElementById("themeToggle");
+  if (btn) btn.addEventListener("click", function () {
+    var next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+    applyTheme(next, true);
+    if (window.__gsPalette) window.__gsPalette();
+    if (window.__gsRerender) window.__gsRerender();
+  });
+  var y = document.getElementById("year");
+  if (y) y.textContent = new Date().getFullYear();
+})();</script>
+</body>
+</html>

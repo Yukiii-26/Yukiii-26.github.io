@@ -456,7 +456,7 @@
   .share-sheet.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
   .share-sheet h4{font-size:15px;font-weight:800;margin:0 0 3px;color:var(--ink)}
   .share-sheet .share-sub{font-size:11.5px;color:var(--muted);margin:0 0 14px;line-height:1.6}
-  .share-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .share-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:9px}
   .share-grid a,.share-grid button{
     display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
     padding:11px 6px 10px;border-radius:13px;font-family:inherit;
@@ -470,7 +470,6 @@
   /* 注意：这里的 display 必须带上 .share-grid 前缀，否则被 .share-grid a{display:flex} 压过去。 */
   .share-grid > .mobile-only{display:none}
   @media (max-width:720px){
-    .share-grid{grid-template-columns:repeat(2,1fr)}
     .share-grid > .mobile-only{display:flex}
     .share-grid > .desktop-only{display:none}
   }
@@ -921,8 +920,6 @@
     <button type="button" id="shareCopy"><span class="si" aria-hidden="true">⧉</span>复制链接</button>
     <button type="button" id="shareNative" class="mobile-only"><span class="si" aria-hidden="true">⤴</span>系统分享</button>
     <button type="button" id="shareWechat"><span class="si" aria-hidden="true">💬</span>微信 / QQ</button>
-    <a id="shareX" href="#" target="_blank" rel="noopener noreferrer" class="desktop-only"><span class="si" aria-hidden="true">𝕏</span>X</a>
-    <a id="shareFb" href="#" target="_blank" rel="noopener noreferrer" class="desktop-only"><span class="si" aria-hidden="true">f</span>Facebook</a>
   </div>
 </div>
 <div class="toast" id="shareToast" role="status" aria-live="polite"></div>
@@ -1019,11 +1016,6 @@
     void shareSheet.offsetHeight;
     shareSheet.classList.add('show');
     shareBtn.setAttribute('aria-expanded', 'true');
-    document.getElementById('shareX').href =
-      'https://twitter.com/intent/tweet?text=' + encodeURIComponent(document.title) +
-      '&url=' + encodeURIComponent(location.href);
-    document.getElementById('shareFb').href =
-      'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(location.href);
   }
 
   function closeShare() {

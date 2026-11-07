@@ -57,8 +57,8 @@
 - **零依赖单文件**，不引任何外部库，**不要加 CDN**。
 - 深浅色和全站一致：`<html data-theme="light">` + `L10–19` 预加载 + `L706–722` 切换 + `serif.css`（L269）。
 - 触摸设备用长按代替右键（`L626 clearPressed` 和 `L610` 一带）。
-- **这个作品在 `projects/others/index.html` 里是一张卡（编号 01，`href="../minesweeper/index.html"`）**，
-  主页作品区**不放它**。改动它不需要碰主页。
+- **这个作品在主页「可游玩项目」栏是 02 号卡**（`index.html` 里 `href="projects/minesweeper/index.html"`）。
+  （2026-11-07 前它在「其它小项目」合集页里是 01 号；那个页面已经下架，现在只剩主页这一处入口。）
 
 ## 修改时
 

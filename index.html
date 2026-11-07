@@ -242,14 +242,8 @@
   .section h2{font-size:clamp(25px,3.6vw,38px);font-weight:800;letter-spacing:-.03em}
   .section .lead{margin-top:18px;color:var(--muted);max-width:62ch}
   /* 板块标题右边那行小字（例如「其它小项目 →」） */
-  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:8px 20px;flex-wrap:wrap}
-  .more-link{
-    font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;
-    border-bottom:1px solid var(--line);padding-bottom:2px;
-    transition:color .18s,border-color .18s;
-  }
-  .more-link:hover{color:var(--accent);border-color:var(--accent)}
-  @media (max-width:520px){.section-head{align-items:flex-start;flex-direction:column;gap:10px}}
+  /* 2026-11-07 起板块标题右边不再放小字链接，「其它小项目」入口已移除 */
+
 
   /* 关于我：左文右小档案 */
   .about-grid{display:grid;grid-template-columns:1.75fr 1fr;gap:52px;margin-top:26px}
@@ -611,7 +605,7 @@
           </div>
         </div>
         <div class="skill-group">
-          <p class="skill-label">AI助手</p>
+          <p class="skill-label">AI 助手</p>
           <div class="tags">
             <span class="tag-pill tag-pill-ai">DeepSeek</span>
             <span class="tag-pill tag-pill-ai">ChatGPT</span>
@@ -628,8 +622,6 @@
       <p class="kicker">Work</p>
       <div class="section-head">
         <h2>作品与项目</h2>
-        <!-- ↓↓↓ 右边这行小字指向「其它小项目」页面（projects/others/index.html）↓↓↓ -->
-        <a class="more-link" href="projects/others/index.html">其它小项目 →</a>
       </div>
       <p class="lead">做过的和正在做的小东西，都放在这里。点进去就能玩。</p>
 
@@ -664,10 +656,9 @@
              传到线上就是 404。文件名统一用小写最省事。
         -->
 
-        <!-- 「其它小项目」页面在 projects/others/index.html（入口在本节标题右边）。
-             2026-11-07 起「其它小项目」里只剩《扫雷》一个；岁月山谷、SCI-POOT 3000、
-             原神抽卡计算器和《没有人举手》都已从本站下架，文件移到 未上传项目\。
-             首页作品区只留下面五个（2026-11-07 加入《海岸防线》）。
+        <!-- 2026-11-07 起「其它小项目」页（projects/others）与模板页（projects/template）一并下架，文件移到 未上传项目\。
+             岁月山谷、SCI-POOT 3000、原神抽卡计算器和《没有人举手》此前已下架，文件同样在 未上传项目\。
+             首页作品区只留下面六个（2026-11-07 加入《海岸防线》）。
 
              2026-11-07 起作品区分成三栏（用户要求）：
              ①场景展示（能拖能转的 3D 微缩场景）
@@ -683,7 +674,7 @@
           <div class="group-head">
             <h3>场景展示</h3>
             <span class="count">3</span>
-            <p>一些可互动的观赏场景，使用DeepSeek生成。</p>
+            <p>一些可互动的观赏场景，使用 DeepSeek 生成。</p>
           </div>
           <div class="cards">
 
@@ -797,7 +788,7 @@
           <h2>ILVES · 猞猁小队</h2>
           <p class="feature-sub">2D 文字战术指挥游戏 · Windows</p>
           <p class="feature-desc">你是一支九人侦察小队的队长。在卡累利阿的针叶林里带队潜伏、侦察、和友军队伍配合，在暴露、体力与队员之间的信任里做取舍。文字优先：九个人各有裂缝，关键选择会跨章延续。</p>
-          <p class="feature-desc"><b>因学业原因于2026年11月7日暂停更新</b></p>
+          <p class="feature-desc"><b>因学业原因于 2026 年 11 月 7 日暂停更新</b></p>
           <div class="meta"><span>Unity</span><span>文字战术</span><span>决策</span><span>Windows</span><span>DEMO</span></div>
           <div class="actions">
             <a class="btn btn-primary" href="https://github.com/Yukiii-26/ILVES" target="_blank" rel="noopener">前往项目页 ↗</a>

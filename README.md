@@ -14,19 +14,13 @@
 | `avatar.jpg` | 头像照片（和 `index.html` 放在同一层） |
 | `README.md` | 这份说明。⚠️ 仓库是公开的，它在 <https://yukiii-26.github.io/README.md> 也能被任何人直接打开 |
 | `projects/` | 放作品用的文件夹（一个项目一个子文件夹） |
-| `projects/tokyo-obscura/` | 東京暗箱 · Tokyo Obscura（零美术、文字驱动的地点推理游戏，12 案，2026-10-31 从本机另一个工作区整体搬进来，原样没改排版和主题）。**主页作品区第 01 张卡**。网址 <https://yukiii-26.github.io/projects/tokyo-obscura/> |
-| `projects/schoolscape/` | 作品一：**没有人举手 / No One Raised a Hand**（网页**体验版**：第一章「后排的空位」，约 5 分钟、单文件零依赖）。入口在「其它小项目」合集页。网址 <https://yukiii-26.github.io/projects/schoolscape/> |
-| `projects/minesweeper/` | 扫雷小游戏。**2026-10-30 起不在主页作品区**，入口在「其它小项目」合集页（`projects/others/index.html`） |
-| `projects/konbini/` | 作品二：雨夜便利店（Three.js 雨夜街角小场景，单文件离线版）。**主页作品区第 02 张卡**。网址 <https://yukiii-26.github.io/projects/konbini/> |
+| `projects/tokyo-obscura/` | 東京暗箱 · Tokyo Obscura（零美术、文字驱动的地点推理游戏，12 案，2026-10-31 从本机另一个工作区整体搬进来，原样没改排版和主题）。**主页「可游玩项目」栏 01**。网址 <https://yukiii-26.github.io/projects/tokyo-obscura/> |
+| `projects/minesweeper/` | 扫雷 · Minesweeper。**主页「可游玩项目」栏 02**。网址 <https://yukiii-26.github.io/projects/minesweeper/> |
+| `projects/konbini/` | 雨夜便利店 · Rainy Night Konbini（Three.js 雨夜街角小场景，单文件离线版）。**主页「场景展示」栏 01**。网址 <https://yukiii-26.github.io/projects/konbini/> |
 | `projects/konbini/_dev/` | 上面那个单文件的**开发源码**（src / vendor / 打包脚本）。下划线开头，GitHub Pages 不会发布它，只在本地用 |
-| `projects/forest-cabin/` | 林深见灯 · A Cabin in the Woods（Three.js 低多边形森林小屋微缩景，**不是单文件**：`index.html` + `styles.css` + `src/main.js` + `vendor/` 里的 Three.js 本地副本）。**主页作品区第 03 张卡**。网址 <https://yukiii-26.github.io/projects/forest-cabin/> |
-| `projects/mapgen/` | 作品三：架空世界地图生成器。**主页作品区第 04 张卡**。网址 <https://yukiii-26.github.io/projects/mapgen/> |
-| `projects/genshin-wish/` | 原神抽卡概率计算器（原是本机「零碎任务」里的独立页面，2026-10-31 搬进站里，改成和全站同一套深浅色主题）。**主页作品区第 05 张卡**。网址 <https://yukiii-26.github.io/projects/genshin-wish/> |
-| `projects/fartsim/` | SCI-POOT 3000 放屁扩散模拟器。**纯属搞怪**——一个抽象搞笑的玩具，不是真科学。入口在「其它小项目」合集页。网址 <https://yukiii-26.github.io/projects/fartsim/> |
-| `projects/valley/` | 岁月山谷 Valley of Ages。**2026-10-30 起不在主页作品区**，入口在「其它小项目」合集页 |
+| `projects/forest-cabin/` | 林深见灯 · A Cabin in the Woods（Three.js 低多边形森林小屋微缩景，**不是单文件**：`index.html` + `styles.css` + `src/main.js` + `vendor/` 里的 Three.js 本地副本）。**主页「场景展示」栏 02**。网址 <https://yukiii-26.github.io/projects/forest-cabin/> |
+| `projects/mapgen/` | 架空世界地图生成器。**主页「生成类工具」栏 01**。网址 <https://yukiii-26.github.io/projects/mapgen/> |
 | `assets/` | 主页用到的图片：作品缩略图 `thumb-*.jpg`（16:10、800×500；東京暗箱那张 `thumb-tokyo-obscura.jpg` 用的是标题画面预览图）、`fonts/`（自托管的思源宋体，见下面「全站字体」一节）、背景图 `bg-dusk.jpg` / `bg-dusk-mobile.jpg`（深色）、`bg-light.jpg` / `bg-light-mobile.jpg`（浅色，默认）、分享封面 `og-cover.jpg`（1200×630）、ILVES 卡右栏截图 `ilves-keyart.jpg`（1000×750） |
-| `projects/others/index.html` | **「其它小项目」合集页**：扫雷、岁月山谷、SCI-POOT 3000、没有人举手（网页体验版）都在这里。从主页「作品与项目」标题右边的「其它小项目 →」进入 |
-| `projects/template/` | 「项目详情页」模板。复制一份改个名就是新项目，见下面「怎么加一个新作品」 |
 | `egg/` | 彩蛋页。**没有任何导航链接指向它**，只能在主页上敲秘技进去 |
 | `preview/` | 只在本机存放排版效果图，**不需要上传到仓库** |
 
@@ -174,15 +168,11 @@
 | 页面 | 文件 | 备注 |
 |------|------|------|
 | 主页 | `index.html` | |
-| 其它小项目 | `projects/others/index.html` | |
 | 雨夜便利店 | `projects/konbini/index.html` | 只改 HUD/界面层，3D 场景本身不变 |
 | 林深见灯 | `projects/forest-cabin/styles.css` | 主题变量和 HUD 样式在 `styles.css`（页面结构在 `index.html`，3D 场景在 `src/main.js`，一般不用动） |
 | 地图生成器 | `projects/mapgen/index.html` | |
 | 扫雷 | `projects/minesweeper/index.html` | 棋盘配色是经典 Windows 灰，两种主题下都不变 |
-| 岁月山谷 | `projects/valley/valley.css` | 只改界面层，3D 场景不变 |
-| 没有人举手 | `preview/schoolscape2/src/shell.html` | ⚠️ **这是构建源码**，改完要跑 `node preview/schoolscape2/build.js` 重新生成 `projects/schoolscape/index.html` |
 | 彩蛋页 | `egg/index.html` | |
-| 模板页 | `projects/template/index.html` | |
 
 ### 深色 / 浅色切换按钮
 
@@ -243,7 +233,7 @@
 | `bg-dusk.jpg` | 电脑端 · 深色 | 1920×1080 左右，JPEG 质量 80，约 150–250 KB |
 | `bg-dusk-mobile.jpg` | 手机端 · 深色 | 竖构图，720×1280 左右，约 80–120 KB |
 
-换图只要**用同名文件覆盖**，页面一个字都不用改（`projects/others/index.html` 以及各作品页用的是 `../../assets/` 下的同一批图）。两个细节：
+换图只要**用同名文件覆盖**，页面一个字都不用改（各作品页用的是 `../../assets/` 下的同一批图）。两个细节：
 
 - **手机那张是单独裁的竖构图**，不是把横图压扁 —— 横图在竖屏上会被裁掉大半，人物很可能被切掉
 - 换完图如果发现字看不清，调 `.bg::after` 那层色纱的透明度：深色是黑色 `rgba(8,12,20,…)`，浅色是雾蓝白 `rgba(233,241,248,…)`；
@@ -269,8 +259,8 @@
 
 作品区每一行（一个 `<article class="card">`）就是一个项目。加项目分两步：**放文件** + **改链接**。
 
-> 如果是「其它小项目」那一类，卡片要写在 `projects/others/index.html` 里（不在主页）。写法完全一样，
-> 只是缩略图路径写成 `../../assets/thumb-xxx.jpg`、作品链接写成 `../作品名/index.html`。
+> 主页作品区分三栏（场景展示 / 可游玩项目 / 生成类工具），卡片放在对应栏的 `<div class="cards">` 里。
+> 编号是每栏内各自从 01 数，加卡别忘了把该栏 `<span class="count">` 的数字一起改。
 
 ### 一、文件怎么摆
 
@@ -301,10 +291,7 @@ https://yukiii-26.github.io/projects/snake/
 | 项目类型 | 怎么做 |
 |---------|--------|
 | 本身就是个能玩的网页（小游戏、小工具） | 直接把游戏放成 `projects/游戏名/index.html`，主页卡片直接链过去。**最省事** |
-| 需要配文字说明、截图 | 复制 `projects/template/` 一份，改名成 `projects/你的项目名/`，在里面改内容当详情页；能玩的东西放同级的 `play/` 文件夹里，详情页的「在线试玩」按钮已经指向 `./play/index.html` |
-
-> `projects/template/` 里那个页面是给你当模板用的，做好自己的项目后可以删掉它。
-> 模板里也有自己的「改这里」标记（7 处），搜法一样。
+| 需要配文字说明、截图 | 参考任意现有作品页（比如 `projects/tokyo-obscura/index.html`）的结构自己写一个；能玩的东西放同级的子文件夹里 |
 
 ### 二、卡片上怎么写链接
 
@@ -403,10 +390,13 @@ https://yukiii-26.github.io/projects/snake/
 
 ### 隐藏 / 恢复一个作品
 
-现在作品分成两处：
+现在所有作品都在**主页「作品与项目」**（`index.html`，搜「改这里 ⑦」），电脑上一排三栏、手机上一列：
 
-- **主页「作品与项目」**（`index.html`，搜「改这里 ⑦」）：三张卡 —— 雨夜便利店、林深见灯、架空世界地图生成器。
-- **「其它小项目」页**（`projects/others/index.html`）：扫雷、岁月山谷、SCI-POOT 3000、没有人举手（体验版）四张卡。
+| 栏目 | 作品 |
+|------|------|
+| 场景展示 | 雨夜便利店、林深见灯、海岸防线 |
+| 可游玩项目 | 東京暗箱、扫雷 |
+| 生成类工具 | 架空世界地图生成器 |
 
 想暂时不展示某个作品，**不用删文件** —— 在对应页面把那张 `<article class="card"> … </article>` 整块用 `<!--` 和 `-->` 包起来：
 

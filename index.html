@@ -65,7 +65,7 @@
     --accent-hi:#9ad6ff;              /* 悬停时的更亮蓝 */
     --accent-ink:#06121e;             /* 压在蓝底上的字色（深蓝黑，保证对比度） */
     --nav-bg:rgba(9,14,24,.70);
-    --max:1080px;
+    --max:1320px;
   }
 
   /* ===================== 亮色（默认）：配「白」背景图，冷一点的雾蓝白 ===================== */
@@ -286,16 +286,20 @@
   .skill-note{margin-top:26px;font-size:14px;color:var(--muted);max-width:66ch;line-height:1.75}
 
   /* 作品：一张卡片一个项目，圆角 + 悬停微微抬起 */
-  .cards{margin-top:26px;display:flex;flex-direction:column;gap:12px}
+  .cards{display:flex;flex-direction:column;gap:12px}
   /* 作品分组（2026-11-07 起）：一栏一组，组标题是左边一条竖线 + 组名 + 数量 + 一句说明 */
-  .group{margin-top:34px}
-  .group:first-of-type{margin-top:26px}
+  .group{min-width:0}
   .group-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-left:13px;border-left:3px solid var(--accent)}
   .group-head h3{font-size:17px;font-weight:800;letter-spacing:-.01em}
   .group-head .count{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px;background:var(--surface)}
   .group-head p{flex-basis:100%;margin-top:2px;font-size:13.5px;color:var(--muted);line-height:1.6}
   .group .cards{margin-top:14px}
-  .card{
+  /* 2026-11-07 起电脑上三栏并排（左：场景展示 / 中：可游玩项目 / 右：生成类工具），
+     窄屏自动退回上下排列。列宽用 minmax(0,1fr) 等分，Grid 的 1fr 默认带 min-content 下限，
+     不加 minmax(0,…) 的话卡片里长英文和缩略图会把列撑爆。 */
+  .groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px;align-items:start;margin-top:26px}
+  .groups > .group{margin:0}
+.card{
     position:relative;
     display:grid;align-items:start;gap:6px 24px;
     grid-template-columns:78px 290px minmax(0,1fr) auto;
@@ -346,6 +350,19 @@
   .card:hover .go{color:var(--accent);border-bottom-color:var(--accent)}
   /* 整张卡片都能点（铺一层透明热区，键盘仍然只停在文字链接上） */
   .card .go::after{content:"";position:absolute;inset:0;z-index:1}
+
+  /* 三栏里的卡片改成上下列：缩略图铺满上排，信息排下面 */
+  .groups .card{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"shot" "num" "title" "desc" "meta" "go";
+    gap:6px;padding:16px 16px 18px;border-radius:18px;
+  }
+  .groups .card .shot{max-width:none;margin-bottom:8px}
+  .groups .card .num{font-size:20px}
+  .groups .card h3{font-size:17px}
+  .groups .card p{font-size:14px;max-width:none;line-height:1.65}
+  .groups .card .meta{margin-top:10px}
+  .groups .card .go{justify-self:start;margin-top:8px}
 
   /* ===================== 其他单独项目 ===================== */
   /* 比普通板块更"跳"：顶部一道天蓝光，卡片是渐变描边 + 右上角像素网格装饰 */
@@ -434,6 +451,12 @@
     .section{padding:52px 0}
     .contact{padding:60px 0}
   }
+  /* 三栏放不下时变两栏：左栏 + 中栏并排，右栏换到第二行。
+     左栏不再独占整行，否则那张卡会被拉宽到 1000px 以上，缩略图大得离谱。 */
+  @media (max-width:1100px){
+    .groups{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+    .groups > .group:first-child{grid-column:auto}
+  }
   @media (max-width:720px){
     .nav-toggle{display:inline-flex}
     .skill-groups{grid-template-columns:1fr;gap:22px}
@@ -457,6 +480,10 @@
     }
     .card .go{justify-self:start;margin-top:6px}
     .card .shot{max-width:420px}
+
+    /* 手机上三栏彻底退回上下排列，组之间拉开距离 */
+    .groups{grid-template-columns:1fr;gap:30px;margin-top:22px}
+    .groups > .group:first-child{grid-column:auto}
   }
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
@@ -647,6 +674,8 @@
              往哪栏加：先看作品是「看」、「玩」还是「生成」。
              编号是每栏内各自从 01 重新数；加完记得把该栏 .group-head 里的 .count 也改掉。 -->
 
+        <div class="groups">
+
         <!-- ───────── ① 场景展示 ───────── -->
         <div class="group">
           <div class="group-head">
@@ -733,6 +762,8 @@
              编号是每栏内各自从 01 重新数的，加完记得把该栏 .group-head 里的 .count 也改掉。
              2026-11-07 这一版：①场景展示 01 便利店 / 02 林深见灯；②可游玩 01 東京暗箱 / 02 扫雷；
              ③生成类 01 地图生成器。 -->
+
+        </div><!-- /.groups 三栏容器 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
     </div>

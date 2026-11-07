@@ -1,4 +1,4 @@
-# Yukishiro 的个人主页
+# Yukiii 的个人主页
 
 我的个人网站。网站本体只有 `index.html` 一个文件，用 HTML / CSS / JS 写成，零依赖、加载快。
 

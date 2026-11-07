@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <!--
-  Yukishiro 的个人主页 · index.html 「杂志风 + 浅色 / 深色双主题」
+  Yukiii 的个人主页 · index.html 「杂志风 + 浅色 / 深色双主题」
 
   【改内容】用记事本 / VS Code 打开，搜「改这里」（共 11 处），改完保存双击预览。
   【主题】默认浅色，右上角 ☾ / ☀ 切换，会记住选择；改默认色搜 saved : 'light'。
@@ -15,25 +15,25 @@
 <meta name="theme-color" id="themeColor" content="#e9f1f8" />
 
 <!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时显示的卡片文字 ↓↓↓ -->
-<title>Yukishiro · 个人主页</title>
-<meta name="description" content="Yukishiro 的个人主页 —— 关于我、技能，和八个能直接在浏览器里玩的小作品。" />
+<title>Yukiii · 个人主页</title>
+<meta name="description" content="Yukiii 的个人主页 —— 关于我、技能，和五个能直接在浏览器里玩的小作品。" />
 <link rel="canonical" href="https://yukiii-26.github.io/" />
 
-<meta property="og:title" content="Yukishiro · 个人主页" />
-<meta property="og:description" content="Yukishiro 的个人主页 —— 关于我、技能，和八个能直接在浏览器里玩的小作品。" />
+<meta property="og:title" content="Yukiii · 个人主页" />
+<meta property="og:description" content="Yukiii 的个人主页 —— 关于我、技能，和五个能直接在浏览器里玩的小作品。" />
 <meta property="og:type" content="website" />
-<meta property="og:site_name" content="Yukishiro 的个人主页" />
+<meta property="og:site_name" content="Yukiii 的个人主页" />
 <meta property="og:url" content="https://yukiii-26.github.io/" />
 <meta property="og:locale" content="zh_CN" />
 <!-- 分享出去时右边那张大图：assets/og-cover.jpg，1200×630 -->
 <meta property="og:image" content="https://yukiii-26.github.io/assets/og-cover.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Yukishiro 的个人主页：雾蓝色调，头像与「个人主页 · 作品集」" />
+<meta property="og:image:alt" content="Yukiii 的个人主页：雾蓝色调，头像与「个人主页 · 作品集」" />
 
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Yukishiro · 个人主页" />
-<meta name="twitter:description" content="Yukishiro 的个人主页 —— 关于我、技能，和八个能直接在浏览器里玩的小作品。" />
+<meta name="twitter:title" content="Yukiii · 个人主页" />
+<meta name="twitter:description" content="Yukiii 的个人主页 —— 关于我、技能，和五个能直接在浏览器里玩的小作品。" />
 <meta name="twitter:image" content="https://yukiii-26.github.io/assets/og-cover.jpg" />
 <!-- ↑↑↑ 改这里 ① ↑↑↑ -->
 
@@ -287,6 +287,14 @@
 
   /* 作品：一张卡片一个项目，圆角 + 悬停微微抬起 */
   .cards{margin-top:26px;display:flex;flex-direction:column;gap:12px}
+  /* 作品分组（2026-11-07 起）：一栏一组，组标题是左边一条竖线 + 组名 + 数量 + 一句说明 */
+  .group{margin-top:34px}
+  .group:first-of-type{margin-top:26px}
+  .group-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-left:13px;border-left:3px solid var(--accent)}
+  .group-head h3{font-size:17px;font-weight:800;letter-spacing:-.01em}
+  .group-head .count{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px;background:var(--surface)}
+  .group-head p{flex-basis:100%;margin-top:2px;font-size:13.5px;color:var(--muted);line-height:1.6}
+  .group .cards{margin-top:14px}
   .card{
     position:relative;
     display:grid;align-items:start;gap:6px 24px;
@@ -465,7 +473,7 @@
 <header class="site-header">
   <nav class="nav">
     <!-- ↓↓↓ 改这里 ②：左上角你的名字 ↓↓↓ -->
-    <a class="brand" href="#top">Yuki<b>shiro</b></a>
+    <a class="brand" href="#top">Yuki<b>ii</b></a>
     <!-- ↑↑↑ 改这里 ② ↑↑↑ -->
     <div class="nav-links" id="navLinks">
       <a href="#about">关于</a>
@@ -500,7 +508,7 @@
       <!-- ↑↑↑ 改这里 ⑩ ↑↑↑ -->
 
       <!-- ↓↓↓ 改这里 ③：你的名字 和 一句话介绍 ↓↓↓ -->
-      <h1>你好，我是 Yukishiro。</h1>
+      <h1>你好，我是 Yukiii。</h1>
       <p class="tag">
         高三在读中。
       </p>
@@ -522,10 +530,10 @@
         <!-- ↓↓↓ 改这里 ④：关于我正文（写 2～3 段最合适） ↓↓↓ -->
         <div>
           <p class="lead">
-            我是 Yukishiro，17 岁。
+            我是 Yukiii，17 岁。
           </p>
           <p class="lead">
-            站上现在有八个能直接在浏览器里玩的小项目：几个小游戏、两个 3D 微缩场景、一个架空世界地图生成器，还有一个在东京地图上查案的地点推理游戏。都不用下载，点进去就能玩。
+            站上现在有五个能直接在浏览器里玩的小项目：两个 3D 微缩场景、一个架空世界地图生成器、一个在东京地图上查案的地点推理游戏，还有一个经典扫雷。都不用下载，点进去就能玩。
           </p>
           <p class="lead">
             喜欢空闲时间搞点好玩的东西，程序大部分都是 AI 帮忙写的，正在学习 HTML / CSS / JavaScript 等。
@@ -596,7 +604,6 @@
       </div>
       <p class="lead">做过的和正在做的小东西，都放在这里。点进去就能玩。</p>
 
-      <div class="cards">
         <!-- ↓↓↓ 改这里 ⑦：一个 <article class="card"> 就是一个作品，复制一份就多一个 ↓↓↓
 
              【链接怎么写】把卡片里的 href="#" 换成你的目标，三种情况：
@@ -628,8 +635,56 @@
              传到线上就是 404。文件名统一用小写最省事。
         -->
 
-        <!-- 《没有人举手》《扫雷》《岁月山谷》和 SCI-POOT 3000 2026-10-30 移到「其它小项目」页面：
-             projects/others/index.html（入口在本节标题右边），首页只留下面五个。 -->
+        <!-- 「其它小项目」页面在 projects/others/index.html（入口在本节标题右边）。
+             2026-11-07 起「其它小项目」里只剩《扫雷》一个；岁月山谷、SCI-POOT 3000、
+             原神抽卡计算器和《没有人举手》都已从本站下架，文件移到 未上传项目\。
+             首页作品区只留下面四个。
+
+             2026-11-07 起作品区分成三栏（用户要求）：
+             ①场景展示（能拖能转的 3D 微缩场景）
+             ②可游玩项目（走流程、有目标、有输赢）
+             ③生成类工具（换个种子出结果）
+             往哪栏加：先看作品是「看」、「玩」还是「生成」。
+             编号是每栏内各自从 01 重新数；加完记得把该栏 .group-head 里的 .count 也改掉。 -->
+
+        <!-- ───────── ① 场景展示 ───────── -->
+        <div class="group">
+          <div class="group-head">
+            <h3>场景展示</h3>
+            <span class="count">2</span>
+            <p>能拖能转能缩放的 3D 微缩场景，没有输赢，就是进去待一会儿。</p>
+          </div>
+          <div class="cards">
+
+        <article class="card">
+          <span class="num">01</span>
+          <div class="shot"><img src="assets/thumb-konbini.jpg" alt="雨夜便利店街角：亮着灯的日式便利店与湿漉漉的斑马线" width="800" height="500" loading="lazy" decoding="async"></div>
+          <h3>雨夜便利店 · Rainy Night Konbini</h3>
+          <p>一个可以拖动、旋转、缩放的雨夜街角小场景：日式便利店、发光的冷柜、自动贩卖机、自行车、斑马线和一直下着的雨。右上角的小面板能开关自动门、切换下雨、重播组装动画。三渲二卡通渲染，开场时零件从地面逐件升起，组装成这个街角。使用 DeepSeek-v4.1-Flash-1017 生成。</p>
+          <div class="meta"><span>Three.js</span><span>三渲二</span><span>微缩场景</span><span>零依赖单文件</span><span>DeepSeek-v4.1-Flash-1017</span></div>
+          <a class="go" href="projects/konbini/index.html">去看看 →</a>
+        </article>
+
+        <article class="card">
+          <span class="num">02</span>
+          <div class="shot"><img src="assets/thumb-forest-cabin.jpg" alt="低多边形森林小屋：林间空地上一座亮着暖光的小木屋，门口点着篝火" width="800" height="500" loading="lazy" decoding="async"></div>
+          <h3>林深见灯 · A Cabin in the Woods</h3>
+          <p>一座漂浮在林间的低多边形微缩小屋：原木墙、木瓦屋顶、冒着炊烟的石头烟囱，门口点着篝火，池塘边有兔子和萤火虫。可以拖动旋转、滚轮缩放，顶栏切换白天 / 黄昏 / 夜晚，底栏一键飞到大景、小屋、篝火和林间。所有几何、纹理、天空与火光都是程序生成的，没有一张外部图片。</p>
+          <div class="meta"><span>Three.js</span><span>低多边形</span><span>微缩场景</span><span>实时渲染</span></div>
+          <a class="go" href="projects/forest-cabin/index.html">去看看 →</a>
+        </article>
+
+          </div>
+        </div>
+
+        <!-- ───────── ② 可游玩项目 ───────── -->
+        <div class="group">
+          <div class="group-head">
+            <h3>可游玩项目</h3>
+            <span class="count">2</span>
+            <p>有目标、有输赢，点开就能玩到结束。</p>
+          </div>
+          <div class="cards">
 
         <article class="card">
           <span class="num">01</span>
@@ -642,24 +697,27 @@
 
         <article class="card">
           <span class="num">02</span>
-          <div class="shot"><img src="assets/thumb-konbini.jpg" alt="雨夜便利店街角：亮着灯的日式便利店与湿漉漉的斑马线" width="800" height="500" loading="lazy" decoding="async"></div>
-          <h3>雨夜便利店 · Rainy Night Konbini</h3>
-          <p>一个可以拖动、旋转、缩放的雨夜街角小场景：日式便利店、发光的冷柜、自动贩卖机、自行车、斑马线和一直下着的雨。右上角的小面板能开关自动门、切换下雨、重播组装动画。三渲二卡通渲染，开场时零件从地面逐件升起，组装成这个街角。使用 DeepSeek-v4.1-Flash-1017 生成。</p>
-          <div class="meta"><span>Three.js</span><span>三渲二</span><span>微缩场景</span><span>零依赖单文件</span><span>DeepSeek-v4.1-Flash-1017</span></div>
-          <a class="go" href="projects/konbini/index.html">去看看 →</a>
+          <div class="shot"><img src="assets/thumb-minesweeper.jpg" alt="扫雷游戏界面：经典数字面板与已翻开的棋盘" width="800" height="500" loading="lazy" decoding="async"></div>
+          <h3>扫雷 · Minesweeper</h3>
+          <p>HTML / CSS / JavaScript，零依赖。三种难度，第一下绝不会踩雷，右键（手机长按）插旗，空格键一键翻开周围已确定安全的格子。</p>
+          <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>小游戏</span></div>
+          <a class="go" href="projects/minesweeper/index.html">去玩 →</a>
         </article>
 
-        <article class="card">
-          <span class="num">03</span>
-          <div class="shot"><img src="assets/thumb-forest-cabin.jpg" alt="低多边形森林小屋：林间空地上一座亮着暖光的小木屋，门口点着篝火" width="800" height="500" loading="lazy" decoding="async"></div>
-          <h3>林深见灯 · A Cabin in the Woods</h3>
-          <p>一座漂浮在林间的低多边形微缩小屋：原木墙、木瓦屋顶、冒着炊烟的石头烟囱，门口点着篝火，池塘边有兔子和萤火虫。可以拖动旋转、滚轮缩放，顶栏切换白天 / 黄昏 / 夜晚，底栏一键飞到大景、小屋、篝火和林间。所有几何、纹理、天空与火光都是程序生成的，没有一张外部图片。</p>
-          <div class="meta"><span>Three.js</span><span>低多边形</span><span>微缩场景</span><span>实时渲染</span></div>
-          <a class="go" href="projects/forest-cabin/index.html">去看看 →</a>
-        </article>
+          </div>
+        </div>
+
+        <!-- ───────── ③ 生成类工具 ───────── -->
+        <div class="group">
+          <div class="group-head">
+            <h3>生成类工具</h3>
+            <span class="count">1</span>
+            <p>换个种子就出一份新结果，点开自己生成一个看看。</p>
+          </div>
+          <div class="cards">
 
         <article class="card">
-          <span class="num">04</span>
+          <span class="num">01</span>
           <div class="shot"><img src="assets/thumb-mapgen.jpg" alt="架空世界地图：四周环海的大陆与山脉、河流" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>架空世界地图生成器</h3>
           <p>生成一个四面环海的完整世界版图：山脉沿板块碰撞带隆起，沙漠落在副热带高压下，雨林长在赤道，河流从分水岭汇进海里。可换种子、调陆地占比和环海宽度，还能切换气温、降水、板块等图层。</p>
@@ -667,22 +725,16 @@
           <a class="go" href="projects/mapgen/index.html">去看看 →</a>
         </article>
 
-        <article class="card">
-          <span class="num">05</span>
-          <div class="shot"><img src="assets/thumb-genshin.jpg" alt="原神抽卡概率计算器界面：左边是卡池、垫抽、目标和预算设置，右边是概率统计与累计达成曲线" width="800" height="500" loading="lazy" decoding="async"></div>
-          <h3>原神抽卡概率计算器</h3>
-          <p>不算模拟，直接按卡池规则推精确概率：保底、捕获明光、武器定轨都算在里面。填上已经垫了多少抽、想要几个 UP 五星，它会给出期望抽数、中位数、90% 把握需要多少抽，以及「这些预算能拿到的概率」，另外还有逐抽明细和平均成本表。全部在浏览器里算，不上传任何数据。</p>
-          <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span><span>概率推导</span></div>
-          <a class="go" href="projects/genshin-wish/index.html">去看看 →</a>
-        </article>
+          </div>
+        </div>
 
-        <!-- 想做第 6 个项目：把上面整个 <article class="card"> ... </article> 复制一份，
-             改掉编号 06、标题、说明和链接；截图放到 assets/ 里（16:10，800×500 左右最省流量）。
-             首页放最近在打磨的五个（01 東京暗箱 / 02 便利店 / 03 林深见灯 / 04 地图生成器 / 05 抽卡计算器），
-             更早的作品（扫雷 / 岁月山谷 / SCI-POOT / 没有人举手）都在「其它小项目」页面。 -->
+        <!-- 加新作品：在哪一栏的 <div class="cards"> 里复制整段 <article class="card"> … </article>，
+             改掉编号、标题、说明和链接；截图放 assets/ 里（16:10，800×500 左右最省流量）。
+             编号是每栏内各自从 01 重新数的，加完记得把该栏 .group-head 里的 .count 也改掉。
+             2026-11-07 这一版：①场景展示 01 便利店 / 02 林深见灯；②可游玩 01 東京暗箱 / 02 扫雷；
+             ③生成类 01 地图生成器。 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
-      </div>
     </div>
   </section>
 
@@ -748,7 +800,7 @@
 
       <!-- ↓↓↓ 改这里 ⑧：换成你的邮箱 和 GitHub 主页 ↓↓↓ -->
       <div class="actions">
-        <a class="btn btn-primary" href="mailto:Zwin112667@Gmail.com">✉ Zwin112667@Gmail.com</a>
+        <a class="btn btn-primary" href="mailto:Zwin112667@Gmail.com">✉ Gmail</a>
         <a class="btn btn-ghost" href="https://github.com/Yukiii-26" target="_blank" rel="noopener">GitHub 主页</a>
       </div>
       <!-- ↑↑↑ 改这里 ⑧ ↑↑↑ -->
@@ -760,7 +812,7 @@
 <footer>
   <div class="wrap">
     <!-- ↓↓↓ 改这里 ⑨：页脚，年份会自动更新 ↓↓↓ -->
-    <span>© <span id="year">2025</span> Yukishiro</span>
+    <span>© <span id="year">2026</span> Yukiii</span>
     <span>托管在 GitHub Pages</span>
     <!-- ↑↑↑ 改这里 ⑨ ↑↑↑ -->
   </div>

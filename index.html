@@ -433,6 +433,57 @@
   .to-top.show{opacity:1;visibility:visible;transform:none}
   .to-top:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
 
+  /* ===================== 分享（2026-11-07 加） ===================== */
+  /* 「分享这个网站」按钮 + 点开后的面板。想改外观，改下面这一整块就够。 */
+  .share-btn{
+    display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-family:inherit;
+    padding:7px 14px;border-radius:999px;font-size:12px;
+    color:var(--accent);background:transparent;border:1px solid var(--accent);
+    transition:background .2s,color .2s,transform .15s;
+  }
+  .share-btn:hover{background:var(--accent);color:var(--accent-ink);transform:translateY(-1px)}
+  .share-btn:active{transform:translateY(0)}
+  .share-btn .ico{font-size:13px;line-height:1}
+
+  /* 面板：从底部中间弹出来 */
+  .share-sheet{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);
+    z-index:96;width:min(420px,calc(100vw - 32px));
+    background:var(--paper);border:1px solid var(--line);border-radius:20px;
+    padding:18px 18px 16px;box-shadow:0 18px 50px rgba(0,0,0,.34);
+    opacity:0;visibility:hidden;transition:opacity .22s,transform .22s,visibility .22s;
+  }
+  .share-sheet.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+  .share-sheet h4{font-size:15px;font-weight:800;margin:0 0 3px;color:var(--ink)}
+  .share-sheet .share-sub{font-size:11.5px;color:var(--muted);margin:0 0 14px;line-height:1.6}
+  .share-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .share-grid a,.share-grid button{
+    display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
+    padding:11px 6px 10px;border-radius:13px;font-family:inherit;
+    font-size:11.5px;line-height:1.2;text-align:center;text-decoration:none;
+    color:var(--ink);background:var(--surface);border:1px solid var(--line);
+    transition:border-color .18s,color .18s,transform .15s;
+  }
+  .share-grid a:hover,.share-grid button:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+  .share-grid .si{font-size:17px;line-height:1}
+  /* 手机上不显示 X / Facebook（国内也用不上），电脑上不显示「系统分享」。 */
+  /* 注意：这里的 display 必须带上 .share-grid 前缀，否则被 .share-grid a{display:flex} 压过去。 */
+  .share-grid > .mobile-only{display:none}
+  @media (max-width:720px){
+    .share-grid{grid-template-columns:repeat(2,1fr)}
+    .share-grid > .mobile-only{display:flex}
+    .share-grid > .desktop-only{display:none}
+  }
+
+  /* 复制成功之类的小提示 */
+  .toast{
+    position:fixed;left:50%;bottom:112px;transform:translate(-50%,10px);
+    z-index:99;padding:10px 18px;border-radius:999px;font-size:12.5px;
+    background:var(--accent);color:var(--accent-ink);white-space:nowrap;pointer-events:none;
+    opacity:0;visibility:hidden;transition:opacity .22s,transform .22s,visibility .22s;
+  }
+  .toast.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+
   /* 进场动画：只有浏览器启用 JS 时才隐藏，避免关掉 JS 后内容看不见 */
   .js .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
   .js .reveal.in{opacity:1;transform:none}
@@ -848,6 +899,10 @@
     <!-- ↓↓↓ 改这里 ⑨：页脚，年份会自动更新 ↓↓↓ -->
     <span>© <span id="year">2026</span> Yukiii</span>
     <span>托管在 GitHub Pages</span>
+    <!-- 分享按钮：点了弹出「复制链接 / 微信 / ↗ 系统分享」等。想改外观搜 .share-btn -->
+    <button class="share-btn" id="shareBtn" type="button" aria-haspopup="dialog" aria-expanded="false">
+      <span class="ico" aria-hidden="true">↗</span>分享这个网站
+    </button>
     <!-- ↑↑↑ 改这里 ⑨ ↑↑↑ -->
   </div>
   <!-- 背景图来源声明：换了背景图就改这里（链接 + 作者名） -->
@@ -857,6 +912,21 @@
 </footer>
 
 <button class="to-top" id="toTop" aria-label="回到顶部">↑</button>
+
+<!-- ===================== 分享面板（点页脚的「分享这个网站」才出现） ===================== -->
+<div class="share-sheet" id="shareSheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle" hidden>
+  <h4 id="shareTitle">分享给朋友</h4>
+  <p class="share-sub">直接把链接发过去，对方收到的就是带封面的卡片。</p>
+  <div class="share-grid">
+    <button type="button" id="shareCopy"><span class="si" aria-hidden="true">⧉</span>复制链接</button>
+    <button type="button" id="shareNative" class="mobile-only"><span class="si" aria-hidden="true">⤴</span>系统分享</button>
+    <button type="button" id="shareWechat"><span class="si" aria-hidden="true">💬</span>微信 / QQ</button>
+    <a id="shareX" href="#" target="_blank" rel="noopener noreferrer" class="desktop-only"><span class="si" aria-hidden="true">𝕏</span>X</a>
+    <a id="shareFb" href="#" target="_blank" rel="noopener noreferrer" class="desktop-only"><span class="si" aria-hidden="true">f</span>Facebook</a>
+  </div>
+</div>
+<div class="toast" id="shareToast" role="status" aria-live="polite"></div>
+
 
 <script>
   // 年份自动更新
@@ -927,6 +997,100 @@
   }, { passive: true });
   toTop.addEventListener('click', function () {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ===================== 分享（在文件里搜「分享」就能找到这一段） =====================
+  // 复制用的是 navigator.clipboard，本地双击打不开（file:// 不安全上下文）时自动退回老办法 execCommand。
+  var shareBtn = document.getElementById('shareBtn');
+  var shareSheet = document.getElementById('shareSheet');
+  var shareToast = document.getElementById('shareToast');
+  var shareTimer = null;
+
+  function toast(msg) {
+    shareToast.textContent = msg;
+    shareToast.classList.add('show');
+    clearTimeout(shareTimer);
+    shareTimer = setTimeout(function () { shareToast.classList.remove('show'); }, 2200);
+  }
+
+  function openShare() {
+    shareSheet.hidden = false;
+    // 先让它按 hidden 状态排一次版，再加 .show，transition 才会动
+    void shareSheet.offsetHeight;
+    shareSheet.classList.add('show');
+    shareBtn.setAttribute('aria-expanded', 'true');
+    document.getElementById('shareX').href =
+      'https://twitter.com/intent/tweet?text=' + encodeURIComponent(document.title) +
+      '&url=' + encodeURIComponent(location.href);
+    document.getElementById('shareFb').href =
+      'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(location.href);
+  }
+
+  function closeShare() {
+    shareSheet.classList.remove('show');
+    shareBtn.setAttribute('aria-expanded', 'false');
+    setTimeout(function () { if (!shareSheet.classList.contains('show')) shareSheet.hidden = true; }, 240);
+  }
+
+  // 老浏览器（含本地 file:// 预览）复制链接的兜底办法
+  function legacyCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function doCopy() {
+    var url = location.origin + location.pathname;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).then(function () {
+        toast('链接已复制，发出去就行');
+      }, function () {
+        toast(legacyCopy(url) ? '链接已复制，发出去就行' : '复制失败，长按地址栏手动复制吧');
+      });
+    } else {
+      toast(legacyCopy(url) ? '链接已复制，发出去就行' : '复制失败，长按地址栏手动复制吧');
+    }
+  }
+
+  shareBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (shareSheet.classList.contains('show')) { closeShare(); } else { openShare(); }
+  });
+  document.getElementById('shareCopy').addEventListener('click', doCopy);
+
+  // 手机上的「系统分享」：直接调起微信 / QQ / 备忘录等任意 App
+  var nativeBtn = document.getElementById('shareNative');
+  if (navigator.share) {
+    nativeBtn.addEventListener('click', function () {
+      navigator.share({ title: document.title, text: '我的个人主页', url: location.href })
+        .catch(function () {});
+    });
+  } else {
+    nativeBtn.parentNode.removeChild(nativeBtn);
+  }
+
+  // 电脑上的「微信 / QQ」：手机上没有这个按钮，所以不判断设备
+  document.getElementById('shareWechat').addEventListener('click', function () {
+    doCopy();
+    toast('已复制链接，粘到微信 / QQ 里发就行');
+  });
+
+  // 点面板外面 / 按 Esc 关掉
+  document.addEventListener('click', function (e) {
+    if (shareSheet.classList.contains('show') && !shareSheet.contains(e.target) && !shareBtn.contains(e.target)) {
+      closeShare();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && shareSheet.classList.contains('show')) closeShare();
   });
 
   // ===================== 🥚 彩蛋：键盘秘技（在文件里搜「彩蛋」就能找到这一段） =====================

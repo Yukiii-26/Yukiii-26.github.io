@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" id="themeColor" content="#e9f1f8">
+<title>成绩记录本 · Yukiii</title>
+<script>
+  // 这段要在页面画出来之前跑，否则深色用户刷新时会先闪一下浅色
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', (saved === 'light' || saved === 'dark') ? saved : 'light');
+  })();
+</script>
+<style>
+:root{color-scheme:light;--bg:#f4f6fb;--card:#fff;--chip:#f1f4fa;--input:#f3f5fa;--text:#1e2433;--sub:#7b869b;--line:#e6eaf2;--primary:#4f7cff;--primary-soft:#eaf0ff;--ok:#27b57a;--bad:#e8556d;--note:#4a5468;--shadow:0 2px 10px rgba(30,40,70,.06),0 10px 30px rgba(30,40,70,.05);--radius:16px}
+/* 深色：和全站共用 localStorage.theme，配色跟着主页一起变 */
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0b1220;--card:#131c2b;--chip:#1a2536;--input:#1d283a;--text:#f2f5fa;--sub:#93a0b5;--line:#26324a;--primary:#6ec1f2;--primary-soft:#16334a;--ok:#34c88c;--bad:#ff6b81;--note:#c4ccda;--shadow:0 2px 10px rgba(0,0,0,.35),0 12px 32px rgba(0,0,0,.28)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;padding-bottom:80px}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+.hide{display:none!important}
+
+/* 深色主题下，科目类型标签（EXAM_TYPES 里写死的浅色底）换一份深色底，否则白底刺眼 */
+:root[data-theme="dark"] .tag[data-type="weekly"]{background:#12304d!important;color:#7cc0ff}
+:root[data-theme="dark"] .tag[data-type="monthly"]{background:#241f4d!important;color:#b9a8ff}
+:root[data-theme="dark"] .tag[data-type="midterm"]{background:#3d2c07!important;color:#f5c453}
+:root[data-theme="dark"] .tag[data-type="final"]{background:#3d1520!important;color:#ff8a9c}
+:root[data-theme="dark"] .tag[data-type="joint"]{background:#0d3330!important;color:#4fd6be}
+:root[data-theme="dark"] .tag[data-type="mock"]{background:#3a1f0b!important;color:#ffa565}
+:root[data-theme="dark"] .tag[data-type="other"]{background:#1e2736!important;color:#b6c0d2}
+:root[data-theme="dark"] .pct.mid{background:#3d2c07;color:#f5c453}
+:root[data-theme="dark"] .pct.good{background:#0d3328;color:#4fd6be}
+:root[data-theme="dark"] .pct.bad{background:#3d1520;color:#ff8a9c}
+:root[data-theme="dark"] .chip.active{background:var(--primary-soft);color:var(--primary);border-color:#2c5f85}
+:root[data-theme="dark"] header{background:linear-gradient(135deg,#22355c 0%,#2d2a63 55%,#3b2d6b 100%)}
+:root[data-theme="dark"] .exam-item:active{background:var(--chip)}
+
+/* 顶部 */
+header{background:linear-gradient(135deg,#5b7cff 0%,#7a5bff 55%,#9b6bff 100%);color:#fff;padding:18px 18px 64px;border-radius:0 0 24px 24px;position:relative;overflow:hidden}
+header::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:rgba(255,255,255,.12);border-radius:50%}
+header::before{content:"";position:absolute;left:-30px;bottom:-60px;width:140px;height:140px;background:rgba(255,255,255,.08);border-radius:50%}
+.h-top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;gap:10px}
+.h-title{font-size:19px;font-weight:700;letter-spacing:.5px}
+.h-right{display:flex;align-items:center;gap:8px}
+.h-home{font-size:12px;font-weight:600;letter-spacing:.06em;color:#fff;background:rgba(255,255,255,.16);border-radius:999px;padding:7px 12px;white-space:nowrap}
+.h-home:hover{background:rgba(255,255,255,.28)}
+.h-theme{width:34px;height:34px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,.16);transition:background .18s}
+.h-theme:hover{background:rgba(255,255,255,.28)}
+.h-theme svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.h-theme .i-sun{display:none}
+:root[data-theme="dark"] .h-theme .i-moon{display:none}
+:root[data-theme="dark"] .h-theme .i-sun{display:block}
+.h-countdown{text-align:right;font-size:12px;background:rgba(255,255,255,.16);padding:6px 12px;border-radius:999px;white-space:nowrap}
+.h-countdown b{font-size:17px;display:block;line-height:1.2}
+.h-countdown input[type=date]{background:transparent;border:none;color:#fff;font-size:11px;padding:0;width:98px;text-align:right}
+.h-countdown input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.7;cursor:pointer}
+
+/* 概览 */
+.overview{margin:-52px 14px 0;position:relative;z-index:2;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 8px;display:grid;grid-template-columns:repeat(4,1fr)}
+.ov-item{text-align:center;padding:2px 4px;position:relative;min-width:0}
+.ov-item+.ov-item::before{content:"";position:absolute;left:0;top:20%;height:60%;width:1px;background:var(--line)}
+.ov-val{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.ov-val.up{color:var(--ok)}.ov-val.down{color:var(--bad)}
+.ov-label{font-size:11px;color:var(--sub);margin-top:2px;white-space:nowrap}
+
+.wrap{padding:0 14px}
+.section{margin-top:18px}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;padding:0 2px}
+.section-title{font-size:15px;font-weight:700}
+.section-sub{font-size:12px;color:var(--sub)}
+
+/* 图表 */
+.chart-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 10px 6px;overflow:hidden}
+.chart-tools{display:flex;gap:6px;overflow-x:auto;padding:0 4px 8px;scrollbar-width:none}
+.chart-tools::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;font-size:12px;padding:6px 12px;border-radius:999px;background:var(--chip);color:var(--sub);border:1px solid transparent;transition:.18s}
+.chip.active{background:var(--primary-soft);color:var(--primary);border-color:#c9d7ff;font-weight:600}
+svg.chart{display:block;width:100%;height:auto;overflow:visible}
+.chart-empty{padding:36px 10px;text-align:center;color:var(--sub);font-size:13px}
+
+/* 列表 */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.search-bar{display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.search-bar input{flex:1;min-width:0;border:none;background:var(--input);border-radius:10px;padding:9px 12px;outline:none}
+.search-bar input:focus{box-shadow:0 0 0 2px rgba(79,124,255,.25)}
+.search-bar select{border:none;background:var(--input);border-radius:10px;padding:9px 6px;outline:none;font-size:13px;flex:0 0 auto}
+.exam-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s}
+.exam-item:last-child{border-bottom:none}
+.exam-item:active{background:#f7f9ff}
+.tag{flex:0 0 auto;font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600;white-space:nowrap}
+.ei-main{flex:1;min-width:0}
+.ei-name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ei-meta{font-size:11px;color:var(--sub);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ei-score{text-align:right;flex:0 0 auto}
+.ei-total{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.ei-total small{font-size:11px;color:#9aa4b8;font-weight:400}
+.ei-sub{font-size:11px;color:var(--sub)}
+.empty{padding:34px 12px;text-align:center;color:var(--sub);font-size:13px;line-height:1.9}
+
+/* 按钮 */
+.fab{position:fixed;right:20px;bottom:24px;z-index:40;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#5b7cff,#9b6bff);color:#fff;font-size:30px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(91,124,255,.45);transition:transform .15s}
+.fab:active{transform:scale(.92)}
+.actions-bar{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 0}
+.btn{padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;background:var(--card);color:var(--text);box-shadow:var(--shadow);white-space:nowrap}
+.btn.primary{background:linear-gradient(135deg,#5b7cff,#8a6bff);color:#fff;box-shadow:0 6px 16px rgba(91,124,255,.35)}
+.btn.ghost{background:var(--input);color:var(--sub);box-shadow:none}
+.btn.danger{background:#ffeeef;color:var(--bad);box-shadow:none}
+
+/* 弹窗 */
+.modal-mask{position:fixed;inset:0;background:rgba(20,26,40,.45);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-mask.show{opacity:1;pointer-events:auto}
+.modal{background:var(--bg);width:100%;max-width:560px;max-height:92vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;transform:translateY(24px);transition:transform .22s}
+.modal-mask.show .modal{transform:translateY(0)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 12px;background:var(--card);border-radius:20px 20px 0 0;border-bottom:1px solid var(--line);flex:0 0 auto}
+.modal-head h3{margin:0;font-size:16px}
+.modal-head .close{font-size:24px;color:var(--sub);padding:0 6px;line-height:1}
+.modal-body{overflow-y:auto;padding:14px 16px 20px;-webkit-overflow-scrolling:touch;flex:1 1 auto}
+.modal-foot{display:flex;gap:10px;padding:12px 16px;background:var(--card);border-top:1px solid var(--line);padding-bottom:calc(14px + env(safe-area-inset-bottom));flex:0 0 auto}
+.modal-foot .btn{flex:1;text-align:center}
+
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;font-weight:600}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--card);outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,124,255,.12)}
+.field textarea{resize:vertical;min-height:56px}
+.field.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.field.two>.field{margin:0;min-width:0}
+.row-label{display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px}
+.row-label span{font-size:13px;font-weight:700}
+.row-label .hint{font-size:11px;color:var(--sub);font-weight:400}
+
+.subj-row{display:grid;grid-template-columns:1fr 78px 78px 28px;gap:6px;align-items:center;margin-bottom:8px}
+.subj-row.head{font-size:11px;color:var(--sub);margin-bottom:4px}
+.subj-row.head>div{text-align:center}
+.subj-row.head .s-name{text-align:left;font-weight:400;color:var(--sub)}
+.subj-row .s-name{text-align:left;padding:9px 4px 9px 10px;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subj-row input{padding:9px 4px;border:1px solid var(--line);border-radius:10px;background:var(--card);outline:none;text-align:center;font-size:13px;min-width:0;width:100%}
+.subj-row input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,124,255,.12)}
+.subj-row .del{color:#c3cad8;font-size:20px;line-height:1;padding:0 4px;border-radius:8px}
+.subj-row .del:active{color:var(--bad)}
+.subj-row.missing .s-name::after{content:" ·";color:var(--bad)}
+
+.detail-head{background:var(--card);border-radius:14px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.detail-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.detail-meta{font-size:12px;color:var(--sub);margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
+.detail-total{display:flex;align-items:baseline;gap:6px;margin-top:8px;flex-wrap:wrap}
+.detail-total b{font-size:26px}
+.detail-total span{color:var(--sub);font-size:13px}
+.subj-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.subj-table th,.subj-table td{padding:10px 8px;text-align:center;font-size:13px;border-bottom:1px solid var(--line)}
+.subj-table th{background:var(--chip);color:var(--sub);font-weight:600;font-size:12px}
+.subj-table tr:last-child td{border-bottom:none}
+.subj-table td:first-child,.subj-table th:first-child{text-align:left;padding-left:14px;font-weight:600}
+.pct{font-size:11px;padding:2px 6px;border-radius:5px;background:var(--chip);color:var(--sub);white-space:nowrap}
+.pct.good{background:#e8f8f0;color:var(--ok)}
+.pct.mid{background:#fff5e2;color:#d08700}
+.pct.bad{background:#ffeeef;color:var(--bad)}
+.detail-note{margin-top:12px;background:var(--card);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--note);white-space:pre-wrap;box-shadow:var(--shadow)}
+
+.toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(10px);background:rgba(10,16,28,.94);color:#fff;border:1px solid var(--line);padding:10px 18px;border-radius:999px;font-size:13px;z-index:200;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.confirm-mask{position:fixed;inset:0;background:rgba(20,26,40,.45);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.18s}
+.confirm-mask.show{opacity:1;pointer-events:auto}
+.confirm-box{background:var(--card);border-radius:16px;width:min(320px,86vw);padding:20px 18px 14px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+.confirm-box p{margin:0 0 18px;font-size:14px;text-align:center;line-height:1.6}
+.confirm-box .btns{display:flex;gap:10px}
+.confirm-box .btns button{flex:1;padding:10px;border-radius:11px;font-size:14px;font-weight:600}
+.confirm-box .cancel{background:var(--input);color:var(--sub)}
+.confirm-box .ok{background:var(--bad);color:#fff}
+
+@media (min-width:640px){
+  body{padding-bottom:40px}
+  .overview{margin:-64px auto 0;max-width:600px}
+  .wrap{max-width:600px;margin:0 auto}
+  .modal-mask{align-items:center}
+  .modal{border-radius:20px;max-height:86vh}
+  .modal-head{border-radius:20px 20px 0 0}
+  .modal-foot{border-radius:0 0 20px 20px}
+}
+
+/* 站点统一字体（serif.css）比原来的圆体宽，窄屏下标题会被挤成三行、科目 chip 会被截断，
+   这里给标题和 chip 行补几条应对规则 */
+@media (max-width:560px){
+  /* 一行放不下标题 + 按钮 + 倒计时，让倒计时掉到第二行右侧，别把它挤出屏幕 */
+  .h-top{flex-wrap:wrap;row-gap:8px;gap:8px}
+  .h-title{font-size:15px;white-space:nowrap;flex:1 1 auto;min-width:0}
+  .h-right{gap:6px;flex:0 0 auto}
+  .h-home{font-size:11px;padding:5px 8px;white-space:nowrap}
+  .h-theme{width:30px;height:30px}
+  .h-countdown{margin-left:auto;padding:3px 9px;font-size:11px;line-height:1.5}
+  .h-countdown b{font-size:14px}
+  #chartTools{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  #chartTools::-webkit-scrollbar{display:none}
+  #chartTools .chip{flex:0 0 auto}
+}
+</style>
+<link rel="stylesheet" href="../../assets/fonts/serif.css">
+</head>
+<body>
+
+<header>
+  <div class="h-top">
+    <div class="h-title">📘 我的成绩记录本</div>
+    <div class="h-right">
+      <a class="h-home" href="../../index.html">← 返回主页</a>
+      <button class="h-theme" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
+      </button>
+    </div>
+    <div class="h-countdown">
+      距高考 <b id="daysLeft">--</b>
+      <input type="date" id="gkDate" title="点击设置高考日期">
+    </div>
+  </div>
+</header>
+
+<div class="overview">
+  <div class="ov-item"><div class="ov-val" id="ovCount">0</div><div class="ov-label">考试次数</div></div>
+  <div class="ov-item"><div class="ov-val" id="ovLatest">--</div><div class="ov-label">最近总分</div></div>
+  <div class="ov-item"><div class="ov-val" id="ovDelta">--</div><div class="ov-label">较上次</div></div>
+  <div class="ov-item"><div class="ov-val" id="ovBest">--</div><div class="ov-label">最高总分</div></div>
+</div>
+
+<div class="wrap">
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">📈 成绩走势</div>
+      <div class="section-sub" id="chartNote"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-tools" id="chartTools"></div>
+      <div id="chartWrap"><div class="chart-empty">还没有数据，点右下角 ＋ 记录第一次考试吧 ✍️</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">📋 考试记录</div>
+      <div class="section-sub" id="listCount"></div>
+    </div>
+    <div class="card">
+      <div class="search-bar">
+        <select id="filterType">
+          <option value="">全部类型</option>
+          <option value="weekly">周测</option>
+          <option value="monthly">月考</option>
+          <option value="midterm">期中</option>
+          <option value="final">期末</option>
+          <option value="joint">联考</option>
+          <option value="mock">模考</option>
+          <option value="other">其他</option>
+        </select>
+        <input type="search" id="searchInput" placeholder="搜索考试名称或备注…">
+      </div>
+      <div id="examList"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="actions-bar">
+      <button class="btn" onclick="TS.exportJSON()">⬇️ 导出备份</button>
+      <button class="btn" onclick="TS.importJSON()">⬆️ 导入备份</button>
+      <button class="btn ghost" onclick="TS.exportCSV()">📄 导出表格</button>
+      <button class="btn danger" onclick="TS.clearAll()">🗑 清空</button>
+    </div>
+  </div>
+
+</div>
+
+<button class="fab" id="fabBtn" title="记录一次考试">＋</button>
+<input type="file" id="importFile" accept=".json,application/json" style="display:none">
+
+<!-- 录入 / 编辑 -->
+<div class="modal-mask" id="editMask">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="editTitle">记录一次考试</h3>
+      <button class="close" onclick="TS.closeEdit()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field two">
+        <div class="field">
+          <label>考试类型</label>
+          <select id="fType"></select>
+        </div>
+        <div class="field">
+          <label>考试日期</label>
+          <input type="date" id="fDate">
+        </div>
+      </div>
+      <div class="field">
+        <label>考试名称</label>
+        <input type="text" id="fName" placeholder="如：高三上学期 第一次月考">
+      </div>
+      <div class="field two">
+        <div class="field">
+          <label>班级排名</label>
+          <input type="number" id="fRankClass" min="1" placeholder="选填，第几名">
+        </div>
+        <div class="field">
+          <label>班级人数</label>
+          <input type="number" id="fClassSize" min="1" placeholder="选填">
+        </div>
+      </div>
+      <div class="field two">
+        <div class="field">
+          <label>年级排名</label>
+          <input type="number" id="fRankGrade" min="1" placeholder="选填，第几名">
+        </div>
+        <div class="field">
+          <label>年级人数</label>
+          <input type="number" id="fGradeSize" min="1" placeholder="选填">
+        </div>
+      </div>
+
+      <div class="row-label">
+        <span>各科成绩</span>
+        <span class="hint">填满分才会计入得分率</span>
+      </div>
+      <div class="subj-row head">
+        <div class="s-name">科目</div><div>得分</div><div>满分</div><div></div>
+      </div>
+      <div id="subjRows"></div>
+
+      <div class="field two" style="margin-top:14px">
+        <div class="field">
+          <label>总分</label>
+          <input type="number" id="fTotal" placeholder="留空自动计算">
+        </div>
+        <div class="field">
+          <label>总分排名</label>
+          <input type="number" id="fRankTotal" min="1" placeholder="选填，第几名">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>备注</label>
+        <textarea id="fNote" rows="2" placeholder="这次哪里失分了？下次要注意什么？"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="TS.closeEdit()">取消</button>
+      <button class="btn primary" onclick="TS.saveExam()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 详情 -->
+<div class="modal-mask" id="detailMask">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>考试详情</h3>
+      <button class="close" onclick="TS.closeDetail()">×</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-foot">
+      <button class="btn danger" onclick="TS.deleteDetail()">删除</button>
+      <button class="btn primary" onclick="TS.editDetail()">编辑</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var TS = (function(){
+  'use strict';
+
+  /* ========== 配置 ========== */
+  var STORAGE_KEY = 'gaokao_exam_tracker_v2';
+  var CONFIG_KEY  = 'gaokao_exam_config_v1';
+
+  var EXAM_TYPES = {
+    weekly:  { name:'周测', color:'#3aa0ff', bg:'#e8f3ff' },
+    monthly: { name:'月考', color:'#7b61ff', bg:'#f0ecff' },
+    midterm: { name:'期中', color:'#f59f00', bg:'#fff5e0' },
+    final:   { name:'期末', color:'#e8556d', bg:'#ffeef1' },
+    joint:   { name:'联考', color:'#18a999', bg:'#e3f8f5' },
+    mock:    { name:'模考', color:'#e8590c', bg:'#fff0e6' },
+    other:   { name:'其他', color:'#8b95a8', bg:'#f1f4fa' }
+  };
+
+  var SUBJECTS = [
+    { id:'chinese', name:'语文', full:150 },
+    { id:'math',    name:'数学', full:150 },
+    { id:'english', name:'英语', full:150 },
+    { id:'physics', name:'物理', full:100 },
+    { id:'chem',    name:'化学', full:100 },
+    { id:'bio',     name:'地理', full:100 }
+  ];
+  var FULL_SCORE = SUBJECTS.reduce(function(s,x){ return s + x.full; }, 0); // 750
+
+  /* ========== 状态 ========== */
+  var exams = [];
+  var config = { gkDate: nextJune7() };
+  var editingId = null;
+  var detailId = null;
+  var chartMode = 'total';
+
+  /* ========== 工具 ========== */
+  function nextJune7(){
+    var now = new Date();
+    var y = (now.getMonth() > 5 || (now.getMonth() === 5 && now.getDate() > 7)) ? now.getFullYear() + 1 : now.getFullYear();
+    return y + '-06-07';
+  }
+  function todayStr(){
+    var d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate());
+  }
+  function pad2(n){ return String(n).length < 2 ? '0' + n : String(n); }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function round1(n){ return Math.round(n * 10) / 10; }
+  function fmt(n){ return (n === null || n === undefined || isNaN(n)) ? '--' : String(Math.round(n * 10) / 10).replace(/\.0$/, ''); }
+  function hasVal(v){ return v !== null && v !== undefined && v !== '' && !isNaN(Number(v)); }
+  function $(id){ return document.getElementById(id); }
+
+  /* ========== 存储 ========== */
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) exams = JSON.parse(raw) || [];
+      var cfg = localStorage.getItem(CONFIG_KEY);
+      if(cfg) config = Object.assign(config, JSON.parse(cfg) || {});
+    }catch(e){
+      console.warn('读取存档失败', e);
+      exams = [];
+    }
+    if(!Array.isArray(exams)) exams = [];
+    exams.forEach(function(e){
+      if(!e.id) e.id = uid();
+      if(!e.type || !EXAM_TYPES[e.type]) e.type = 'other';
+      if(!e.subjects) e.subjects = {};
+    });
+  }
+  function save(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
+      return true;
+    }catch(e){
+      toast('保存失败：浏览器存储可能已满或被禁用');
+      return false;
+    }
+  }
+  function saveConfig(){
+    try{ localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); }catch(e){}
+  }
+
+  /* ========== 数据计算 ========== */
+  function getSubj(exam, id){
+    return (exam && exam.subjects && exam.subjects[id]) || null;
+  }
+  function examTotal(exam){
+    if(hasVal(exam.total)) return Number(exam.total);
+    var sum = 0, any = false;
+    SUBJECTS.forEach(function(s){
+      var v = getSubj(exam, s.id);
+      if(v && hasVal(v.score)){ sum += Number(v.score); any = true; }
+    });
+    return any ? round1(sum) : null;
+  }
+  function examFull(exam){
+    var sum = 0, any = false;
+    SUBJECTS.forEach(function(s){
+      var v = getSubj(exam, s.id);
+      if(v && (hasVal(v.score) || hasVal(v.full))){
+        sum += hasVal(v.full) ? Number(v.full) : s.full;
+        any = true;
+      }
+    });
+    return any ? sum : FULL_SCORE;
+  }
+  function sortedExams(){
+    return exams.slice().sort(function(a,b){
+      var d = String(a.date || '').localeCompare(String(b.date || ''));
+      if(d !== 0) return d;
+      return (a.createdAt || 0) - (b.createdAt || 0);
+    });
+  }
+
+  /* ========== 提示 / 确认 ========== */
+  function toast(msg){
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+  function confirmBox(msg, onOk){
+    var mask = document.createElement('div');
+    mask.className = 'confirm-mask';
+    mask.innerHTML = '<div class="confirm-box"><p>' + esc(msg) + '</p><div class="btns"><button class="cancel">取消</button><button class="ok">确定</button></div></div>';
+    document.body.appendChild(mask);
+    requestAnimationFrame(function(){ mask.classList.add('show'); });
+    function close(){ mask.classList.remove('show'); setTimeout(function(){ mask.remove(); }, 200); }
+    mask.querySelector('.cancel').onclick = close;
+    mask.querySelector('.ok').onclick = function(){ close(); if(onOk) onOk(); };
+    mask.onclick = function(e){ if(e.target === mask) close(); };
+  }
+
+  /* ========== 概览 & 倒计时 ========== */
+  function renderCountdown(){
+    var inp = $('gkDate');
+    if(document.activeElement !== inp) inp.value = config.gkDate || '';
+    var target = new Date((config.gkDate || nextJune7()) + 'T00:00:00');
+    var now = new Date();
+    now.setHours(0,0,0,0);
+    var days = Math.ceil((target - now) / 86400000);
+    $('daysLeft').textContent = isNaN(days) ? '--' : (days >= 0 ? days + ' 天' : '已结束');
+  }
+
+  function renderOverview(){
+    var list = sortedExams();
+    $('ovCount').textContent = list.length;
+    var totals = list.map(examTotal).filter(function(v){ return v !== null; });
+    var latest = totals.length ? totals[totals.length-1] : null;
+    var prev   = totals.length > 1 ? totals[totals.length-2] : null;
+    var best   = totals.length ? Math.max.apply(null, totals) : null;
+
+    $('ovLatest').textContent = latest === null ? '--' : fmt(latest);
+    $('ovBest').textContent   = best === null ? '--' : fmt(best);
+
+    var dEl = $('ovDelta');
+    dEl.className = 'ov-val';
+    if(latest !== null && prev !== null){
+      var dv = round1(latest - prev);
+      dEl.textContent = (dv > 0 ? '+' : '') + fmt(dv);
+      if(dv > 0) dEl.classList.add('up');
+      else if(dv < 0) dEl.classList.add('down');
+    }else{
+      dEl.textContent = '--';
+    }
+  }
+
+  /* ========== 图表 ========== */
+  function chartData(){
+    var list = sortedExams();
+    if(chartMode === 'total'){
+      var pts = [];
+      list.forEach(function(e){
+        var t = examTotal(e);
+        if(t !== null) pts.push({ x: e.date, y: t, exam: e });
+      });
+      return { pts: pts, color: '#5b7cff' };
+    }
+    var subj = null;
+    SUBJECTS.forEach(function(s){ if(s.id === chartMode) subj = s; });
+    if(!subj) subj = SUBJECTS[0];
+    var pts2 = [];
+    list.forEach(function(e){
+      var v = getSubj(e, chartMode);
+      if(v && hasVal(v.score)) pts2.push({ x: e.date, y: Number(v.score), exam: e });
+    });
+    return { pts: pts2, color: '#7b61ff' };
+  }
+
+  function renderChart(){
+    var tools = $('chartTools');
+    var opts = [{ id:'total', name:'总分' }].concat(SUBJECTS);
+    tools.innerHTML = opts.map(function(o){
+      return '<button class="chip' + (chartMode === o.id ? ' active' : '') + '" data-mode="' + o.id + '">' + o.name + '</button>';
+    }).join('');
+    tools.querySelectorAll('.chip').forEach(function(b){
+      b.onclick = function(){ chartMode = b.dataset.mode; renderChart(); };
+    });
+
+    var wrap = $('chartWrap');
+    var data = chartData();
+    var pts = data.pts;
+    $('chartNote').textContent = pts.length ? ('共 ' + pts.length + ' 个数据点') : '';
+
+    if(pts.length === 0){
+      wrap.innerHTML = '<div class="chart-empty">' + (chartMode === 'total' ? '还没有数据，点右下角 ＋ 记录第一次考试吧 ✍️' : '这个科目还没有成绩记录 📭') + '</div>';
+      return;
+    }
+
+    var W = 640, H = 260;
+    var padL = 40, padR = 16, padT = 18, padB = 34;
+    var iw = W - padL - padR, ih = H - padT - padB;
+    var ys = pts.map(function(p){ return p.y; });
+    var yMin = Math.min.apply(null, ys), yMax = Math.max.apply(null, ys);
+    var span = yMax - yMin;
+    if(span < 20){ var c = (yMax + yMin) / 2; yMin = Math.max(0, c - 10); yMax = c + 10; span = yMax - yMin; }
+    yMin = Math.max(0, yMin - span * 0.18);
+    yMax = yMax + span * 0.18;
+    if(chartMode === 'total') yMax = Math.min(FULL_SCORE, yMax);
+    if(yMax - yMin < 1) yMax = yMin + 1;
+
+    var n = pts.length;
+    function X(i){ return n === 1 ? padL + iw / 2 : padL + iw * i / (n - 1); }
+    function Y(v){ return padT + ih - (v - yMin) / (yMax - yMin) * ih; }
+
+    var grid = '';
+    // 图表的线条 / 文字颜色跟着主题走：浅色用原配色，深色换成淡一点的，否则深底上看不清
+    var dark = (function(){
+      var t = document.documentElement.getAttribute('data-theme');
+      if(t) return t === 'dark';
+      try{ return localStorage.getItem('theme') === 'dark'; }catch(e){ return false; }
+    })();
+    var cGrid = dark ? '#233048' : '#eef1f7';
+    var cAxis = dark ? '#8c9ab2' : '#9aa4b8';
+    var cLabel = dark ? '#e8edf5' : '#4a5468';
+    var cDot = dark ? '#131c2b' : '#fff';
+    for(var i = 0; i <= 4; i++){
+      var val = yMin + (yMax - yMin) * i / 4;
+      var gy = Y(val).toFixed(1);
+      grid += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="' + cGrid + '" stroke-width="1"/>';
+      grid += '<text x="' + (padL - 6) + '" y="' + (Number(gy) + 3.5).toFixed(1) + '" font-size="10" fill="' + cAxis + '" text-anchor="end">' + Math.round(val) + '</text>';
+    }
+
+    var d = '';
+    var dots = '';
+    var every = n <= 8 ? 1 : Math.ceil(n / 8);
+    var everyX = Math.max(1, Math.ceil(n / 5));
+    pts.forEach(function(p, i){
+      var cx = X(i), cy = Y(p.y);
+      d += (i === 0 ? 'M' : 'L') + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ';
+      dots += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="4" fill="' + cDot + '" stroke="' + data.color + '" stroke-width="2.2"/>';
+      if(i % every === 0 || i === n - 1){
+        dots += '<text x="' + cx.toFixed(1) + '" y="' + (cy - 10).toFixed(1) + '" font-size="10.5" fill="' + cLabel + '" text-anchor="middle" font-weight="600">' + fmt(p.y) + '</text>';
+      }
+      if(i % everyX === 0 || i === n - 1){
+        dots += '<text x="' + cx.toFixed(1) + '" y="' + (H - 12) + '" font-size="10" fill="' + cAxis + '" text-anchor="middle">' + esc(String(p.x || '').slice(5)) + '</text>';
+      }
+      dots += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="16" fill="transparent" class="pt" data-id="' + esc(p.exam.id) + '" style="cursor:pointer"/>';
+    });
+    var area = d + 'L' + X(n - 1).toFixed(1) + ' ' + (padT + ih) + ' L' + X(0).toFixed(1) + ' ' + (padT + ih) + ' Z';
+    var gid = 'grad' + uid();
+
+    var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">'
+      + '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="' + data.color + '" stop-opacity="0.22"/>'
+      + '<stop offset="100%" stop-color="' + data.color + '" stop-opacity="0.01"/></linearGradient></defs>'
+      + grid
+      + '<path d="' + area + '" fill="url(#' + gid + ')"/>'
+      + '<path d="' + d + '" fill="none" stroke="' + data.color + '" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>'
+      + dots
+      + '</svg>';
+    wrap.innerHTML = svg;
+
+    wrap.querySelectorAll('.pt').forEach(function(c){
+      c.addEventListener('click', function(){ openDetail(c.dataset.id); });
+    });
+  }
+
+  /* ========== 列表 ========== */
+  function renderList(){
+    var kw = String($('searchInput').value || '').trim().toLowerCase();
+    var ft = $('filterType').value;
+    var list = sortedExams().reverse();
+    if(ft) list = list.filter(function(e){ return e.type === ft; });
+    if(kw) list = list.filter(function(e){
+      return String(e.name || '').toLowerCase().indexOf(kw) >= 0 || String(e.note || '').toLowerCase().indexOf(kw) >= 0;
+    });
+
+    $('listCount').textContent = list.length ? list.length + ' 条' : '';
+    var box = $('examList');
+
+    if(exams.length === 0){
+      box.innerHTML = '<div class="empty">还没有考试记录<br>点右下角 <b>＋</b> 添加你的第一次考试</div>';
+      return;
+    }
+    if(list.length === 0){
+      box.innerHTML = '<div class="empty">没有符合条件的记录</div>';
+      return;
+    }
+
+    box.innerHTML = list.map(function(e){
+      var t = EXAM_TYPES[e.type] || EXAM_TYPES.other;
+      var total = examTotal(e);
+      var full = examFull(e);
+      var metas = [];
+      if(e.date) metas.push(esc(e.date));
+      var subs = [];
+      SUBJECTS.forEach(function(s){
+        var v = getSubj(e, s.id);
+        if(v && hasVal(v.score)) subs.push(s.name + ' ' + fmt(Number(v.score)));
+      });
+      if(subs.length) metas.push(subs.join(' · '));
+      var ranks = [];
+      if(e.rankGrade) ranks.push('年级' + esc(e.rankGrade) + (e.gradeSize ? '/' + esc(e.gradeSize) : '') + '名');
+      if(e.rankClass) ranks.push('班级' + esc(e.rankClass) + (e.classSize ? '/' + esc(e.classSize) : '') + '名');
+      if(e.rankTotal) ranks.push('总分第' + esc(e.rankTotal) + '名');
+      if(ranks.length) metas.push(ranks.join(' · '));
+
+      return '<div class="exam-item" data-id="' + esc(e.id) + '">'
+        + '<span class="tag" style="color:' + t.color + ';background:' + t.bg + '">' + t.name + '</span>'
+        + '<div class="ei-main">'
+        + '<div class="ei-name">' + esc(e.name || '未命名考试') + '</div>'
+        + '<div class="ei-meta">' + metas.join(' · ') + '</div>'
+        + '</div>'
+        + '<div class="ei-score">'
+        + '<div class="ei-total">' + (total === null ? '--' : fmt(total) + '<small>/' + fmt(full) + '</small>') + '</div>'
+        + (total !== null ? '<div class="ei-sub">得分率 ' + Math.round(total / full * 100) + '%</div>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    box.querySelectorAll('.exam-item').forEach(function(el){
+      el.onclick = function(){ openDetail(el.dataset.id); };
+    });
+  }
+
+  /* ========== 录入 / 编辑 ========== */
+  function buildTypeOptions(){
+    $('fType').innerHTML = Object.keys(EXAM_TYPES).map(function(k){
+      return '<option value="' + k + '">' + EXAM_TYPES[k].name + '</option>';
+    }).join('');
+  }
+
+  function buildSubjectRows(exam){
+    $('subjRows').innerHTML = SUBJECTS.map(function(s){
+      var v = exam ? getSubj(exam, s.id) : null;
+      var score = v && hasVal(v.score) ? v.score : '';
+      var full  = v && hasVal(v.full)  ? v.full  : s.full;
+      return '<div class="subj-row">'
+        + '<div class="s-name">' + s.name + '</div>'
+        + '<input type="number" step="0.5" min="0" class="s-score" data-id="' + s.id + '" placeholder="—" value="' + esc(score) + '">'
+        + '<input type="number" step="1" min="1" class="s-full" data-id="' + s.id + '" placeholder="' + s.full + '" value="' + esc(full) + '">'
+        + '<button class="del" title="清空这一科" data-id="' + s.id + '">×</button>'
+        + '</div>';
+    }).join('');
+
+    $('subjRows').querySelectorAll('.del').forEach(function(btn){
+      btn.onclick = function(){
+        var row = btn.closest('.subj-row');
+        row.querySelector('.s-score').value = '';
+      };
+    });
+    $('subjRows').querySelectorAll('input').forEach(function(inp){
+      inp.addEventListener('input', updateAutoTotal);
+    });
+  }
+
+  function readSubjects(){
+    var obj = {};
+    SUBJECTS.forEach(function(s){
+      var scoreEl = $('subjRows').querySelector('.s-score[data-id="' + s.id + '"]');
+      var fullEl  = $('subjRows').querySelector('.s-full[data-id="' + s.id + '"]');
+      if(!scoreEl || !fullEl) return;
+      var score = scoreEl.value.trim();
+      var full  = fullEl.value.trim();
+      obj[s.id] = {
+        score: score === '' ? null : Number(score),
+        full:  full === ''  ? s.full : Number(full)
+      };
+    });
+    return obj;
+  }
+
+  function updateAutoTotal(){
+    var sum = 0, any = false;
+    $('subjRows').querySelectorAll('.s-score').forEach(function(inp){
+      if(inp.value.trim() !== ''){ sum += Number(inp.value); any = true; }
+    });
+    var tEl = $('fTotal');
+    if(any) tEl.placeholder = '自动：' + fmt(round1(sum));
+    else tEl.placeholder = '留空自动计算';
+  }
+
+  function openEdit(id){
+    editingId = id || null;
+    var exam = id ? exams.filter(function(x){ return x.id === id; })[0] : null;
+    $('editTitle').textContent = exam ? '编辑考试' : '记录一次考试';
+    buildTypeOptions();
+    buildSubjectRows(exam);
+
+    $('fType').value = exam ? exam.type : 'weekly';
+    $('fDate').value = exam && exam.date ? exam.date : todayStr();
+    $('fName').value = exam ? (exam.name || '') : '';
+    $('fRankClass').value = exam && exam.rankClass ? exam.rankClass : '';
+    $('fClassSize').value = exam && exam.classSize ? exam.classSize : '';
+    $('fRankGrade').value = exam && exam.rankGrade ? exam.rankGrade : '';
+    $('fGradeSize').value = exam && exam.gradeSize ? exam.gradeSize : '';
+    $('fTotal').value = exam && hasVal(exam.total) ? exam.total : '';
+    $('fRankTotal').value = exam && exam.rankTotal ? exam.rankTotal : '';
+    $('fNote').value = exam ? (exam.note || '') : '';
+    updateAutoTotal();
+
+    $('editMask').classList.add('show');
+    $('editMask').querySelector('.modal-body').scrollTop = 0;
+  }
+
+  function closeEdit(){
+    editingId = null;
+    $('editMask').classList.remove('show');
+  }
+
+  function guessName(type, date){
+    var t = EXAM_TYPES[type] ? EXAM_TYPES[type].name : '考试';
+    return (date || '').slice(5).replace('-', '月') + '日 ' + t;
+  }
+
+  function saveExam(){
+    var date = $('fDate').value;
+    if(!date){ toast('请先选择考试日期'); return; }
+    var type = $('fType').value;
+    var subjects = readSubjects();
+    var badSubj = null;
+    SUBJECTS.forEach(function(s){
+      var v = subjects[s.id];
+      if(badSubj) return;
+      if(hasVal(v.score) && v.score < 0) badSubj = s.name;
+      if(hasVal(v.full) && v.full <= 0) badSubj = s.name;
+    });
+    if(badSubj){ toast(badSubj + '的分数或满分填得不对'); return; }
+    var anyScore = SUBJECTS.some(function(s){ return hasVal(subjects[s.id].score); });
+    if(!anyScore && !$('fTotal').value.trim()){
+      toast('至少填一科成绩或总分');
+      return;
+    }
+    var totalRaw = $('fTotal').value.trim();
+    var data = {
+      id: editingId || uid(),
+      type: type,
+      date: date,
+      name: $('fName').value.trim() || guessName(type, date),
+      subjects: subjects,
+      total: totalRaw === '' ? null : Number(totalRaw),
+      rankClass: numOrNull($('fRankClass').value),
+      classSize: numOrNull($('fClassSize').value),
+      rankGrade: numOrNull($('fRankGrade').value),
+      gradeSize: numOrNull($('fGradeSize').value),
+      rankTotal: numOrNull($('fRankTotal').value),
+      note: $('fNote').value.trim(),
+      updatedAt: Date.now()
+    };
+    if(editingId){
+      var idx = -1;
+      exams.forEach(function(x, i){ if(x.id === editingId) idx = i; });
+      if(idx >= 0) data.createdAt = exams[idx].createdAt || Date.now();
+      if(idx >= 0) exams[idx] = data;
+      else exams.push(data);
+    }else{
+      data.createdAt = Date.now();
+      exams.push(data);
+    }
+    if(save()){
+      closeEdit();
+      refreshAll();
+      toast(editingId ? '已更新' : '已保存 ✓');
+      editingId = null;
+    }
+  }
+
+  function numOrNull(v){
+    v = String(v == null ? '' : v).trim();
+    if(v === '') return null;
+    var n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+
+  /* ========== 详情 ========== */
+  function pctClass(p){
+    if(p >= 85) return 'good';
+    if(p >= 70) return 'mid';
+    return 'bad';
+  }
+
+  function openDetail(id){
+    var e = exams.filter(function(x){ return x.id === id; })[0];
+    if(!e) return;
+    detailId = id;
+    var t = EXAM_TYPES[e.type] || EXAM_TYPES.other;
+    var total = examTotal(e);
+    var full = examFull(e);
+
+    var html = '<div class="detail-head">'
+      + '<div class="detail-title"><span class="tag" style="color:' + t.color + ';background:' + t.bg + '">' + t.name + '</span>' + esc(e.name || '未命名考试') + '</div>'
+      + '<div class="detail-meta">'
+      + (e.date ? '<span>📅 ' + esc(e.date) + '</span>' : '')
+      + (e.rankTotal ? '<span>总分排名 第 ' + esc(e.rankTotal) + ' 名</span>' : '')
+      + (e.rankGrade ? '<span>年级 第 ' + esc(e.rankGrade) + ' 名' + (e.gradeSize ? ' / ' + esc(e.gradeSize) : '') + '</span>' : '')
+      + (e.rankClass ? '<span>班级 第 ' + esc(e.rankClass) + ' 名' + (e.classSize ? ' / ' + esc(e.classSize) : '') + '</span>' : '')
+      + '</div>'
+      + '<div class="detail-total"><b>' + (total === null ? '--' : fmt(total)) + '</b><span>/ ' + fmt(full) + ' 分</span>'
+      + (total !== null ? '<span class="pct ' + pctClass(total / full * 100) + '">得分率 ' + Math.round(total / full * 100) + '%</span>' : '')
+      + '</div>';
+
+    var list = sortedExams();
+    var idx = -1;
+    list.forEach(function(x, i){ if(x.id === id) idx = i; });
+    var prevExam = idx > 0 ? list[idx - 1] : null;
+
+    var gradeDelta = '';
+    if(prevExam && hasVal(e.rankGrade) && hasVal(prevExam.rankGrade)){
+      var gr = Number(prevExam.rankGrade) - Number(e.rankGrade);   // 排名数字变小 = 进步
+      if(gr !== 0){
+        var sizeNote = (hasVal(e.gradeSize) && hasVal(prevExam.gradeSize)) ? ('/' + fmt(e.gradeSize)) : '';
+        gradeDelta = '<div class="detail-meta"><span style="color:' + (gr > 0 ? '#27b57a' : '#e8556d') + '">'
+          + (gr > 0 ? '↑ 年级排名进步 ' : '↓ 年级排名退步 ') + fmt(Math.abs(gr)) + ' 名' + sizeNote + '</span></div>';
+      }
+    }
+    if(gradeDelta) html += gradeDelta;
+    html += '</div>';
+
+    var rows = [];
+    SUBJECTS.forEach(function(s){
+      var v = getSubj(e, s.id);
+      if(!v || !hasVal(v.score)) return;
+      var score = Number(v.score);
+      var f = hasVal(v.full) ? Number(v.full) : s.full;
+      var p = f > 0 ? score / f * 100 : 0;
+      var delta = '';
+      if(prevExam){
+        var pv = getSubj(prevExam, s.id);
+        if(pv && hasVal(pv.score)){
+          var dv = round1(score - Number(pv.score));
+          var color = dv > 0 ? '#27b57a' : (dv < 0 ? '#e8556d' : '#9aa4b8');
+          var arrow = dv > 0 ? '↑' : (dv < 0 ? '↓' : '=');
+          delta = '<span style="color:' + color + ';font-size:11px">' + arrow + (dv !== 0 ? Math.abs(dv) : '') + '</span>';
+        }
+      }
+      rows.push('<tr><td>' + s.name + '</td>'
+        + '<td><b>' + fmt(score) + '</b> ' + delta + '</td>'
+        + '<td>' + fmt(f) + '</td>'
+        + '<td><span class="pct ' + pctClass(p) + '">' + Math.round(p) + '%</span></td></tr>');
+    });
+
+    if(rows.length){
+      html += '<table class="subj-table"><thead><tr><th>科目</th><th>成绩</th><th>满分</th><th>得分率</th></tr></thead><tbody>'
+           + rows.join('') + '</tbody></table>';
+    }
+    if(e.note){
+      html += '<div class="detail-note"><b>📝 备注</b><br>' + esc(e.note) + '</div>';
+    }
+
+    var body = $('detailBody');
+    body.innerHTML = html;
+    body.scrollTop = 0;
+    $('detailMask').classList.add('show');
+  }
+
+  function closeDetail(){
+    detailId = null;
+    $('detailMask').classList.remove('show');
+  }
+
+  function editDetail(){
+    var id = detailId;
+    closeDetail();
+    openEdit(id);
+  }
+
+  function deleteDetail(){
+    var id = detailId;
+    if(!id) return;
+    confirmBox('确定删除这条考试记录吗？', function(){
+      exams = exams.filter(function(x){ return x.id !== id; });
+      save();
+      closeDetail();
+      refreshAll();
+      toast('已删除');
+    });
+  }
+
+  /* ========== 数据导入导出 ========== */
+  function download(filename, content, mime){
+    var blob = new Blob([content], { type: mime || 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+
+  function exportJSON(){
+    if(exams.length === 0){ toast('还没有数据可以导出'); return; }
+    download('成绩备份_' + todayStr() + '.json', JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), exams: exams }, null, 2), 'application/json');
+    toast('已导出备份');
+  }
+
+  function importJSON(){
+    $('importFile').click();
+  }
+
+  function handleImport(file){
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var data = JSON.parse(reader.result);
+        var arr = Array.isArray(data) ? data : (data && Array.isArray(data.exams) ? data.exams : null);
+        if(!arr) throw new Error('格式不对');
+        arr = arr.filter(function(e){ return e && typeof e === 'object'; });
+        if(arr.length === 0) throw new Error('没有记录');
+        confirmBox('导入 ' + arr.length + ' 条记录？（与现有记录合并，不会覆盖）', function(){
+          arr.forEach(function(e){
+            e.id = e.id || uid();
+            if(!e.subjects) e.subjects = {};
+            if(!EXAM_TYPES[e.type]) e.type = 'other';
+            if(exams.some(function(x){ return x.id === e.id; })) e.id = uid();
+            e.createdAt = e.createdAt || Date.now();
+            exams.push(e);
+          });
+          save();
+          refreshAll();
+          toast('已导入 ' + arr.length + ' 条记录');
+        });
+      }catch(err){
+        toast('导入失败：文件格式不对');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function exportCSV(){
+    if(exams.length === 0){ toast('还没有数据可以导出'); return; }
+    var head = ['日期','类型','名称','总分','总分满分','总分排名'];
+    SUBJECTS.forEach(function(s){ head.push(s.name); head.push(s.name + '满分'); });
+    head.push('班级排名','班级人数','年级排名','年级人数','备注');
+
+    var lines = [head.join(',')];
+    sortedExams().forEach(function(e){
+      var t = EXAM_TYPES[e.type] || EXAM_TYPES.other;
+      var row = [e.date || '', t.name, e.name || '', examTotal(e), examFull(e), e.rankTotal || ''];
+      SUBJECTS.forEach(function(s){
+        var v = getSubj(e, s.id) || {};
+        row.push(hasVal(v.score) ? v.score : '');
+        row.push(hasVal(v.full) ? v.full : s.full);
+      });
+      row.push(e.rankClass || '', e.classSize || '', e.rankGrade || '', e.gradeSize || '', e.note || '');
+      lines.push(row.map(function(c){
+        var s = String(c == null ? '' : c).replace(/"/g, '""');
+        return '"' + s + '"';
+      }).join(','));
+    });
+    download('成绩表_' + todayStr() + '.csv', '\ufeff' + lines.join('\r\n'), 'text/csv;charset=utf-8');
+    toast('已导出表格，可用 Excel 打开');
+  }
+
+  function clearAll(){
+    if(exams.length === 0){ toast('本来就是空的'); return; }
+    confirmBox('确定清空全部 ' + exams.length + ' 条记录吗？建议先导出备份，此操作不可恢复。', function(){
+      exams = [];
+      save();
+      refreshAll();
+      toast('已清空');
+    });
+  }
+
+  /* ========== 刷新 ========== */
+  function refreshAll(){
+    renderOverview();
+    renderChart();
+    renderList();
+  }
+
+  /* ========== 初始化 ========== */
+  function bind(){
+    $('fabBtn').onclick = function(){ openEdit(null); };
+    $('searchInput').addEventListener('input', renderList);
+    $('filterType').addEventListener('change', renderList);
+
+    $('gkDate').addEventListener('change', function(){
+      config.gkDate = this.value;
+      saveConfig();
+      renderCountdown();
+    });
+
+    $('editMask').addEventListener('click', function(e){ if(e.target.id === 'editMask') closeEdit(); });
+    $('detailMask').addEventListener('click', function(e){ if(e.target.id === 'detailMask') closeDetail(); });
+
+    $('importFile').addEventListener('change', function(){
+      if(this.files && this.files[0]) handleImport(this.files[0]);
+      this.value = '';
+    });
+
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape'){ closeEdit(); closeDetail(); }
+    });
+
+    // 手机上下滑时缩小浮动按钮（回顶部前先看最后一次滚动方向，避免轻微回弹就弹出来）
+    var lastY = window.scrollY, lastDir = 'down';
+    window.addEventListener('scroll', function(){
+      var y = window.scrollY;
+      if(Math.abs(y - lastY) > 6) lastDir = y > lastY ? 'down' : 'up';
+      lastY = y;
+      var hide = lastDir === 'down' && y > 260;
+      var fab = $('fabBtn');
+      fab.style.transform = hide ? 'scale(.55)' : '';
+      fab.style.opacity = hide ? '0.85' : '';
+    }, { passive: true });
+  }
+
+  function init(){
+    load();
+    bind();
+    renderCountdown();
+    refreshAll();
+  }
+
+  return {
+    init: init,
+    openEdit: openEdit,
+    closeEdit: closeEdit,
+    openDetail: openDetail,
+    closeDetail: closeDetail,
+    editDetail: editDetail,
+    deleteDetail: deleteDetail,
+    saveExam: saveExam,
+    exportJSON: exportJSON,
+    importJSON: importJSON,
+    exportCSV: exportCSV,
+    clearAll: clearAll,
+    renderChart: renderChart
+  };
+})();
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', TS.init);
+}else{
+  TS.init();
+}
+
+// 深浅色切换：和主页共用 localStorage 里的 theme，默认浅色
+var themeToggle = document.getElementById('themeToggle');
+var themeColorMeta = document.getElementById('themeColor');
+function applyTheme(theme, persist){
+  document.documentElement.setAttribute('data-theme', theme);
+  if(themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#e9f1f8');
+  if(persist){ try{ localStorage.setItem('theme', theme); }catch(e){} }
+}
+applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+if(themeToggle) themeToggle.addEventListener('click', function(){
+  var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next, true);
+  // 图表是画出来的 SVG，颜色写死在里头，切换后重画一次才跟得上
+  if(typeof TS.renderChart === 'function') TS.renderChart();
+});
+</script>
+
+</body>
+</html>

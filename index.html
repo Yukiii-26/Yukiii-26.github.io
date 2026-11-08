@@ -288,7 +288,7 @@
   .group-head .count{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px;background:var(--surface)}
   .group-head p{flex-basis:100%;margin-top:2px;font-size:13.5px;color:var(--muted);line-height:1.6}
   .group .cards{margin-top:14px}
-  /* 2026-11-08 起电脑上四栏并排（场景展示 / 可游玩项目 / 生成类工具 / 其它），
+  /* 2026-11-08 起电脑上四栏并排（场景展示 / 可游玩项目 / 生成类工具 / 工具），
      窄屏自动降级（1400→三栏，1100→两栏，720→一栏）。
      列宽用 minmax(0,1fr) 等分，Grid 的 1fr 默认带 min-content 下限，
      不加 minmax(0,…) 的话卡片里长英文和缩略图会把列撑爆。 */
@@ -714,11 +714,11 @@
              岁月山谷、SCI-POOT 3000、原神抽卡计算器和《没有人举手》此前已下架，文件同样在 未上传项目\。
              首页作品区只留下面六个（2026-11-07 加入《海岸防线》）。
 
-             2026-11-08 起作品区分成四栏（用户要求新增「其它」放成绩记录表）：
+             2026-11-08 起作品区分成四栏（用户要求新增「工具」栏放成绩记录表）：
              ①场景展示（能拖能转的 3D 微缩场景）
              ②可游玩项目（走流程、有目标、有输赢）
              ③生成类工具（换个种子出结果）
-             ④其它（自己用的离线小工具，不算作品）
+             ④工具（自己用的离线小工具，不算作品）
              往哪栏加：先看作品是「看」、「玩」、「生成」还是「工具」。
              编号是每栏内各自从 01 重新数；加完记得把该栏 .group-head 里的 .count 也改掉。 -->
 
@@ -818,14 +818,14 @@
              改掉编号、标题、说明和链接；截图放 assets/ 里（16:10，800×500 左右最省流量）。
              编号是每栏内各自从 01 重新数的，加完记得把该栏 .group-head 里的 .count 也改掉。
              2026-11-08 这一版：①场景展示 01 便利店 / 02 林深见灯；②可游玩 01 東京暗箱 / 02 扫雷；
-             ③生成类 01 地图生成器；④其它 01 成绩记录本。 -->
+             ③生成类 01 地图生成器；④工具 01 成绩记录本。 -->
 
-        <!-- ───────── ④ 其它 ───────── -->
+        <!-- ───────── ④ 工具 ───────── -->
         <div class="group">
           <div class="group-head">
-            <h3>其它</h3>
+            <h3>工具</h3>
             <span class="count">1</span>
-            <p>不太算作品、但自己在用的离线小工具。</p>
+            <p>真正有用的工具</p>
           </div>
           <div class="cards">
 
@@ -833,7 +833,7 @@
           <span class="num">01</span>
           <div class="shot"><img src="assets/thumb-exam-tracker.jpg" alt="成绩记录本界面：深色主题下成绩走势折线图从 591 分升到 650 分" width="800" height="500" loading="lazy" decoding="async"></div>
           <h3>成绩记录本 · Exam Tracker</h3>
-          <p>记录每次考试的各科分数，自动算总分和得分率，还能看总分与单科的走势折线图。数据只存在你自己的浏览器里，可导出备份、导入还原。</p>
+          <p>记录每次考试的各科分数，自动算总分和得分率，总分与单科的走势折线图。数据保存在浏览器，请及时导出备份防止丢失。</p>
           <div class="meta"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>零依赖单文件</span><span>本地存储</span></div>
           <a class="go" href="projects/exam-tracker/index.html">去看看 →</a>
         </article>
@@ -841,7 +841,7 @@
           </div>
         </div>
 
-        </div><!-- /.groups 三栏容器 -->
+        </div><!-- /.groups 四栏容器 -->
 
         <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
     </div>

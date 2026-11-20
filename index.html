@@ -27,17 +27,10 @@
   // 这段要在页面画出来之前跑，否则会先闪一下别的底色
   (function () {
     document.documentElement.classList.add('js');
-    // 用户手动按过右上角的切换按钮就听他的（light / dark 存在 localStorage）
-    // 没按过就跟随系统的深色 / 浅色设置
-    var saved = null;
-    try { saved = localStorage.getItem('theme'); } catch (e) {}
-    var theme;
-    if (saved === 'light' || saved === 'dark') {
-      theme = saved;
-    } else {
-      var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-      theme = (mq && mq.matches) ? 'dark' : 'light';
-    }
+    // 每次打开/刷新都跟随系统的深色 / 浅色设置；
+    // 手动按切换按钮只影响当前这一次访问，不写 localStorage
+    var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    var theme = (mq && mq.matches) ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
   })();
 </script>
@@ -619,33 +612,32 @@
   // 年份自动更新
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // 深浅色切换：进入时跟随系统，手动点过按钮后就固定用他选的（记在 localStorage），
-  // 标签栏颜色跟着变；每次重新打开页面都会按上面的规则重新判断
+  // 深浅色切换：每次进入都跟随系统；手动点按钮只在这一次访问里生效，刷新即恢复跟随。
+  // 用内存变量标记「这次访问手动改过」，不写 localStorage，所以不会跨刷新记住。
   var themeToggle = document.getElementById('themeToggle');
   var themeColorMeta = document.getElementById('themeColor');
   var prefersDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  var manualTheme = null;   // 'light' / 'dark'，仅本次访问有效；null 表示跟随系统
 
-  function applyTheme(theme, persist) {
+  function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#e9f1f8');
-    if (persist) { try { localStorage.setItem('theme', theme); } catch (e) {} }
   }
-  applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+  // 进入页面时先按 head 里已经算好的值同步一下标签栏颜色
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
 
   if (themeToggle) {
     themeToggle.addEventListener('click', function () {
-      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      applyTheme(next, true);
+      manualTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(manualTheme);
     });
   }
 
-  // 还没手动选过主题时，系统在页面打开期间切换深/浅色，页面也跟着变
+  // 系统在页面打开期间切换深/浅色：本次访问手动改过就不动，否则实时跟随
   if (prefersDark && prefersDark.addEventListener) {
     prefersDark.addEventListener('change', function (e) {
-      var saved = null;
-      try { saved = localStorage.getItem('theme'); } catch (err) {}
-      if (saved === 'light' || saved === 'dark') return;  // 手动选过就不跟随系统
-      applyTheme(e.matches ? 'dark' : 'light', false);
+      if (manualTheme) return;
+      applyTheme(e.matches ? 'dark' : 'light');
     });
   }
 

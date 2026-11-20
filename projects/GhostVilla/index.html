@@ -4,11 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>
+  // 每次打开都跟随系统的深色 / 浅色设置；页内手动切换只在本次访问有效
   (function(){
-    try{
-      var t = localStorage.getItem('theme');
-      if(t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
-    }catch(e){}
+    var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    document.documentElement.setAttribute('data-theme', (mq && mq.matches) ? 'dark' : 'light');
   })();
 </script>
 <title>GhostVilla · 墅域 — Yukiii 的项目</title>
@@ -217,16 +216,25 @@
   (function(){
     var root = document.documentElement;
     var btn = document.getElementById('themeToggle');
+    var prefersDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    var manualTheme = null;   // 仅本次访问有效，不写 localStorage
     function paint(){
       var dark = root.getAttribute('data-theme') === 'dark';
       btn.textContent = dark ? '☀' : '🌙';
     }
     btn.addEventListener('click', function(){
-      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      try{ localStorage.setItem('theme', next); }catch(e){}
+      manualTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', manualTheme);
       paint();
     });
+    // 本次访问没手动改过主题时，系统切深/浅色页面实时跟随
+    if (prefersDark && prefersDark.addEventListener) {
+      prefersDark.addEventListener('change', function(e){
+        if (manualTheme) return;
+        root.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        paint();
+      });
+    }
     paint();
     var y = document.getElementById('year');
     if(y) y.textContent = new Date().getFullYear();

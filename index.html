@@ -27,10 +27,17 @@
   // 这段要在页面画出来之前跑，否则会先闪一下别的底色
   (function () {
     document.documentElement.classList.add('js');
-    // 默认浅色；用户按过右上角的切换按钮，就记住他的选择（light / dark）
+    // 用户手动按过右上角的切换按钮就听他的（light / dark 存在 localStorage）
+    // 没按过就跟随系统的深色 / 浅色设置
     var saved = null;
     try { saved = localStorage.getItem('theme'); } catch (e) {}
-    var theme = (saved === 'light' || saved === 'dark') ? saved : 'light';
+    var theme;
+    if (saved === 'light' || saved === 'dark') {
+      theme = saved;
+    } else {
+      var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+      theme = (mq && mq.matches) ? 'dark' : 'light';
+    }
     document.documentElement.setAttribute('data-theme', theme);
   })();
 </script>
@@ -612,19 +619,33 @@
   // 年份自动更新
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // 深浅色切换：默认浅色，点按钮切换并记住选择；浏览器标签栏的颜色跟着变
+  // 深浅色切换：进入时跟随系统，手动点过按钮后就固定用他选的（记在 localStorage），
+  // 标签栏颜色跟着变；每次重新打开页面都会按上面的规则重新判断
   var themeToggle = document.getElementById('themeToggle');
   var themeColorMeta = document.getElementById('themeColor');
+  var prefersDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
   function applyTheme(theme, persist) {
     document.documentElement.setAttribute('data-theme', theme);
     if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#e9f1f8');
     if (persist) { try { localStorage.setItem('theme', theme); } catch (e) {} }
   }
   applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+
   if (themeToggle) {
     themeToggle.addEventListener('click', function () {
       var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       applyTheme(next, true);
+    });
+  }
+
+  // 还没手动选过主题时，系统在页面打开期间切换深/浅色，页面也跟着变
+  if (prefersDark && prefersDark.addEventListener) {
+    prefersDark.addEventListener('change', function (e) {
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (err) {}
+      if (saved === 'light' || saved === 'dark') return;  // 手动选过就不跟随系统
+      applyTheme(e.matches ? 'dark' : 'light', false);
     });
   }
 

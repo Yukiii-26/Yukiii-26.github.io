@@ -6,7 +6,7 @@
 <!--
   Yukiii 的个人主页 · index.html 「杂志风 + 浅色 / 深色双主题」
 
-  【改内容】用记事本 / VS Code 打开，搜「改这里」（共 11 处），改完保存双击预览。
+  【改内容】用记事本 / VS Code 打开，搜「改这里」，改完保存双击预览。
   【主题】默认浅色，右上角 ☾ / ☀ 切换，会记住选择；改默认色搜 saved : 'light'。
   【背景图】浅色 bg-light*.jpg、深色 bg-dusk*.jpg（在 assets/），同名覆盖即可。
   【配色】:root 是深色，:root[data-theme="light"] 是浅色；others 页也各有一份。
@@ -14,27 +14,10 @@
 -->
 <meta name="theme-color" id="themeColor" content="#e9f1f8" />
 
-<!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时显示的卡片文字 ↓↓↓ -->
+<!-- ↓↓↓ 改这里 ①：浏览器标签页标题 ↓↓↓ -->
 <title>Yukiii · 个人主页</title>
 <meta name="description" content="Yukiii 的个人主页" />
 <link rel="canonical" href="https://yukiii-26.github.io/" />
-
-<meta property="og:title" content="Yukiii · 个人主页" />
-<meta property="og:description" content="Yukiii 的个人主页" />
-<meta property="og:type" content="website" />
-<meta property="og:site_name" content="Yukiii 的个人主页" />
-<meta property="og:url" content="https://yukiii-26.github.io/" />
-<meta property="og:locale" content="zh_CN" />
-<!-- 分享出去时右边那张大图：assets/og-cover.jpg，1200×630 -->
-<meta property="og:image" content="https://yukiii-26.github.io/assets/og-cover.jpg" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Yukiii 的个人主页：雾蓝色调，头像与「个人主页 · 作品集」" />
-
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Yukiii · 个人主页" />
-<meta name="twitter:description" content="Yukiii 的个人主页" />
-<meta name="twitter:image" content="https://yukiii-26.github.io/assets/og-cover.jpg" />
 <!-- ↑↑↑ 改这里 ① ↑↑↑ -->
 
 <!-- 网站小图标（浏览器标签页上那个小方块），改文字就能换字母 -->
@@ -391,8 +374,6 @@
 
   @media (max-width:820px){
     .about-grid{grid-template-columns:1fr;gap:32px}
-    .feature-card{grid-template-columns:1fr;padding:26px;gap:24px}
-    .feature-shot{min-height:200px}
     .hero{padding:60px 0 52px}
     .section{padding:52px 0}
     .contact{padding:60px 0}
@@ -473,14 +454,14 @@
   <!-- ===================== 首屏 ===================== -->
   <section class="hero">
     <div class="wrap">
-      <!-- ↓↓↓ 改这里 ⑩：头像照片 ↓↓↓
+      <!-- ↓↓↓ 改这里 ⑦：头像照片 ↓↓↓
            把照片命名成 avatar.jpg，传到仓库根目录（和 index.html 放一起）就行。
            图片还没传上去时，会自动显示下面的首字母 Y，不会出现裂图。 -->
       <div class="avatar" aria-hidden="true">
         Y
         <img src="avatar.jpg" alt="" onerror="this.remove()" />
       </div>
-      <!-- ↑↑↑ 改这里 ⑩ ↑↑↑ -->
+      <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
 
       <!-- ↓↓↓ 改这里 ③：你的名字 和 一句话介绍 ↓↓↓ -->
       <h1>你好，我是 Yukiii。</h1>
@@ -567,65 +548,10 @@
   <section class="section" id="work">
     <div class="wrap reveal">
       <p class="kicker">Work</p>
-      <div class="section-head">
-        <h2>作品与项目</h2>
-      </div>
+      <h2>作品与项目</h2>
       <p class="lead">项目展示页</p>
-
-        <!-- ↓↓↓ 改这里 ⑦：一个 <article class="card"> 就是一个作品，复制一份就多一个 ↓↓↓
-
-             【链接怎么写】把卡片里的 href="#" 换成你的目标，三种情况：
-
-             1) 项目放在本仓库里（推荐）
-                href="projects/游戏名/index.html"
-                对应仓库里的 projects/游戏名/index.html，点开就能玩。
-                ⚠️ 一定要写到 index.html 为止，别只写到文件夹（写成 projects/游戏名/）。
-                因为线上会自动打开文件夹里的 index.html，但你自己在电脑上双击本文件
-                预览时不会，会跳到一个光秃秃的文件列表。写全文件名则两边都一样。
-                ⚠️ 文件夹名用英文小写，别用中文和空格，网址里会变成一串 %E4%B8%AD 乱码。
-
-             2) 项目在另一个仓库，想让人直接玩
-                href="https://yukiii-26.github.io/仓库名/"
-                （那个仓库也要在 Settings → Pages 里打开。这是别的仓库，跨站访问，
-                  所以这里写目录形式没问题，不存在本地预览的问题）
-
-             3) 只想让人看代码，不做成网页
-                href="https://github.com/Yukiii-26/仓库名"
-
-             想让链接在新标签页打开，就再加两个属性：target="_blank" rel="noopener"
-
-             【项目文件夹里的 index.html】
-             文件名必须正好是 index.html（全小写），这样 /projects/游戏名/ 才会自动打开它。
-             项目内部的 css / js / 图片要用相对路径，比如 ./style.css、./game.js；
-             写成 /style.css 会跑到网站根目录去找，是错的。
-
-             【最容易踩的坑】GitHub 的服务器区分大小写：你本地 Windows 上写 Game.js 能跑，
-             传到线上就是 404。文件名统一用小写最省事。
-        -->
-
-      <!-- 以后有新项目：复制下面 template 里的结构，放在这一行下面 -->
     </div>
   </section>
-
-  <template id="tpl-featured-card">
-    <div class="feature-card">
-      <div>
-        <span class="feature-badge">状态 · 版本</span>
-        <h2>项目标题</h2>
-        <p class="feature-sub">副标题 · 类型 · 平台</p>
-        <p class="feature-desc">两到三句话说明这个项目是什么、做到什么程度。</p>
-        <div class="meta"><span>引擎</span><span>类型</span><span>平台</span></div>
-        <div class="actions">
-          <a class="btn btn-primary" href="#" target="_blank" rel="noopener">下载 ↗</a>
-          <a class="btn btn-ghost" href="#">源码 ↗</a>
-        </div>
-      </div>
-      <figure class="feature-shot">
-        <img src="assets/thumb-项目名.jpg" alt="项目截图" width="1000" height="750" loading="lazy" decoding="async">
-        <figcaption>PLACEHOLDER · DEMO</figcaption>
-      </figure>
-    </div>
-  </template>
 
   <!-- ===================== 联系 ===================== -->
   <section class="section contact" id="contact">
@@ -634,12 +560,12 @@
       <h2>想聊两句？</h2>
       <p class="lead">有事可以直接发邮件给我。</p>
 
-      <!-- ↓↓↓ 改这里 ⑧：换成你的邮箱 和 GitHub 主页 ↓↓↓ -->
+      <!-- ↓↓↓ 改这里 ⑦：换成你的邮箱 和 GitHub 主页 ↓↓↓ -->
       <div class="actions">
         <a class="btn btn-primary" href="mailto:Zwin112667@Gmail.com">✉ Gmail</a>
         <a class="btn btn-ghost" href="https://github.com/Yukiii-26" target="_blank" rel="noopener">GitHub 主页</a>
       </div>
-      <!-- ↑↑↑ 改这里 ⑧ ↑↑↑ -->
+      <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
     </div>
   </section>
 
@@ -647,12 +573,10 @@
 
 <footer>
   <div class="wrap">
-    <!-- ↓↓↓ 改这里 ⑨：页脚，年份会自动更新 ↓↓↓ -->
+    <!-- ↓↓↓ 改这里 ⑧：页脚，年份会自动更新 ↓↓↓ -->
     <span>© <span id="year">2026</span> Yukiii</span>
     <span>托管在 GitHub Pages</span>
-    <!-- 分享按钮：点了弹出「复制链接 / 微信 / ↗ 系统分享」等。想改外观搜 .share-btn -->
-    </button>
-    <!-- ↑↑↑ 改这里 ⑨ ↑↑↑ -->
+    <!-- ↑↑↑ 改这里 ⑧ ↑↑↑ -->
   </div>
   <!-- 背景图来源声明：换了背景图就改这里（链接 + 作者名） -->
   <div class="wrap credit">
@@ -661,19 +585,6 @@
 </footer>
 
 <button class="to-top" id="toTop" aria-label="回到顶部">↑</button>
-
-<!-- ===================== 分享面板（点页脚的「分享这个网站」才出现） ===================== -->
-<div class="share-sheet" id="shareSheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle" hidden>
-  <h4 id="shareTitle">分享给朋友</h4>
-  <p class="share-sub">直接把链接发过去，对方收到的就是带封面的卡片。</p>
-  <div class="share-grid">
-    <button type="button" id="shareCopy"><span class="si" aria-hidden="true">⧉</span>复制链接</button>
-    <button type="button" id="shareNative" class="mobile-only"><span class="si" aria-hidden="true">⤴</span>系统分享</button>
-    <button type="button" id="shareWechat"><span class="si" aria-hidden="true">💬</span>微信 / QQ</button>
-  </div>
-</div>
-<div class="toast" id="shareToast" role="status" aria-live="polite"></div>
-
 
 <script>
   // 年份自动更新
@@ -746,129 +657,6 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // ===================== 分享（在文件里搜「分享」就能找到这一段） =====================
-  // 复制用的是 navigator.clipboard，本地双击打不开（file:// 不安全上下文）时自动退回老办法 execCommand。
-  var shareBtn = document.getElementById('shareBtn');
-  var shareSheet = document.getElementById('shareSheet');
-  var shareToast = document.getElementById('shareToast');
-  var shareTimer = null;
-
-  function toast(msg) {
-    shareToast.textContent = msg;
-    shareToast.classList.add('show');
-    clearTimeout(shareTimer);
-    shareTimer = setTimeout(function () { shareToast.classList.remove('show'); }, 2200);
-  }
-
-  function openShare() {
-    shareSheet.hidden = false;
-    // 先让它按 hidden 状态排一次版，再加 .show，transition 才会动
-    void shareSheet.offsetHeight;
-    shareSheet.classList.add('show');
-    shareBtn.setAttribute('aria-expanded', 'true');
-  }
-
-  function closeShare() {
-    shareSheet.classList.remove('show');
-    shareBtn.setAttribute('aria-expanded', 'false');
-    setTimeout(function () { if (!shareSheet.classList.contains('show')) shareSheet.hidden = true; }, 240);
-  }
-
-  // 老浏览器（含本地 file:// 预览）复制链接的兜底办法
-  function legacyCopy(text) {
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.setAttribute('readonly', '');
-    ta.style.position = 'fixed';
-    ta.style.top = '-1000px';
-    document.body.appendChild(ta);
-    ta.select();
-    var ok = false;
-    try { ok = document.execCommand('copy'); } catch (e) {}
-    document.body.removeChild(ta);
-    return ok;
-  }
-
-  function doCopy() {
-    var url = location.origin + location.pathname;
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(url).then(function () {
-        toast('链接已复制，发出去就行');
-      }, function () {
-        toast(legacyCopy(url) ? '链接已复制，发出去就行' : '复制失败，长按地址栏手动复制吧');
-      });
-    } else {
-      toast(legacyCopy(url) ? '链接已复制，发出去就行' : '复制失败，长按地址栏手动复制吧');
-    }
-  }
-
-  shareBtn.addEventListener('click', function (e) {
-    e.stopPropagation();
-    if (shareSheet.classList.contains('show')) { closeShare(); } else { openShare(); }
-  });
-  document.getElementById('shareCopy').addEventListener('click', doCopy);
-
-  // 手机上的「系统分享」：直接调起微信 / QQ / 备忘录等任意 App
-  var nativeBtn = document.getElementById('shareNative');
-  if (navigator.share) {
-    nativeBtn.addEventListener('click', function () {
-      navigator.share({ title: document.title, text: '我的个人主页', url: location.href })
-        .catch(function () {});
-    });
-  } else {
-    nativeBtn.parentNode.removeChild(nativeBtn);
-  }
-
-  // 电脑上的「微信 / QQ」：手机上没有这个按钮，所以不判断设备
-  document.getElementById('shareWechat').addEventListener('click', function () {
-    doCopy();
-    toast('已复制链接，粘到微信 / QQ 里发就行');
-  });
-
-  // 点面板外面 / 按 Esc 关掉
-  document.addEventListener('click', function (e) {
-    if (shareSheet.classList.contains('show') && !shareSheet.contains(e.target) && !shareBtn.contains(e.target)) {
-      closeShare();
-    }
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && shareSheet.classList.contains('show')) closeShare();
-  });
-
-  // ===================== 🥚 彩蛋：键盘秘技（在文件里搜「彩蛋」就能找到这一段） =====================
-  // 在主页上依次敲 W W S S A D A D B A，就会跳到 egg/ 这一页。
-  // 也就是「上上下下左右左右 BA」的 WASD 版：W=上 S=下 A=左 D=右。
-  // 想换秘技：改 CODE 里的字母（全小写）。
-  // 想换跳转目标：改 EGG_URL。注意这里写成 egg/index.html 而不是 egg/，
-  // 因为本地双击预览时（file:// 协议）指向文件夹的地址只会列出文件、不会自动打开 index.html。
-  var CODE = 'wwssadadba';
-  var EGG_URL = 'egg/index.html';
-  var codeBuf = '';
-  document.addEventListener('keydown', function (e) {
-    // 按住不放时浏览器会连续触发，忽略掉
-    if (e.repeat) return;
-    // 正在输入框里打字就不抢按键（页面上现在没有输入框，留着以防以后新增）
-    var t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-    // 只认能打出来的单个字符，Shift / Ctrl / 方向键之类一律跳过
-    if (!e.key || e.key.length !== 1) return;
-    codeBuf = (codeBuf + e.key.toLowerCase()).slice(-CODE.length);
-    if (codeBuf === CODE) {
-      codeBuf = '';
-      window.location.href = EGG_URL;
-    }
-  });
-
-  // 控制台提示：只有主动打开开发者工具（F12）的人才会看到，普通访客完全看不到。
-  // 想改提示文字就改下面的字符串；不想要提示，把这几行 console.log 整段删掉即可。
-  try {
-    console.log('%c🥚 你打开了控制台，那这里就藏点东西。',
-      'font-size:15px;font-weight:700;color:#c2410c;');
-    console.log('%c提示：那串很有名的「上上下下左右左右 BA」—— 不过键盘玩家用的不是方向键。',
-      'font-size:12.5px;color:#6f675c;');
-    console.log('%c想好了直接在页面上敲就行，不用点任何地方。',
-      'font-size:12.5px;color:#6f675c;');
-  } catch (err) {}
 </script>
 
 </body>

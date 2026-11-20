@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>
+  (function(){
+    try{
+      var t = localStorage.getItem('theme');
+      if(t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+<title>GhostVilla · 墅域 — Yukiii 的项目</title>
+<meta name="description" content="UE5-DEMO项目《Ghost Villa · 墅域》，第一人称心理恐怖探索 Demo。" />
+<style>
+  :root{
+    --paper:#e9f1f8;
+    --surface:rgba(255,255,255,.74);
+    --ink:#101a24;
+    --muted:#4c5a68;
+    --line:rgba(16,26,36,.14);
+    --accent:#1d6fa5;
+    --accent-hi:#2a86c2;
+    --accent-ink:#fff;
+    --max:900px;
+  }
+  :root[data-theme="dark"]{
+    --paper:#0b1220;
+    --surface:rgba(18,27,42,.60);
+    --ink:#eef3f8;
+    --muted:#bcb5ab;
+    --line:rgba(255,255,255,.14);
+    --accent:#6ec1f2;
+    --accent-hi:#9ad6ff;
+    --accent-ink:#06121e;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:'Source Han Serif SC','Noto Serif SC','Songti SC',Georgia,serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{color:var(--accent-hi)}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 26px}
+
+  .topbar{border-bottom:1px solid var(--line);padding:18px 0}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .back{font-size:14px;font-weight:700;color:var(--ink);border-bottom:1.5px solid var(--ink);padding-bottom:2px}
+  .back:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  .theme-toggle{
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    border-radius:10px;padding:6px 12px;cursor:pointer;font-size:13px;font-family:inherit;
+  }
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+
+  header.hero{padding:64px 0 40px}
+  .kicker{
+    font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 14px;
+  }
+  h1{font-size:clamp(30px,5vw,46px);font-weight:900;letter-spacing:-.02em;margin:0;line-height:1.25}
+  .badge{
+    display:inline-block;margin-left:12px;vertical-align:8px;
+    font-size:12px;font-weight:700;letter-spacing:.06em;
+    color:var(--accent);border:1px solid var(--accent);border-radius:999px;
+    padding:3px 12px;white-space:nowrap;
+  }
+  .lede{margin-top:20px;font-size:17px;color:var(--muted);max-width:60ch}
+  .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:14px;font-weight:700;padding:11px 20px;border-radius:12px;
+    border:1px solid var(--line);transition:all .2s;font-family:inherit;
+  }
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn-primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);color:var(--accent-ink);transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+
+  .shot{margin:8px 0 0;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+  .shot img{display:block;width:100%;height:auto}
+
+  section{padding:44px 0;border-top:1px solid var(--line)}
+  h2{font-size:22px;font-weight:800;letter-spacing:-.01em;margin:0 0 20px}
+
+  dl.facts{display:grid;grid-template-columns:auto 1fr;gap:10px 24px;margin:0}
+  dl.facts dt{color:var(--muted);font-size:14px;white-space:nowrap}
+  dl.facts dd{margin:0;font-size:15px;font-weight:600}
+
+  ol.flow{list-style:none;counter-reset:s;padding:0;margin:0}
+  ol.flow li{
+    counter-increment:s;position:relative;padding:0 0 18px 44px;
+    border-left:2px solid var(--line);margin-left:12px;
+  }
+  ol.flow li:last-child{border-left-color:transparent;padding-bottom:0}
+  ol.flow li::before{
+    content:counter(s);position:absolute;left:-15px;top:0;
+    width:28px;height:28px;border-radius:50%;
+    background:var(--paper);border:2px solid var(--accent);color:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:800;font-family:Georgia,serif;
+  }
+  ol.flow b{display:block;font-size:15px;margin-bottom:2px}
+  ol.flow span{font-size:14.5px;color:var(--muted)}
+
+  ul.tech{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+  ul.tech li{
+    padding:12px 16px;border:1px solid var(--line);border-radius:12px;
+    background:var(--surface);font-size:14.5px;
+  }
+  ul.tech b{color:var(--accent);font-weight:800}
+
+  .note{
+    padding:14px 18px;border-left:3px solid var(--accent);border-radius:0 10px 10px 0;
+    background:var(--surface);color:var(--muted);font-size:14px;margin:0;
+  }
+
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--muted);font-size:13px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between}
+
+  @media (max-width:640px){
+    header.hero{padding:44px 0 28px}
+    section{padding:34px 0}
+    dl.facts{grid-template-columns:1fr;gap:4px 0}
+    dl.facts dt{margin-top:10px}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a class="back" href="../../index.html">← 返回主页</a>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换主题">🌙</button>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">Project 01 · Unreal Engine</p>
+    <h1>Ghost Villa · 墅域<span class="badge">规划中</span></h1>
+    <p class="lede">
+      一款以「心理恐怖」为核心的第一人称探索 Demo。玩家在深夜进入一座废弃的豪华别墅区，
+      在一栋无人居住的别墅与庭园之间探索。时长约 10 分钟。
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/Yukiii-26/GhostVilla" target="_blank" rel="noopener">查看 GitHub 仓库 →</a>
+      <a class="btn btn-ghost" href="../../index.html#work">看看其他项目</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="shot">
+    <img src="../../assets/thumb-ghostvilla.jpg" alt="Ghost Villa · 墅域 项目预览图" />
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2>项目信息</h2>
+    <dl class="facts">
+      <dt>中文名</dt><dd>墅域</dd>
+      <dt>英文名</dt><dd>Ghost Villa</dd>
+      <dt>类型</dt><dd>第一人称 · 心理恐怖 · 拟 FPS</dd>
+      <dt>时长</dt><dd>约 10 分钟</dd>
+      <dt>引擎</dt><dd>Unreal Engine 5.8</dd>
+      <dt>平台</dt><dd>Windows</dd>
+      <dt>当前进度</dt><dd>前期设计与规划</dd>
+    </dl>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>计划中的流程</h2>
+    <ol class="flow">
+      <li><b>抵达</b><span>深夜驾车来到别墅区大门，正门早已被封。</span></li>
+      <li><b>进入</b><span>从后备箱取出手电与钳子，剪开门锁。</span></li>
+      <li><b>庭园</b><span>在院落、车库与公园之间探索，收集散落的文件。</span></li>
+      <li><b>异常</b><span>别墅二楼有一盏灯亮着。每次抬头，它就熄灭。</span></li>
+      <li><b>尾声</b><span>进入那间房间，里面空无一物。身后的门被踹开，画面戛然而止。</span></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>技术要点</h2>
+    <ul class="tech">
+      <li><b>光照</b> — Lumen（软件光追模式）</li>
+      <li><b>逻辑</b> — Blueprint（交互、触发、Timeline 灯光与门）</li>
+      <li><b>音频</b> — Ambient 氛围层 + 事件音效触发器</li>
+      <li><b>UI</b> — UMG（交互提示、拾取提示）</li>
+    </ul>
+    <p class="note" style="margin-top:20px">
+      状态：规划中 / 占位。仓库目前仅用于占位，项目正在开发中，
+      预计于 2027 年春节期间完成可玩 Demo，届时会更新 README、补上录屏与可下载版本。
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year">2026</span> Yukiii</span>
+    <a href="../../index.html">返回主页</a>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var root = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    function paint(){
+      var dark = root.getAttribute('data-theme') === 'dark';
+      btn.textContent = dark ? '☀' : '🌙';
+    }
+    btn.addEventListener('click', function(){
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('theme', next); }catch(e){}
+      paint();
+    });
+    paint();
+    var y = document.getElementById('year');
+    if(y) y.textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

@@ -454,21 +454,21 @@
   <!-- ===================== 首屏 ===================== -->
   <section class="hero">
     <div class="wrap">
-      <!-- ↓↓↓ 改这里 ⑦：头像照片 ↓↓↓
+      <!-- ↓↓↓ 改这里 ③：头像照片 ↓↓↓
            把照片命名成 avatar.jpg，传到仓库根目录（和 index.html 放一起）就行。
            图片还没传上去时，会自动显示下面的首字母 Y，不会出现裂图。 -->
       <div class="avatar" aria-hidden="true">
         Y
         <img src="avatar.jpg" alt="" onerror="this.remove()" />
       </div>
-      <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
+      <!-- ↑↑↑ 改这里 ③ ↑↑↑ -->
 
-      <!-- ↓↓↓ 改这里 ③：你的名字 和 一句话介绍 ↓↓↓ -->
+      <!-- ↓↓↓ 改这里 ④：你的名字 和 一句话介绍 ↓↓↓ -->
       <h1>你好，我是 Yukiii。</h1>
       <p class="tag">
         一名普通的高三学生。
       </p>
-      <!-- ↑↑↑ 改这里 ③ ↑↑↑ -->
+      <!-- ↑↑↑ 改这里 ④ ↑↑↑ -->
 
       <div class="actions">
         <a class="btn btn-primary" href="#work">看看我的作品</a>
@@ -483,7 +483,7 @@
       <p class="kicker">About</p>
       <h2>关于我</h2>
       <div class="about-grid">
-        <!-- ↓↓↓ 改这里 ④：关于我正文（写 2～3 段最合适） ↓↓↓ -->
+        <!-- ↓↓↓ 改这里 ⑤：关于我正文（写 2～3 段最合适） ↓↓↓ -->
         <div>
           <p class="lead">
             我是 Yukiii，17 岁。
@@ -492,9 +492,9 @@
             正在备战高考。什么都想学点，但也都大多学艺不精，正在学习Unreal Engine、C++等。
           </p>
         </div>
-        <!-- ↑↑↑ 改这里 ④ ↑↑↑ -->
+        <!-- ↑↑↑ 改这里 ⑤ ↑↑↑ -->
 
-        <!-- ↓↓↓ 改这里 ⑤：右侧小档案 ↓↓↓ -->
+        <!-- ↓↓↓ 改这里 ⑥：右侧小档案 ↓↓↓ -->
         <aside class="facts">
           <dl>
             <dt>身份</dt><dd>学生</dd>
@@ -503,7 +503,7 @@
             <dt>状态</dt><dd>备考中</dd>
           </dl>
         </aside>
-        <!-- ↑↑↑ 改这里 ⑤ ↑↑↑ -->
+        <!-- ↑↑↑ 改这里 ⑥ ↑↑↑ -->
       </div>
     </div>
   </section>
@@ -516,7 +516,7 @@
       <p class="lead">“与天奋斗，其乐无穷；与地奋斗，其乐无穷；与人奋斗，其乐无穷。”</p>
       <p class="lead">下面按「学到哪了」分个类。</p>
 
-      <!-- ↓↓↓ 改这里 ⑥：技能标签，一行一个或几个都行 ↓↓↓ -->
+      <!-- ↓↓↓ 改这里 ⑦：技能标签，一行一个或几个都行 ↓↓↓ -->
       <div class="skill-groups">
         <div class="skill-group">
           <p class="skill-label">正在学</p>
@@ -540,7 +540,7 @@
           </div>
         </div>
       </div>
-      <!-- ↑↑↑ 改这里 ⑥ ↑↑↑ -->
+      <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
     </div>
   </section>
 
@@ -550,6 +550,28 @@
       <p class="kicker">Work</p>
       <h2>作品与项目</h2>
       <p class="lead">项目展示页</p>
+
+      <!-- ↓↓↓ 改这里 ⑧：作品卡片。新增一个项目就复制下面一整个 <article class="card"> 块，
+           改编号、标题、简介、标签和链接即可 ↓↓↓ -->
+      <div class="cards">
+
+        <article class="card">
+          <span class="num">01</span>
+          <a class="shot" href="projects/GhostVilla/" title="GhostVilla · 墅域">
+            <img src="assets/thumb-ghostvilla.jpg" alt="Ghost Villa · 墅域 预览图" loading="lazy" />
+          </a>
+          <h3>GhostVilla · 墅域<span class="badge">进行中</span></h3>
+          <p>UE5-DEMO项目《Ghost Villa · 墅域》</p>
+          <div class="meta">
+            <span>Unreal Engine 5</span>
+            <span>第一人称 · 心理恐怖</span>
+            <span>Windows</span>
+          </div>
+          <a class="go" href="projects/GhostVilla/">进入项目 →</a>
+        </article>
+
+      </div>
+      <!-- ↑↑↑ 改这里 ⑧ ↑↑↑ -->
     </div>
   </section>
 
@@ -560,12 +582,12 @@
       <h2>想聊两句？</h2>
       <p class="lead">有事可以直接发邮件给我。</p>
 
-      <!-- ↓↓↓ 改这里 ⑦：换成你的邮箱 和 GitHub 主页 ↓↓↓ -->
+      <!-- ↓↓↓ 改这里 ⑨：换成你的邮箱 和 GitHub 主页 ↓↓↓ -->
       <div class="actions">
         <a class="btn btn-primary" href="mailto:Zwin112667@Gmail.com">✉ Gmail</a>
         <a class="btn btn-ghost" href="https://github.com/Yukiii-26" target="_blank" rel="noopener">GitHub 主页</a>
       </div>
-      <!-- ↑↑↑ 改这里 ⑦ ↑↑↑ -->
+      <!-- ↑↑↑ 改这里 ⑨ ↑↑↑ -->
     </div>
   </section>
 
@@ -573,10 +595,10 @@
 
 <footer>
   <div class="wrap">
-    <!-- ↓↓↓ 改这里 ⑧：页脚，年份会自动更新 ↓↓↓ -->
+    <!-- ↓↓↓ 改这里 ⑩：页脚，年份会自动更新 ↓↓↓ -->
     <span>© <span id="year">2026</span> Yukiii</span>
     <span>托管在 GitHub Pages</span>
-    <!-- ↑↑↑ 改这里 ⑧ ↑↑↑ -->
+    <!-- ↑↑↑ 改这里 ⑩ ↑↑↑ -->
   </div>
   <!-- 背景图来源声明：换了背景图就改这里（链接 + 作者名） -->
   <div class="wrap credit">

@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!--
+  Yukiii 的个人主页 · index.html 「杂志风 + 浅色 / 深色双主题」
+
+  【改内容】用记事本 / VS Code 打开，搜「改这里」（共 11 处），改完保存双击预览。
+  【主题】默认浅色，右上角 ☾ / ☀ 切换，会记住选择；改默认色搜 saved : 'light'。
+  【背景图】浅色 bg-light*.jpg、深色 bg-dusk*.jpg（在 assets/），同名覆盖即可。
+  【配色】:root 是深色，:root[data-theme="light"] 是浅色；others 页也各有一份。
+  【注意】不要删 <style> 与 <script>，它们管排版、主题切换和动画。
+-->
+<meta name="theme-color" id="themeColor" content="#e9f1f8" />
+
+<!-- ↓↓↓ 改这里 ①：浏览器标签页标题 + 分享给别人时显示的卡片文字 ↓↓↓ -->
+<title>Yukiii · 个人主页</title>
+<meta name="description" content="Yukiii 的个人主页" />
+<link rel="canonical" href="https://yukiii-26.github.io/" />
+
+<meta property="og:title" content="Yukiii · 个人主页" />
+<meta property="og:description" content="Yukiii 的个人主页" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Yukiii 的个人主页" />
+<meta property="og:url" content="https://yukiii-26.github.io/" />
+<meta property="og:locale" content="zh_CN" />
+<!-- 分享出去时右边那张大图：assets/og-cover.jpg，1200×630 -->
+<meta property="og:image" content="https://yukiii-26.github.io/assets/og-cover.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Yukiii 的个人主页：雾蓝色调，头像与「个人主页 · 作品集」" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Yukiii · 个人主页" />
+<meta name="twitter:description" content="Yukiii 的个人主页" />
+<meta name="twitter:image" content="https://yukiii-26.github.io/assets/og-cover.jpg" />
+<!-- ↑↑↑ 改这里 ① ↑↑↑ -->
+
+<!-- 网站小图标（浏览器标签页上那个小方块），改文字就能换字母 -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2316130f'/><text x='50' y='72' font-size='60' font-family='Georgia,serif' font-weight='700' fill='%23faf8f4' text-anchor='middle'>Y</text></svg>" />
+
+<script>
+  // 这段要在页面画出来之前跑，否则会先闪一下别的底色
+  (function () {
+    document.documentElement.classList.add('js');
+    // 默认浅色；用户按过右上角的切换按钮，就记住他的选择（light / dark）
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    var theme = (saved === 'light' || saved === 'dark') ? saved : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+
+<style>
+  /* ===================== 配色（取自背景图：夜空深蓝 + 天蓝强调色） ===================== */
+  :root{
+    color-scheme:dark;
+    --paper:#0b1220;                  /* 兜底底色：夜空深蓝，图没加载出来也不会白屏 */
+    --surface:rgba(18,27,42,.60);     /* 玻璃卡片 / 标签的底色 */
+    --ink:#f4efe8;                    /* 暖白文字 */
+    --muted:#bcb5ab;                  /* 次要文字，暗底上仍保持足够对比度 */
+    --line:rgba(255,255,255,.14);      /* 细分割线 */
+    --accent:#6ec1f2;                 /* 强调色：夜空里的天蓝，和背景同一套冷色 */
+    --accent-hi:#9ad6ff;              /* 悬停时的更亮蓝 */
+    --accent-ink:#06121e;             /* 压在蓝底上的字色（深蓝黑，保证对比度） */
+    --nav-bg:rgba(9,14,24,.70);
+    --max:1320px;
+  }
+
+  /* ===================== 亮色（默认）：配「白」背景图，冷一点的雾蓝白 ===================== */
+  :root[data-theme="light"]{
+    color-scheme:light;
+    --paper:#e9f1f8;
+    --surface:rgba(255,255,255,.74);
+    --ink:#101a24;
+    --muted:#4c5a68;
+    --line:rgba(16,26,36,.14);
+    --accent:#1d6fa5;
+    --accent-hi:#2a86c2;
+    --accent-ink:#ffffff;
+    --nav-bg:rgba(233,241,248,.82);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);line-height:1.8;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+    transition:background-color .35s ease,color .35s ease;
+  }
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{line-height:1.22;margin:0;letter-spacing:-.02em}
+  p{margin:0}
+  img{max-width:100%}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 26px}
+
+  /* ===================== 背景图（固定铺满，上面压一层暗幕保证可读） =====================
+     用 position:fixed 的独立图层，而不是 body 的 background-attachment:fixed ——
+     后者在 iOS Safari 上会随页面滚动而抖动/失效。 */
+  .bg{
+    position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:var(--paper) url("assets/bg-dusk.jpg") center 42%/cover no-repeat;
+  }
+  .bg::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,
+      rgba(8,12,20,.45) 0%,
+      rgba(8,12,20,.56) 45%,
+      rgba(8,12,20,.64) 100%);
+  }
+  /* 亮色：换成「白」背景图，再压一层雾蓝白纱，字改深色 */
+  :root[data-theme="light"] .bg{
+    background-image:url("assets/bg-light.jpg");
+    background-position:center 40%;
+  }
+  :root[data-theme="light"] .bg::after{
+    background:linear-gradient(180deg,
+      rgba(233,241,248,.52) 0%,
+      rgba(233,241,248,.72) 50%,
+      rgba(233,241,248,.88) 100%);
+  }
+  /* 手机：换成竖构图（保住画面中间的人物），并从顶部对齐 */
+  @media (max-width:720px){
+    .bg{background-image:url("assets/bg-dusk-mobile.jpg");background-position:center top}
+    :root[data-theme="light"] .bg{background-image:url("assets/bg-light-mobile.jpg")}
+    /* 手机上人物更大，暗幕再压重一点，保证白字压在她的头发/外套上也清楚 */
+    .bg::after{
+      background:linear-gradient(180deg,
+        rgba(8,12,20,.60) 0%,
+        rgba(8,12,20,.78) 42%,
+        rgba(8,12,20,.88) 100%);
+    }
+    :root[data-theme="light"] .bg::after{
+      background:linear-gradient(180deg,
+        rgba(233,241,248,.62) 0%,
+        rgba(233,241,248,.82) 45%,
+        rgba(233,241,248,.92) 100%);
+    }
+    /* 手机上关掉大面积的背景模糊，省电、滚动更跟手 */
+    .section{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(9,14,24,.92)}
+    :root[data-theme="light"] .section{background:rgba(233,241,248,.96)}
+  }
+
+  /* ===================== 顶部导航（底部一道粗墨线，杂志刊头的感觉） ===================== */
+  .site-header{
+    position:sticky;top:0;z-index:60;background:var(--nav-bg);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    transition:background-color .35s ease,border-color .35s ease;
+  }
+  .nav{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:var(--max);margin:0 auto;padding:15px 26px}
+  .brand{font-weight:800;font-size:16px;letter-spacing:-.01em}
+  .brand b{color:var(--accent)}
+  .nav-links{display:flex;gap:26px;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+  .nav-links a{color:var(--muted);padding-bottom:3px;border-bottom:1.5px solid transparent;transition:color .18s,border-color .18s}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-links a.active{color:var(--ink);border-bottom-color:var(--accent)}
+  .nav-actions{display:flex;align-items:center;gap:9px}
+
+  /* ☀ / ☾ 切换按钮 */
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:32px;border-radius:10px;cursor:pointer;padding:0;
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    transition:border-color .18s,color .18s,background .18s;
+  }
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+  .theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+  .theme-toggle .i-sun{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-moon{display:none}
+  :root[data-theme="dark"] .theme-toggle .i-sun{display:block}
+
+  .nav-toggle{
+    display:none;align-items:center;justify-content:center;
+    width:36px;height:32px;border-radius:10px;cursor:pointer;
+    background:transparent;border:1px solid var(--ink);color:var(--ink);
+  }
+  .nav-toggle span{display:block;width:15px;height:1.5px;background:currentColor;position:relative}
+  .nav-toggle span::before,.nav-toggle span::after{content:"";position:absolute;left:0;width:15px;height:1.5px;background:currentColor}
+  .nav-toggle span::before{top:-5px}
+  .nav-toggle span::after{top:5px}
+
+  /* ===================== 首屏：超大标题 ===================== */
+  /* 首屏左侧压一层渐变，让大标题在晚霞最亮的那块天空上也够清楚；右侧留给人物 */
+  .hero{position:relative;padding:88px 0 78px}
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+    background:linear-gradient(96deg,
+      rgba(8,12,20,.74) 0%,
+      rgba(8,12,20,.44) 38%,
+      rgba(8,12,20,.10) 56%,
+      rgba(8,12,20,0) 68%);
+  }
+  :root[data-theme="light"] .hero::before{
+    background:linear-gradient(96deg,
+      rgba(233,241,248,.90) 0%,
+      rgba(233,241,248,.58) 40%,
+      rgba(233,241,248,0) 66%);
+  }
+  .avatar{
+    position:relative;width:76px;height:76px;border-radius:14px;overflow:hidden;
+    background:var(--ink);color:var(--paper);
+    font-size:30px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:30px;border:1px solid var(--ink);
+  }
+  /* 有照片时，照片盖住下面的首字母；没照片时照片不存在，首字母就露出来 */
+  .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .hero h1{font-size:clamp(38px,8.4vw,84px);font-weight:800;letter-spacing:-.042em;line-height:1.04;max-width:16ch}
+  .hero .tag{margin-top:24px;font-size:clamp(15px,1.6vw,18px);color:var(--muted);max-width:52ch}
+  .hero .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;
+    padding:13px 24px;border-radius:12px;font-size:14.5px;font-weight:600;
+    border:1px solid var(--line);cursor:pointer;letter-spacing:.01em;
+    transition:background .18s,color .18s,border-color .18s,transform .18s;
+  }
+  /* 主按钮用天蓝，深色字保证对比度 */
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn-primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);color:var(--accent-ink);transform:translateY(-2px)}
+  .btn-ghost{background:rgba(255,255,255,.06);color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+  :root[data-theme="light"] .btn-ghost{background:rgba(255,255,255,.55)}
+
+  /* ===================== 通用板块 ===================== */
+  /* 内容区：压一层深色面板，首屏之外的字不再直接压在照片上 */
+  .section{
+    padding:70px 0;border-top:1px solid var(--line);
+    background:rgba(9,14,24,.93);
+  }
+  :root[data-theme="light"] .section{background:rgba(233,241,248,.95)}
+  /* 小标签 + 一条贯穿的细线，杂志里的栏目标题 */
+  .kicker{
+    display:flex;align-items:center;gap:14px;
+    font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:16px;
+  }
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+  .section h2{font-size:clamp(25px,3.6vw,38px);font-weight:800;letter-spacing:-.03em}
+  .section .lead{margin-top:18px;color:var(--muted);max-width:62ch}
+  /* 板块标题右边那行小字（例如「其它小项目 →」） */
+  /* 2026-11-07 起板块标题右边不再放小字链接，「其它小项目」入口已移除 */
+
+
+  /* 关于我：左文右小档案 */
+  .about-grid{display:grid;grid-template-columns:1.75fr 1fr;gap:52px;margin-top:26px}
+  /* 第一段当作「导语」，字号放大一点 */
+  .about-grid > div > .lead:first-child{font-size:19px;color:var(--ink);line-height:1.7}
+  .about-grid > div > .lead + .lead{margin-top:16px}
+
+  .facts{padding-top:2px}
+  .facts dl{margin:0}
+  .facts dt{
+    font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+    padding-top:14px;border-top:1px solid var(--line);
+  }
+  .facts dt:first-child{border-top:0;padding-top:0}
+  .facts dd{margin:6px 0 0;padding-bottom:14px;font-weight:700;font-size:15px}
+
+  /* 技能标签 */
+  .tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+  .tag-pill{
+    font-size:13px;padding:7px 14px;border-radius:999px;font-weight:600;letter-spacing:.02em;
+    background:var(--surface);border:1px solid var(--line);color:var(--muted);
+    transition:border-color .18s,color .18s,transform .18s;
+  }
+  .tag-pill:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+
+  /* 技能分三组：正在学 / 用过一点 / 写代码时的帮手 */
+  .skill-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px;margin-top:26px}
+  .skill-label{
+    font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);margin:0;
+  }
+  .skill-group .tags{margin-top:12px}
+  .tag-pill-ai{color:var(--accent);border-color:var(--accent);background:rgba(29,111,165,.07)}
+  .skill-note{margin-top:26px;font-size:14px;color:var(--muted);max-width:66ch;line-height:1.75}
+
+  /* 作品：一张卡片一个项目，圆角 + 悬停微微抬起 */
+  .cards{display:flex;flex-direction:column;gap:12px}
+  /* 作品分组：一栏一组，组标题是左边一条竖线 + 组名 + 数量 + 一句说明 */
+  .group{min-width:0}
+  .group-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-left:13px;border-left:3px solid var(--accent)}
+  .group-head h3{font-size:17px;font-weight:800;letter-spacing:-.01em}
+  .group-head .count{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px;background:var(--surface)}
+  .group-head p{flex-basis:100%;margin-top:2px;font-size:13.5px;color:var(--muted);line-height:1.6}
+  .group .cards{margin-top:14px}
+  /* 2026-11-08 起电脑上四栏并排（场景展示 / 可游玩项目 / 生成类工具 / 工具），
+     窄屏自动降级（1400→三栏，1100→两栏，720→一栏）。
+     列宽用 minmax(0,1fr) 等分，Grid 的 1fr 默认带 min-content 下限，
+     不加 minmax(0,…) 的话卡片里长英文和缩略图会把列撑爆。 */
+  .groups{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;align-items:start;margin-top:26px}
+  .groups > .group{margin:0}
+.card{
+    position:relative;
+    display:grid;align-items:start;gap:6px 24px;
+    grid-template-columns:78px 290px minmax(0,1fr) auto;
+    grid-template-areas:
+      "num shot title go"
+      "num shot desc  go"
+      "num shot meta  go";
+    padding:22px 20px;border:1px solid rgba(255,255,255,.06);border-radius:20px;
+    transition:background .22s,border-color .22s,transform .22s;
+  }
+  .card:hover{background:var(--surface);border-color:var(--line);transform:translateY(-2px)}
+  /* 浅色主题：白底上只靠半透明边框几乎看不出卡片，补一层极淡的底 + 投影，让它「浮」起来 */
+  :root[data-theme="light"] .card{
+    border-color:rgba(16,26,36,.10);
+    background:rgba(255,255,255,.60);
+    box-shadow:0 1px 2px rgba(16,26,36,.05),0 18px 40px -34px rgba(16,26,36,.55);
+  }
+  :root[data-theme="light"] .card:hover{
+    background:rgba(255,255,255,.92);
+    border-color:rgba(29,111,165,.36);
+    box-shadow:0 2px 5px rgba(16,26,36,.07),0 26px 52px -34px rgba(16,26,36,.50);
+  }
+  :root[data-theme="light"] .card .shot{background:#fff}
+  .card .num{grid-area:num;font-family:Georgia,"Times New Roman",serif;font-size:23px;font-weight:700;color:var(--accent);line-height:1.35}
+  /* 预览缩略图：统一 16:10，鼠标移上去轻微放大 */
+  .card .shot{
+    grid-area:shot;display:block;overflow:hidden;border-radius:12px;
+    border:1px solid var(--line);background:var(--surface);
+    transition:border-color .2s,box-shadow .2s;
+  }
+  .card .shot img{
+    display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;
+    transition:transform .45s ease;
+  }
+  .card:hover .shot{border-color:var(--accent);box-shadow:0 6px 18px -12px rgba(0,0,0,.6)}
+  .card:hover .shot img{transform:scale(1.04)}
+  .card h3{grid-area:title;font-size:19px;font-weight:800;letter-spacing:-.02em}
+  .card h3 .badge{
+    display:inline-block;margin-left:10px;vertical-align:2px;
+    font-size:11px;font-weight:700;letter-spacing:.06em;
+    color:var(--accent);border:1px solid var(--accent);border-radius:999px;
+    padding:2px 9px;white-space:nowrap;
+  }
+  .card p{grid-area:desc;margin-top:6px;font-size:15px;color:var(--muted);max-width:52ch}
+  .card .meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .card .meta span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--surface)}
+  .card .go{grid-area:go;align-self:center;white-space:nowrap;font-size:14px;font-weight:700;color:var(--ink);border-bottom:1.5px solid var(--ink);padding-bottom:2px;transition:color .2s,border-color .2s}
+  .card:hover .go{color:var(--accent);border-bottom-color:var(--accent)}
+  /* 整张卡片都能点（铺一层透明热区，键盘仍然只停在文字链接上） */
+  .card .go::after{content:"";position:absolute;inset:0;z-index:1}
+
+  /* 三栏里的卡片改成上下列：缩略图铺满上排，信息排下面 */
+  .groups .card{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"shot" "num" "title" "desc" "meta" "go";
+    gap:6px;padding:16px 16px 18px;border-radius:18px;
+  }
+  .groups .card .shot{max-width:none;margin-bottom:8px}
+  .groups .card .num{font-size:20px}
+  .groups .card h3{font-size:17px}
+  .groups .card p{font-size:14px;max-width:none;line-height:1.65}
+  .groups .card .meta{margin-top:10px}
+  .groups .card .go{justify-self:start;margin-top:8px}
+
+  /* 联系 */
+  .contact{text-align:center;padding:80px 0}
+  .contact .kicker{justify-content:center}
+  .contact .kicker::after{display:none}
+  .contact .lead{margin-left:auto;margin-right:auto}
+  .contact .actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:30px}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;color:var(--muted);font-size:12.5px;letter-spacing:.02em;background:rgba(9,14,24,.94)}
+  :root[data-theme="light"] footer{background:rgba(233,241,248,.96)}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+  footer .credit{justify-content:flex-start;margin-top:8px;font-size:11.5px;line-height:1.85}
+  footer .credit a{color:var(--muted);text-decoration:underline;text-underline-offset:2px;transition:color .18s ease}
+  footer .credit a:hover{color:var(--accent)}
+
+  /* 回到顶部 */
+  .to-top{
+    position:fixed;right:20px;bottom:20px;z-index:70;
+    width:42px;height:42px;border-radius:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+    background:var(--accent);border:1px solid var(--accent);color:var(--accent-ink);
+    opacity:0;visibility:hidden;transform:translateY(10px);
+    transition:opacity .25s,transform .25s,visibility .25s,background .2s;
+  }
+  .to-top.show{opacity:1;visibility:visible;transform:none}
+  .to-top:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+
+  /* 进场动画：只有浏览器启用 JS 时才隐藏，避免关掉 JS 后内容看不见 */
+  .js .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
+  .js .reveal.in{opacity:1;transform:none}
+
+  @media (max-width:820px){
+    .about-grid{grid-template-columns:1fr;gap:32px}
+    .feature-card{grid-template-columns:1fr;padding:26px;gap:24px}
+    .feature-shot{min-height:200px}
+    .hero{padding:60px 0 52px}
+    .section{padding:52px 0}
+    .contact{padding:60px 0}
+  }
+  /* 四栏放不下时降级：1400 以下三栏、1100 以下两栏、720 以下一栏。
+     左栏不再独占整行，否则那张卡会被拉宽到 1000px 以上，缩略图大得离谱。 */
+  @media (max-width:1400px){
+    .groups{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+  }
+  @media (max-width:1100px){
+    .groups{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+    .groups > .group:first-child{grid-column:auto}
+  }
+  @media (max-width:720px){
+    .nav-toggle{display:inline-flex}
+    .skill-groups{grid-template-columns:1fr;gap:22px}
+    .nav-links{
+      position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;
+      padding:6px 26px 14px;font-size:13px;
+      background:var(--paper);border-bottom:1px solid var(--line);
+      display:none;
+    }
+    .nav-links.open{display:flex}
+    .nav-links a{padding:12px 0;border-bottom:1px solid var(--line)}
+    .nav-links a:last-child{border-bottom:0}
+
+    /* 作品行在小屏上改成上下排列，缩略图放到标题下面占满整行 */
+    .card{
+      grid-template-columns:1fr;
+      grid-template-areas:"num" "title" "shot" "desc" "meta" "go";
+      gap:10px;
+      padding:18px 16px;
+      border-radius:18px;
+    }
+    .card .go{justify-self:start;margin-top:6px}
+    .card .shot{max-width:420px}
+
+    /* 手机上三栏彻底退回上下排列，组之间拉开距离 */
+    .groups{grid-template-columns:1fr;gap:30px;margin-top:22px}
+    .groups > .group:first-child{grid-column:auto}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .js .reveal{opacity:1;transform:none;transition:none}
+  }
+</style>
+<link rel="stylesheet" href="assets/fonts/serif.css">
+</head>
+
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<!-- ===================== 顶部导航 ===================== -->
+<header class="site-header">
+  <nav class="nav">
+    <!-- ↓↓↓ 改这里 ②：左上角你的名字 ↓↓↓ -->
+    <a class="brand" href="#top">Yuki<b>ii</b></a>
+    <!-- ↑↑↑ 改这里 ② ↑↑↑ -->
+    <div class="nav-links" id="navLinks">
+      <a href="#about">关于</a>
+      <a href="#skills">技能</a>
+      <a href="#work">作品</a>
+      <a href="#contact">联系</a>
+    </div>
+    <div class="nav-actions">
+      <!-- 深色 / 浅色切换按钮：默认浅色，点一下切深色，选择会记住 -->
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/></svg>
+      </button>
+      <button class="nav-toggle" id="navToggle" type="button" aria-label="打开菜单" aria-expanded="false"><span></span></button>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- ===================== 首屏 ===================== -->
+  <section class="hero">
+    <div class="wrap">
+      <!-- ↓↓↓ 改这里 ⑩：头像照片 ↓↓↓
+           把照片命名成 avatar.jpg，传到仓库根目录（和 index.html 放一起）就行。
+           图片还没传上去时，会自动显示下面的首字母 Y，不会出现裂图。 -->
+      <div class="avatar" aria-hidden="true">
+        Y
+        <img src="avatar.jpg" alt="" onerror="this.remove()" />
+      </div>
+      <!-- ↑↑↑ 改这里 ⑩ ↑↑↑ -->
+
+      <!-- ↓↓↓ 改这里 ③：你的名字 和 一句话介绍 ↓↓↓ -->
+      <h1>你好，我是 Yukiii。</h1>
+      <p class="tag">
+        一名普通的高三学生。
+      </p>
+      <!-- ↑↑↑ 改这里 ③ ↑↑↑ -->
+
+      <div class="actions">
+        <a class="btn btn-primary" href="#work">看看我的作品</a>
+        <a class="btn btn-ghost" href="#contact">联系我</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 关于我 ===================== -->
+  <section class="section" id="about">
+    <div class="wrap reveal">
+      <p class="kicker">About</p>
+      <h2>关于我</h2>
+      <div class="about-grid">
+        <!-- ↓↓↓ 改这里 ④：关于我正文（写 2～3 段最合适） ↓↓↓ -->
+        <div>
+          <p class="lead">
+            我是 Yukiii，17 岁。
+          </p>
+          <p class="lead">
+            正在备战高考。什么都想学点，但也都大多学艺不精，正在学习Unreal Engine、C++等。
+          </p>
+        </div>
+        <!-- ↑↑↑ 改这里 ④ ↑↑↑ -->
+
+        <!-- ↓↓↓ 改这里 ⑤：右侧小档案 ↓↓↓ -->
+        <aside class="facts">
+          <dl>
+            <dt>身份</dt><dd>学生</dd>
+            <dt>所在地</dt><dd>中国</dd>
+            <dt>正在学</dt><dd>Unreal Engine、C++</dd>
+            <dt>状态</dt><dd>备考中</dd>
+          </dl>
+        </aside>
+        <!-- ↑↑↑ 改这里 ⑤ ↑↑↑ -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 技能 ===================== -->
+  <section class="section" id="skills">
+    <div class="wrap reveal">
+      <p class="kicker">Skills</p>
+      <h2>我在用的东西</h2>
+      <p class="lead">“与天奋斗，其乐无穷；与地奋斗，其乐无穷；与人奋斗，其乐无穷。”</p>
+      <p class="lead">下面按「学到哪了」分个类。</p>
+
+      <!-- ↓↓↓ 改这里 ⑥：技能标签，一行一个或几个都行 ↓↓↓ -->
+      <div class="skill-groups">
+        <div class="skill-group">
+          <p class="skill-label">正在学</p>
+          <div class="tags">
+            <span class="tag-pill">Unreal Engine</span>
+            <span class="tag-pill">C++</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <p class="skill-label">用过一点</p>
+          <div class="tags">
+            <span class="tag-pill">Git / GitHub</span>
+            <span class="tag-pill">Office</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <p class="skill-label">AI 助手</p>
+          <div class="tags">
+            <span class="tag-pill tag-pill-ai">DeepSeek</span>
+            <span class="tag-pill tag-pill-ai">ChatGPT</span>
+          </div>
+        </div>
+      </div>
+      <!-- ↑↑↑ 改这里 ⑥ ↑↑↑ -->
+    </div>
+  </section>
+
+  <!-- ===================== 作品 ===================== -->
+  <section class="section" id="work">
+    <div class="wrap reveal">
+      <p class="kicker">Work</p>
+      <div class="section-head">
+        <h2>作品与项目</h2>
+      </div>
+      <p class="lead">项目展示页</p>
+
+        <!-- ↓↓↓ 改这里 ⑦：一个 <article class="card"> 就是一个作品，复制一份就多一个 ↓↓↓
+
+             【链接怎么写】把卡片里的 href="#" 换成你的目标，三种情况：
+
+             1) 项目放在本仓库里（推荐）
+                href="projects/游戏名/index.html"
+                对应仓库里的 projects/游戏名/index.html，点开就能玩。
+                ⚠️ 一定要写到 index.html 为止，别只写到文件夹（写成 projects/游戏名/）。
+                因为线上会自动打开文件夹里的 index.html，但你自己在电脑上双击本文件
+                预览时不会，会跳到一个光秃秃的文件列表。写全文件名则两边都一样。
+                ⚠️ 文件夹名用英文小写，别用中文和空格，网址里会变成一串 %E4%B8%AD 乱码。
+
+             2) 项目在另一个仓库，想让人直接玩
+                href="https://yukiii-26.github.io/仓库名/"
+                （那个仓库也要在 Settings → Pages 里打开。这是别的仓库，跨站访问，
+                  所以这里写目录形式没问题，不存在本地预览的问题）
+
+             3) 只想让人看代码，不做成网页
+                href="https://github.com/Yukiii-26/仓库名"
+
+             想让链接在新标签页打开，就再加两个属性：target="_blank" rel="noopener"
+
+             【项目文件夹里的 index.html】
+             文件名必须正好是 index.html（全小写），这样 /projects/游戏名/ 才会自动打开它。
+             项目内部的 css / js / 图片要用相对路径，比如 ./style.css、./game.js；
+             写成 /style.css 会跑到网站根目录去找，是错的。
+
+             【最容易踩的坑】GitHub 的服务器区分大小写：你本地 Windows 上写 Game.js 能跑，
+             传到线上就是 404。文件名统一用小写最省事。
+        -->
+
+      <!-- 以后有新项目：复制下面 template 里的结构，放在这一行下面 -->
+    </div>
+  </section>
+
+  <template id="tpl-featured-card">
+    <div class="feature-card">
+      <div>
+        <span class="feature-badge">状态 · 版本</span>
+        <h2>项目标题</h2>
+        <p class="feature-sub">副标题 · 类型 · 平台</p>
+        <p class="feature-desc">两到三句话说明这个项目是什么、做到什么程度。</p>
+        <div class="meta"><span>引擎</span><span>类型</span><span>平台</span></div>
+        <div class="actions">
+          <a class="btn btn-primary" href="#" target="_blank" rel="noopener">下载 ↗</a>
+          <a class="btn btn-ghost" href="#">源码 ↗</a>
+        </div>
+      </div>
+      <figure class="feature-shot">
+        <img src="assets/thumb-项目名.jpg" alt="项目截图" width="1000" height="750" loading="lazy" decoding="async">
+        <figcaption>PLACEHOLDER · DEMO</figcaption>
+      </figure>
+    </div>
+  </template>
+
+  <!-- ===================== 联系 ===================== -->
+  <section class="section contact" id="contact">
+    <div class="wrap reveal">
+      <p class="kicker">Contact</p>
+      <h2>想聊两句？</h2>
+      <p class="lead">有事可以直接发邮件给我。</p>
+
+      <!-- ↓↓↓ 改这里 ⑧：换成你的邮箱 和 GitHub 主页 ↓↓↓ -->
+      <div class="actions">
+        <a class="btn btn-primary" href="mailto:Zwin112667@Gmail.com">✉ Gmail</a>
+        <a class="btn btn-ghost" href="https://github.com/Yukiii-26" target="_blank" rel="noopener">GitHub 主页</a>
+      </div>
+      <!-- ↑↑↑ 改这里 ⑧ ↑↑↑ -->
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <!-- ↓↓↓ 改这里 ⑨：页脚，年份会自动更新 ↓↓↓ -->
+    <span>© <span id="year">2026</span> Yukiii</span>
+    <span>托管在 GitHub Pages</span>
+    <!-- 分享按钮：点了弹出「复制链接 / 微信 / ↗ 系统分享」等。想改外观搜 .share-btn -->
+    </button>
+    <!-- ↑↑↑ 改这里 ⑨ ↑↑↑ -->
+  </div>
+  <!-- 背景图来源声明：换了背景图就改这里（链接 + 作者名） -->
+  <div class="wrap credit">
+    <span>背景图来源：浅色 <a href="https://www.pixiv.net/artworks/61879076" target="_blank" rel="noopener noreferrer">しおん</a> · 深色 <a href="https://www.pixiv.net/artworks/138497108" target="_blank" rel="noopener noreferrer">-y枫l</a>；图片版权归原作者所有。</span>
+  </div>
+</footer>
+
+<button class="to-top" id="toTop" aria-label="回到顶部">↑</button>
+
+<!-- ===================== 分享面板（点页脚的「分享这个网站」才出现） ===================== -->
+<div class="share-sheet" id="shareSheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle" hidden>
+  <h4 id="shareTitle">分享给朋友</h4>
+  <p class="share-sub">直接把链接发过去，对方收到的就是带封面的卡片。</p>
+  <div class="share-grid">
+    <button type="button" id="shareCopy"><span class="si" aria-hidden="true">⧉</span>复制链接</button>
+    <button type="button" id="shareNative" class="mobile-only"><span class="si" aria-hidden="true">⤴</span>系统分享</button>
+    <button type="button" id="shareWechat"><span class="si" aria-hidden="true">💬</span>微信 / QQ</button>
+  </div>
+</div>
+<div class="toast" id="shareToast" role="status" aria-live="polite"></div>
+
+
+<script>
+  // 年份自动更新
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // 深浅色切换：默认浅色，点按钮切换并记住选择；浏览器标签栏的颜色跟着变
+  var themeToggle = document.getElementById('themeToggle');
+  var themeColorMeta = document.getElementById('themeColor');
+  function applyTheme(theme, persist) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#e9f1f8');
+    if (persist) { try { localStorage.setItem('theme', theme); } catch (e) {} }
+  }
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next, true);
+    });
+  }
+
+  // 滚动到哪一块，文字就轻轻浮上来
+  var items = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    items.forEach(function (el) { io.observe(el); });
+  } else {
+    items.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  // 小屏幕上的折叠菜单
+  var navToggle = document.getElementById('navToggle');
+  var navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', function () {
+    var open = navLinks.classList.toggle('open');
+    navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  navLinks.addEventListener('click', function (e) {
+    if (e.target.tagName === 'A') {
+      navLinks.classList.remove('open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // 导航高亮：滚到哪一节，上面哪个链接就亮起来
+  var sections = [].slice.call(document.querySelectorAll('main section[id]'));
+  var links = [].slice.call(document.querySelectorAll('.nav-links a'));
+  if ('IntersectionObserver' in window && sections.length) {
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id);
+        });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    sections.forEach(function (s) { spy.observe(s); });
+  }
+
+  // 往下滚一段之后，右下角出现「回到顶部」
+  var toTop = document.getElementById('toTop');
+  window.addEventListener('scroll', function () {
+    toTop.classList.toggle('show', window.scrollY > 480);
+  }, { passive: true });
+  toTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ===================== 分享（在文件里搜「分享」就能找到这一段） =====================
+  // 复制用的是 navigator.clipboard，本地双击打不开（file:// 不安全上下文）时自动退回老办法 execCommand。
+  var shareBtn = document.getElementById('shareBtn');
+  var shareSheet = document.getElementById('shareSheet');
+  var shareToast = document.getElementById('shareToast');
+  var shareTimer = null;
+
+  function toast(msg) {
+    shareToast.textContent = msg;
+    shareToast.classList.add('show');
+    clearTimeout(shareTimer);
+    shareTimer = setTimeout(function () { shareToast.classList.remove('show'); }, 2200);
+  }
+
+  function openShare() {
+    shareSheet.hidden = false;
+    // 先让它按 hidden 状态排一次版，再加 .show，transition 才会动
+    void shareSheet.offsetHeight;
+    shareSheet.classList.add('show');
+    shareBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeShare() {
+    shareSheet.classList.remove('show');
+    shareBtn.setAttribute('aria-expanded', 'false');
+    setTimeout(function () { if (!shareSheet.classList.contains('show')) shareSheet.hidden = true; }, 240);
+  }
+
+  // 老浏览器（含本地 file:// 预览）复制链接的兜底办法
+  function legacyCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function doCopy() {
+    var url = location.origin + location.pathname;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).then(function () {
+        toast('链接已复制，发出去就行');
+      }, function () {
+        toast(legacyCopy(url) ? '链接已复制，发出去就行' : '复制失败，长按地址栏手动复制吧');
+      });
+    } else {
+      toast(legacyCopy(url) ? '链接已复制，发出去就行' : '复制失败，长按地址栏手动复制吧');
+    }
+  }
+
+  shareBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (shareSheet.classList.contains('show')) { closeShare(); } else { openShare(); }
+  });
+  document.getElementById('shareCopy').addEventListener('click', doCopy);
+
+  // 手机上的「系统分享」：直接调起微信 / QQ / 备忘录等任意 App
+  var nativeBtn = document.getElementById('shareNative');
+  if (navigator.share) {
+    nativeBtn.addEventListener('click', function () {
+      navigator.share({ title: document.title, text: '我的个人主页', url: location.href })
+        .catch(function () {});
+    });
+  } else {
+    nativeBtn.parentNode.removeChild(nativeBtn);
+  }
+
+  // 电脑上的「微信 / QQ」：手机上没有这个按钮，所以不判断设备
+  document.getElementById('shareWechat').addEventListener('click', function () {
+    doCopy();
+    toast('已复制链接，粘到微信 / QQ 里发就行');
+  });
+
+  // 点面板外面 / 按 Esc 关掉
+  document.addEventListener('click', function (e) {
+    if (shareSheet.classList.contains('show') && !shareSheet.contains(e.target) && !shareBtn.contains(e.target)) {
+      closeShare();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && shareSheet.classList.contains('show')) closeShare();
+  });
+
+  // ===================== 🥚 彩蛋：键盘秘技（在文件里搜「彩蛋」就能找到这一段） =====================
+  // 在主页上依次敲 W W S S A D A D B A，就会跳到 egg/ 这一页。
+  // 也就是「上上下下左右左右 BA」的 WASD 版：W=上 S=下 A=左 D=右。
+  // 想换秘技：改 CODE 里的字母（全小写）。
+  // 想换跳转目标：改 EGG_URL。注意这里写成 egg/index.html 而不是 egg/，
+  // 因为本地双击预览时（file:// 协议）指向文件夹的地址只会列出文件、不会自动打开 index.html。
+  var CODE = 'wwssadadba';
+  var EGG_URL = 'egg/index.html';
+  var codeBuf = '';
+  document.addEventListener('keydown', function (e) {
+    // 按住不放时浏览器会连续触发，忽略掉
+    if (e.repeat) return;
+    // 正在输入框里打字就不抢按键（页面上现在没有输入框，留着以防以后新增）
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    // 只认能打出来的单个字符，Shift / Ctrl / 方向键之类一律跳过
+    if (!e.key || e.key.length !== 1) return;
+    codeBuf = (codeBuf + e.key.toLowerCase()).slice(-CODE.length);
+    if (codeBuf === CODE) {
+      codeBuf = '';
+      window.location.href = EGG_URL;
+    }
+  });
+
+  // 控制台提示：只有主动打开开发者工具（F12）的人才会看到，普通访客完全看不到。
+  // 想改提示文字就改下面的字符串；不想要提示，把这几行 console.log 整段删掉即可。
+  try {
+    console.log('%c🥚 你打开了控制台，那这里就藏点东西。',
+      'font-size:15px;font-weight:700;color:#c2410c;');
+    console.log('%c提示：那串很有名的「上上下下左右左右 BA」—— 不过键盘玩家用的不是方向键。',
+      'font-size:12.5px;color:#6f675c;');
+    console.log('%c想好了直接在页面上敲就行，不用点任何地方。',
+      'font-size:12.5px;color:#6f675c;');
+  } catch (err) {}
+</script>
+
+</body>
+</html>
